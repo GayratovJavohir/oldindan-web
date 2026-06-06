@@ -1,0 +1,129 @@
+{
+  "nav": {
+    "overview": "Umumiy ko'rinish",
+    "dashboard": "Boshqaruv paneli",
+    "management": "Boshqaruv",
+    "branches": "Filiallar",
+    "schemaBuilder": "Schena muharriri",
+    "tableView": "Stollar ko'rinishi",
+    "operations": "Operatsiyalar",
+    "bookings": "Band qilishlar",
+    "manualBooking": "Qo'lda band qilish",
+    "admin": "Admin",
+    "staff": "Xodimlar",
+    "analytics": "Analitika",
+    "settings": "Sozlamalar",
+    "notifications": "Bildirishnomalar"
+  },
+  "roles": {
+    "owner": "Egasi",
+    "manager": "Menejer",
+    "receptionist": "Qabulxona xodimi",
+    "partner": "Hamkor"
+  },
+  "common": {
+    "loading": "Yuklanmoqda...",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "search": "Qidirish...",
+    "logout": "Chiqish",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "confirm": "Tasdiqlash",
+    "success": "Muvaffaqiyatli",
+    "error": "Xatolik",
+    "back": "Orqaga",
+    "all": "Barchasi",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "status": "Holat",
+    "actions": "Harakatlar",
+    "add": "Qo'shish",
+    "create": "Yaratish",
+    "update": "Yangilash"
+  },
+  "auth": {
+    "welcome": "Xush kelibsiz",
+    "signInTo": "Hamkor hisobingizga kiring",
+    "email": "Elektron pochta",
+    "password": "Parol",
+    "signIn": "Kirish",
+    "signingIn": "Kirilmoqda...",
+    "invalidCredentials": "Noto'g'ri ma'lumotlar",
+    "sessionExpired": "Sessiya muddati tugadi, iltimos qayta kiring"
+  },
+  "dashboard": {
+    "title": "Umumiy ko'rinish",
+    "subtitle": "Bugungi kungi qisqacha ma'lumotlar",
+    "todayBookings": "Bugungi band qilishlar",
+    "guests": "Mehmonlar",
+    "estRevenue": "Kutilayotgan daromad",
+    "noShows": "Kelmaganlar",
+    "upcoming": "Kelgusi",
+    "recentActivity": "So'nggi faollik",
+    "noActivity": "So'nggi faollik yo'q"
+  },
+  "branches": {
+    "title": "Filiallar",
+    "subtitle": "Restoran joylashuvlarini boshqarish",
+    "addBranch": "Filial qo'shish",
+    "name": "Nomi",
+    "address": "Manzil",
+    "phone": "Telefon",
+    "tables": "Stollar",
+    "revenue": "Daromad"
+  },
+  "bookings": {
+    "title": "Band qilishlar",
+    "subtitle": "Barcha filiallardagi band qilishlarni boshqarish",
+    "newBooking": "Yangi band qilish",
+    "date": "Sana",
+    "time": "Vaqt",
+    "guestName": "Mehmon ismi",
+    "guestCount": "Mehmonlar",
+    "table": "Stol",
+    "branch": "Filial",
+    "status": {
+      "pending": "Kutilmoqda",
+      "confirmed": "Tasdiqlangan",
+      "completed": "Tugallangan",
+      "cancelled": "Bekor qilingan",
+      "no_show": "Kelmagan"
+    }
+  },
+  "analytics": {
+    "title": "Analitika",
+    "subtitle": "Tushunchalar va samaradorlik ko'rsatkichlari",
+    "revenueChart": "Vaqt bo'yicha daromad",
+    "bookingsByBranch": "Filiallar bo'yicha band qilishlar",
+    "popularTimes": "Mashhur vaqtlar"
+  },
+  "schema": {
+    "title": "Schema muharriri",
+    "subtitle": "Filiallar uchun xona rejasini yarating",
+    "tools": "Asboblar",
+    "saveLayout": "Rejani saqlash",
+    "saving": "Saqlanmoqda...",
+    "saved": "Reja saqlandi!",
+    "addFloor": "Qavat qo'shish",
+    "deleteFloor": "Qavatni o'chirish"
+  },
+  "staff": {
+    "title": "Xodimlar",
+    "subtitle": "Xodimlarga kirish va rollarni boshqarish",
+    "addStaff": "Xodim qo'shish",
+    "name": "Ism",
+    "email": "Elektron pochta",
+    "role": "Rol",
+    "branch": "Filial"
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "subtitle": "Hisob va afzalliklarni sozlang",
+    "profile": "Profil",
+    "security": "Xavfsizlik",
+    "notifications": "Bildirishnomalar"
+  }
+}

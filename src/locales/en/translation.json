@@ -1,0 +1,129 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "dashboard": "Dashboard",
+    "management": "Management",
+    "branches": "Branches",
+    "schemaBuilder": "Schema Builder",
+    "tableView": "Table View",
+    "operations": "Operations",
+    "bookings": "Bookings",
+    "manualBooking": "Manual Booking",
+    "admin": "Admin",
+    "staff": "Staff",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "notifications": "Notifications"
+  },
+  "roles": {
+    "owner": "Owner",
+    "manager": "Manager",
+    "receptionist": "Receptionist",
+    "partner": "Partner"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search...",
+    "logout": "Logout",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "success": "Success",
+    "error": "Error",
+    "back": "Back",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": "Status",
+    "actions": "Actions",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update"
+  },
+  "auth": {
+    "welcome": "Welcome back",
+    "signInTo": "Sign in to your partner account",
+    "email": "Email address",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "invalidCredentials": "Invalid credentials",
+    "sessionExpired": "Session expired, please login again"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "subtitle": "Today's summary across your locations",
+    "todayBookings": "Today's Bookings",
+    "guests": "Guests",
+    "estRevenue": "Est. Revenue",
+    "noShows": "No Shows",
+    "upcoming": "Upcoming",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No recent activity"
+  },
+  "branches": {
+    "title": "Branches",
+    "subtitle": "Manage your restaurant locations",
+    "addBranch": "Add Branch",
+    "name": "Name",
+    "address": "Address",
+    "phone": "Phone",
+    "tables": "Tables",
+    "revenue": "Revenue"
+  },
+  "bookings": {
+    "title": "Bookings",
+    "subtitle": "Manage reservations across all branches",
+    "newBooking": "New Booking",
+    "date": "Date",
+    "time": "Time",
+    "guestName": "Guest Name",
+    "guestCount": "Guests",
+    "table": "Table",
+    "branch": "Branch",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no_show": "No Show"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Insights and performance metrics",
+    "revenueChart": "Revenue Over Time",
+    "bookingsByBranch": "Bookings by Branch",
+    "popularTimes": "Popular Times"
+  },
+  "schema": {
+    "title": "Schema Builder",
+    "subtitle": "Design floor plans for your branches",
+    "tools": "Tools",
+    "saveLayout": "Save Layout",
+    "saving": "Saving...",
+    "saved": "Layout saved!",
+    "addFloor": "Add Floor",
+    "deleteFloor": "Delete Floor"
+  },
+  "staff": {
+    "title": "Staff Management",
+    "subtitle": "Manage employee access and roles",
+    "addStaff": "Add Staff Member",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "branch": "Branch"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure your account and preferences",
+    "profile": "Profile",
+    "security": "Security",
+    "notifications": "Notifications"
+  }
+}
