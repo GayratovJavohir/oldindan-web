@@ -1,0 +1,175 @@
+.branchContainer {
+    background-color: #121212;
+    color: #ffffff;
+    padding: 24px 28px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: 210px;
+}
+
+/* --- Mavjud Header Styles --- */
+.branchHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    height: 52px;
+    padding: 0 28px;
+    margin-left: 210px;
+}
+
+.branchTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+/* Header ichidagi "+ Add Branch" tugmasi */
+.addBranchBtn {
+    background-color: #8b1515;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.addBranchBtn:hover {
+    background-color: #a31c1c;
+}
+
+/* --- Sahifaning asosiy Cardlar konteyneri --- */
+.branchContainer {
+    margin-left: 210px;
+    padding: 28px;
+    background-color: #0b0b0b;
+    min-height: calc(100vh - 52px);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background-color: #131313;
+    border: 1px solid #222222;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.cardTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.active {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+}
+
+.inactive {
+    background-color: rgba(142, 142, 147, 0.15);
+    color: #8e8e93;
+}
+
+.statusDot {
+    font-size: 8px;
+}
+
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.infoRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.infoIcon {
+    font-size: 14px;
+}
+
+.infoText {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.badgeContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.miniBadge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #1c1c1e;
+    border: 1px solid #2c2c2e;
+    color: #d1d1d6;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.miniIcon {
+    font-size: 12px;
+}
+
+.depositBadge {
+    background-color: rgba(212, 163, 89, 0.1);
+    border: 1px solid rgba(212, 163, 89, 0.25);
+    color: #d4a359;
+}
+
+.cardActions {
+    display: flex;
+    gap: 10px;
+}
+
+.actionBtn {
+    background-color: transparent;
+    border: 1px solid #2c2c2e;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+    background-color: #1c1c1e;
+    border-color: #444446;
+}

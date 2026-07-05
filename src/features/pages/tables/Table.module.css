@@ -1,0 +1,166 @@
+.tablesContainer {
+    background-color: #121212;
+    color: #ffffff;
+    padding: 24px 28px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: 210px;
+}
+
+.tablesHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    height: 52px;
+    padding: 0 28px;
+    margin-left: 210px;
+}
+
+
+.tablesTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+
+.cardTable {
+    background-color: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cardTableHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.buttonWrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cardTableHeader {
+    select {
+        background-color: transparent;
+        color: #ffffff;
+        border: none;
+        padding: 0 8px;
+        height: 33px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border: 2px solid #8c1919;
+    }
+}
+
+.headerTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.addBtn {
+    background-color: #8c1919;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.addBtn:hover {
+    background-color: #a61e1e;
+}
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.Table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.Table th {
+    color: #888888;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.Table td {
+    color: #e0e0e0;
+    font-size: 14px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2a2a2a;
+    vertical-align: middle;
+}
+
+.Table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+.slug {
+    font-family: 'Courier New', Courier, monospace;
+    color: #a0a0a0;
+}
+
+.editBtn {
+    background-color: transparent;
+    color: #ffffff;
+    border: 1px solid #333333;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+    background-color: #2a2a2a;
+    border-color: #444444;
+}
+
+.deactiveBtn {
+    background: #2b1a1a;
+    color: #ff4d4f;
+    border: 1px solid #6b2d2d;
+    border-radius: 12px;
+    padding: 6px 16px;
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.deactiveBtn:hover {
+    background: #3a2020;
+    border-color: #ff4d4f;
+    color: #ff6666;
+}
+
+.deactiveBtn:active {
+    transform: scale(0.97);
+}

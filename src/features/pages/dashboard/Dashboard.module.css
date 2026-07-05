@@ -1,0 +1,497 @@
+.dashboardContainer {
+    background-color: #0e0e0e;
+    color: #ffffff;
+    padding: 24px 28px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: 210px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    height: 52px;
+    padding: 0 28px;
+    margin-left: 210px;
+}
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.bellIcon {
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.15s;
+}
+
+.bellIcon:hover {
+    color: #fff;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.bellIcon {
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.15s;
+}
+
+.bellIcon:hover {
+    color: #fff;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.statCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.statTitle {
+    font-size: 11px;
+    color: #777;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.statIcon {
+    font-size: 22px;
+    opacity: 0.25;
+}
+
+.statValue {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 10px 0 6px;
+    color: #ffffff;
+}
+
+.statSubtext {
+    font-size: 12px;
+    color: #666;
+}
+
+.positive {
+    color: #00ca71;
+}
+
+.negative {
+    color: #e74c3c;
+}
+
+.pendingText {
+    color: #ffb800;
+}
+
+.mainContentGrid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.bookingBlock,
+.statusBlock,
+.notificationsBlock {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.bookingBlockHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.blockHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.blockTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.viewAllBtn {
+    background: none;
+    border: 1px solid #333;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.viewAllBtn:hover {
+    border-color: #555;
+    color: #fff;
+}
+
+.bookingList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bookingRow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background-color: #212121;
+    border: 1px solid #2a2a2a;
+}
+
+.bookingTime {
+    display: flex;
+    flex-direction: column;
+    min-width: 48px;
+}
+
+.timeStart {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.timeEnd {
+    font-size: 12px;
+    color: #666;
+}
+
+.bookingInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.guestName {
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.guestMeta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.tableInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 60px;
+}
+
+.tableId {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.floorId {
+    font-size: 11px;
+    color: #666;
+}
+
+.statusBadge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    min-width: 90px;
+    justify-content: center;
+}
+
+.statusDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.statusConfirmed {
+    background-color: rgba(0, 122, 255, 0.15);
+    color: #4da6ff;
+    border: 1px solid rgba(0, 122, 255, 0.25);
+}
+
+.statusConfirmed .statusDot {
+    background-color: #4da6ff;
+}
+
+.statusPending {
+    background-color: rgba(255, 184, 0, 0.12);
+    color: #ffb800;
+    border: 1px solid rgba(255, 184, 0, 0.25);
+}
+
+.statusPending .statusDot {
+    background-color: #ffb800;
+}
+
+.statusList {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.statusRow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.statusLabelRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.statusDotSmall {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.statusLabel {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.statusCount {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.barTrack {
+    height: 4px;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 100%;
+    border-radius: 4px;
+    background-color: #e74c3c;
+    transition: width 0.3s ease;
+}
+
+
+.notificationsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filterGroup {
+    display: flex;
+    gap: 6px;
+}
+
+.filterBtn {
+    background: none;
+    border: 1px solid #333;
+    color: #888;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.filterBtn:hover {
+    border-color: #555;
+    color: #ccc;
+}
+
+.filterBtnActive {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #ffffff;
+}
+
+.notificationList {
+    display: flex;
+    flex-direction: column;
+}
+
+.notificationRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #222;
+}
+
+.notificationRow:last-child {
+    border-bottom: none;
+}
+
+.notifEmoji {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.notifContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.notifTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.notifDesc {
+    font-size: 13px;
+    color: #888;
+}
+
+.notifTime {
+    font-size: 12px;
+    color: #555;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+
+.bookingItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.bookingTime {
+    display: flex;
+    flex-direction: column;
+}
+
+.bookingDetails {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-left: 24px;
+}
+
+
+
+.statusBadge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #222;
+}
+
+.statusBadge.confirmed {
+    color: #0066ff;
+}
+
+.statusBadge.pending {
+    color: #ffb800;
+}
+
+.statusBadge.canceled {
+    color: #ff3333;
+}
+
+
+
+.statusRow {
+    margin-bottom: 20px;
+}
+
+.statusLabelInfo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.statusIndicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.statusCount {
+    margin-left: auto;
+    font-weight: bold;
+}
+
+
+
+.progressBarBg {
+    width: 100%;
+    height: 6px;
+    background-color: #262626;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease-in-out;
+}

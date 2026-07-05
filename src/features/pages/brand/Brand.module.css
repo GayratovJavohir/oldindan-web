@@ -1,0 +1,123 @@
+.brandContainer {
+    background-color: #121212;
+    color: #ffffff;
+    padding: 24px 28px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: 210px;
+}
+
+.brandHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    height: 52px;
+    padding: 0 28px;
+    margin-left: 210px;
+}
+
+.brandTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+
+.cardBrand {
+    background-color: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cardBrandHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.headerTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.addBtn {
+    background-color: #8c1919;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.addBtn:hover {
+    background-color: #a61e1e;
+}
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.brandTable {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.brandTable th {
+    color: #888888;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.brandTable td {
+    color: #e0e0e0;
+    font-size: 14px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #2a2a2a;
+    vertical-align: middle;
+}
+
+.brandTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.brandName {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.slug {
+    font-family: 'Courier New', Courier, monospace;
+    color: #a0a0a0;
+}
+
+.editBtn {
+    background-color: transparent;
+    color: #ffffff;
+    border: 1px solid #333333;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+    background-color: #2a2a2a;
+    border-color: #444444;
+}

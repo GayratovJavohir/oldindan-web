@@ -1,0 +1,463 @@
+.bookingsContainer {
+    background-color: #121212;
+    color: #ffffff;
+    padding: 24px 28px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: 210px;
+}
+
+.bookingsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    height: 52px;
+    padding: 0 28px;
+    margin-left: 210px;
+}
+
+.bookingsTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+.container {
+    background-color: #111111;
+    color: #e0e0e0;
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.manualBtn {
+    background-color: #b30006;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.manualBtn:hover {
+    background-color: #900005;
+}
+
+.mainCard {
+    background-color: #151515;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.searchInput {
+    flex: 1;
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.selectInput,
+.dateInput {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+.applyBtn {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #3a3a3a;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.applyBtn:hover {
+    background-color: #333333;
+}
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.table th {
+    color: #777777;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 16px 8px;
+    border-bottom: 1px solid #222222;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    padding: 16px 8px;
+    border-bottom: 1px solid #222222;
+    vertical-align: middle;
+}
+
+.idCol {
+    color: #555555;
+}
+
+.guestName,
+.branchName,
+.dateText {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.guestPhone,
+.tableName,
+.timeText {
+    color: #777777;
+    font-size: 12px;
+}
+
+.guestsCount {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.statusBadge::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.statusConfirmed {
+    background-color: rgba(24, 61, 119, 0.3);
+    color: #4c8bf5;
+}
+
+.statusConfirmed::before {
+    background-color: #4c8bf5;
+}
+
+.statusPending {
+    background-color: rgba(121, 85, 23, 0.3);
+    color: #f5a623;
+}
+
+.statusPending::before {
+    background-color: #f5a623;
+}
+
+.statusCheckedIn {
+    background-color: rgba(90, 39, 130, 0.3);
+    color: #a463f2;
+}
+
+.statusCheckedIn::before {
+    background-color: #a463f2;
+}
+
+.statusCompleted {
+    background-color: rgba(20, 78, 41, 0.3);
+    color: #2da44e;
+}
+
+.statusCompleted::before {
+    background-color: #2da44e;
+}
+
+.statusCanceled {
+    background-color: rgba(117, 26, 26, 0.3);
+    color: #cf222e;
+}
+
+.statusCanceled::before {
+    background-color: #cf222e;
+}
+
+.statusNoShow {
+    background-color: rgba(50, 50, 50, 0.5);
+    color: #888888;
+}
+
+.statusNoShow::before {
+    background-color: #888888;
+}
+
+.sourceBadge {
+    background-color: #1e1e1e;
+    border: 1px solid #2d2d2d;
+    color: #aaaaaa;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.viewBtn,
+.confirmBtn,
+.cancelBtn {
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.viewBtn:hover,
+.confirmBtn:hover,
+.cancelBtn:hover {
+    opacity: 0.9;
+}
+
+.viewBtn {
+    background-color: #222222;
+    color: #ffffff;
+    border: 1px solid #333333;
+}
+
+.confirmBtn {
+    background-color: #b30006;
+    color: #ffffff;
+}
+
+.cancelBtn {
+    background-color: rgba(179, 0, 6, 0.1);
+    color: #b30006;
+    border: 1px solid rgba(179, 0, 6, 0.2);
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.resultsCount {
+    color: #777777;
+    font-size: 14px;
+}
+
+.paginationBtns {
+    display: flex;
+    gap: 8px;
+}
+
+.pageBtn {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.pageBtn:hover {
+    background-color: #252525;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: #151515;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.modalTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid #2a2a2a;
+    color: #aaaaaa;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.closeBtn:hover {
+    color: #ffffff;
+    background-color: #222222;
+}
+
+.modalBody {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-size: 13px;
+    color: #aaaaaa;
+    font-weight: 500;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+    border-color: #4a4a4a;
+}
+
+.formGroup textarea {
+    resize: vertical;
+}
+
+.modalFooter {
+    padding: 20px 24px;
+    border-top: 1px solid #2a2a2a;
+    display: flex;
+    gap: 12px;
+}
+
+.modalCancelBtn {
+    background-color: #222222;
+    color: #ffffff;
+    border: 1px solid #333333;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.modalCancelBtn:hover {
+    background-color: #2a2a2a;
+}
+
+.modalSubmitBtn {
+    flex: 1;
+    background-color: #b30006;
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.modalSubmitBtn:hover {
+    background-color: #900005;
+}
