@@ -9,7 +9,7 @@ const navItems = {
   BOOKINGS: [
     { label: 'All Bookings', icon: '☰', badge: 12, path: '/bookings' },
     { label: 'Live View', icon: '◷', path: '/live-view' },
-    { label: 'Manual Booking', icon: '+', path: '/manual-booking' },
+    { label: 'Manual Booking', icon: '+', path: '/manual-bookings' },
   ],
   VENUE: [
     { label: 'Floor Layout', icon: '⊡', path: '/floor-layout' },
@@ -36,7 +36,7 @@ export default function Sidebar() {
 
       <div className={styles.activeBranch}>
         <span className={styles.activeBranchLabel}>ACTIVE BRANCH</span>
-        <span className={styles.activeBranchName}>KFC Almazor</span>
+        <span className={styles.activeBranchName}>KFC Olmazor</span>
       </div>
 
       <nav className={styles.nav}>

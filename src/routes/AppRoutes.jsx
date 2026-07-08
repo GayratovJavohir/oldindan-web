@@ -10,7 +10,11 @@ import BrandPage from '../pages/BrandPage';
 import BranchPage from '../pages/BranchPage'
 import TablesPage from '../pages/TablesPage';
 import BookingsPage from '../pages/BookingsPage';
-import LiveFloorPage from '../pages/LiveFloorPage';
+import LayoutPage from '../pages/LayoutPage';
+import NotificationPage from '../pages/NotificationPage';
+import ManualBookingsPage from '../pages/ManualBookingsPage';
+import ProfilePage from '../pages/ProfilePage';
+import LiveLayoutPage from '../pages/LiveLayoutPage';
 
 const PageLoader = () => <div className='loader'> Loading Stats </div>;
 
@@ -24,11 +28,15 @@ export default function AppRoutes() {
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="bookings" element={<BookingsPage />} />
-                    <Route path="floor-layout" element={<LiveFloorPage />} />
+                    <Route path="manual-bookings" element={<ManualBookingsPage />} />
+                    <Route path="floor-layout" element={<LayoutPage />} />
+                    <Route path="live-view" element={<LiveLayoutPage />} />
                     <Route path="brands" element={<BrandPage />} />
                     <Route path="staff" element={<StaffPage />} />
                     <Route path="branches" element={<BranchPage />} />
                     <Route path="tables" element={<TablesPage />} />
+                    <Route path="notifications" element={<NotificationPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
                 </Route>
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>

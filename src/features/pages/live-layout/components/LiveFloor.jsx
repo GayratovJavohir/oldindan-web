@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LogIn, Monitor, Bath } from 'lucide-react';
-import styles from '../Floor.module.css';
+import styles from '../LiveLayout.module.css';
 
 const tablesData = [
     { id: 'T1', type: 'circle', top: 120, left: 100, status: 'available', seats: 4 },

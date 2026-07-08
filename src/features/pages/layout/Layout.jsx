@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './Floor.module.css'
-import LiveFloor from './components/LiveFloor'
+import LayoutFloor from './components/LayoutFloor'
 
 export default function Layout() {
     return (
@@ -10,7 +10,7 @@ export default function Layout() {
                 <div className={styles.bellIcon}>🔔</div>
             </header>
             <div className={styles.layoutContainer}>
-                <LiveFloor />
+                <LayoutFloor />
             </div>
         </>
     )
