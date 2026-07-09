@@ -1,4 +1,5 @@
 import $api from '../config/api.config';
+import { mapProfile, setStoredUser, clearStoredUser } from '../utils/authUser';
 
 const AuthService = {
     async login(email, password) {
@@ -14,6 +15,16 @@ const AuthService = {
             localStorage.setItem('rp_refresh', refresh);
         }
 
+        const profile = response.data?.user || (await AuthService.getProfile());
+        if (profile) {
+            setStoredUser(mapProfile(profile));
+        }
+
+        return response.data;
+    },
+
+    async getProfile() {
+        const response = await $api.get('/accounts/me/');
         return response.data;
     },
 
@@ -21,6 +32,7 @@ const AuthService = {
         localStorage.removeItem('rp_access');
         localStorage.removeItem('rp_refresh');
         localStorage.removeItem('token');
+        clearStoredUser();
     }
 };
 

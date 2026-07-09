@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '../Branch.module.css';
 
-export default function BranchCard({ branch }) {
+export default function BranchCard({ branch, onEdit }) {
     const { name, status, location, phone, floors, tables, fee, hasDeposit } = branch;
 
     return (
@@ -42,8 +42,10 @@ export default function BranchCard({ branch }) {
             </div>
 
             <div className={styles.cardActions}>
-                <button className={styles.actionBtn}>Edit</button>
-                <button className={styles.actionBtn}>Layout</button>
+                {onEdit && (
+                    <button type="button" className={styles.actionBtn} onClick={onEdit}>Edit</button>
+                )}
+                <button type="button" className={styles.actionBtn}>Layout</button>
             </div>
         </div>
     );
