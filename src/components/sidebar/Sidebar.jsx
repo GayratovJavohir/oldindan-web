@@ -6,21 +6,21 @@ import { getStoredUser } from '../../utils/authUser';
 
 const navItems = {
   OVERVIEW: [
-    { label: 'Dashboard', icon: '⊞', path: '/dashboard', roles: ['owner', 'manager', 'receptionist'] },
+    { label: 'Dashboard', icon: '⊞', path: '/dashboard', roles: ['owner', 'manager'] },
   ],
   BOOKINGS: [
     { label: 'All Bookings', icon: '☰', badge: 12, path: '/bookings', roles: ['owner', 'manager', 'receptionist'] },
-    { label: 'Live View', icon: '◷', path: '/live-view', roles: ['owner', 'manager', 'receptionist'] },
+    { label: 'Live View', icon: '◷', path: '/live-view', roles: ['owner', 'manager'] },
     { label: 'Manual Booking', icon: '+', path: '/manual-bookings', roles: ['owner', 'manager', 'receptionist'] },
   ],
   VENUE: [
     { label: 'Floor Layout', icon: '⊡', path: '/floor-layout', roles: ['owner', 'manager'] },
-    { label: 'Tables', icon: '⊟', path: '/tables', roles: ['owner', 'manager', 'receptionist'] },
+    { label: 'Tables', icon: '⊟', path: '/tables', roles: ['owner', 'manager'] },
     { label: 'Branches', icon: '⌂', path: '/branches', roles: ['owner'] },
   ],
   MANAGEMENT: [
     { label: 'Brands', icon: '◈', path: '/brands', roles: ['owner'] },
-    { label: 'Staff', icon: '👤', path: '/staff', roles: ['owner', 'manager'] },
+    { label: 'Staff', icon: '👤', path: '/staff', roles: ['owner'] },
   ],
   ACCOUNT: [
     { label: 'Notifications', icon: '🔔', path: '/notifications', roles: ['owner', 'manager', 'receptionist'] },
@@ -47,7 +47,9 @@ export default function Sidebar() {
 
       <div className={styles.activeBranch}>
         <span className={styles.activeBranchLabel}>ACTIVE BRANCH</span>
-        <span className={styles.activeBranchName}>Partner workspace</span>
+        <span className={styles.activeBranchName}>
+          {user?.branchId ? `Branch #${user.branchId}` : 'Partner workspace'}
+        </span>
       </div>
 
       <nav className={styles.nav}>

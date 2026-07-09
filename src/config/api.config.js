@@ -10,9 +10,9 @@ const LEGACY_TOKEN_KEY = 'token';
 
 const REFRESH_ENDPOINTS = [
     'accounts/token/refresh/',
+    'accounts/owner/token/refresh/',
+    'accounts/staff/token/refresh/',
     'accounts/partner/token/refresh/',
-    'accounts/partner/refresh-token/',
-    'accounts/partner/refresh/',
     'token/refresh/',
 ];
 

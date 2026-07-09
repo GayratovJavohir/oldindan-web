@@ -176,3 +176,37 @@
     color: #7f8898;
     font-size: 12px;
 }
+
+.accountTypeTabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.accountTab {
+    background: #1a1f2b;
+    border: 1px solid #2a3140;
+    color: #9aa3b2;
+    border-radius: 10px;
+    padding: 10px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.accountTabActive {
+    background: rgba(232, 25, 44, 0.12);
+    border-color: #e8192c;
+    color: #fff;
+}
+
+.errorBanner {
+    background: rgba(232, 25, 44, 0.12);
+    border: 1px solid rgba(232, 25, 44, 0.35);
+    color: #ff8f98;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}

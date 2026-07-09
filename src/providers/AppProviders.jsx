@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import AuthService from '../services/auth.services';
-import { getStoredUser, mapProfile, setStoredUser } from '../utils/authUser';
+import { getStoredUser, mapProfile, setStoredUser, getAccountType } from '../utils/authUser';
 
 function AuthBootstrap({ children }) {
     useEffect(() => {
@@ -8,7 +8,7 @@ function AuthBootstrap({ children }) {
         if (!token || getStoredUser()) return;
 
         AuthService.getProfile()
-            .then((profile) => setStoredUser(mapProfile(profile)))
+            .then((profile) => setStoredUser(mapProfile(profile, getAccountType())))
             .catch(() => {});
     }, []);
 

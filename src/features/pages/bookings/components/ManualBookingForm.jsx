@@ -3,6 +3,7 @@ import styles from '../Bookings.module.css';
 import $api from '../../../../config/api.config';
 import { createManualBooking, getOccupiedTables } from '../../../../services/bookings.services';
 import { getPartnerTables } from '../../../../services/tables.services';
+import { getStoredUser } from '../../../../utils/authUser';
 
 function toLocalInputValue(date) {
     const pad = (value) => String(value).padStart(2, '0');
@@ -56,21 +57,42 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
 
     useEffect(() => {
         let active = true;
+        const user = getStoredUser();
+        const assignedBranchId = user?.branchId;
+        const isReceptionist = user?.role === 'receptionist';
+
         (async () => {
             setLoading(true);
+            setErrorMessage('');
             try {
-                const [branchesRes, floorsRes] = await Promise.all([
-                    $api.get('/restaurants/partner/branches/'),
-                    $api.get('/layouts/partner/floors/'),
-                ]);
-                if (!active) return;
-                const branchList = unwrapList(branchesRes.data);
-                const floorList = unwrapList(floorsRes.data);
+                let branchList = [];
+                let floorList = [];
+
+                if (isReceptionist && assignedBranchId) {
+                    const [branchRes, floorsRes] = await Promise.all([
+                        $api.get(`/restaurants/partner/branches/${assignedBranchId}/`).catch(() =>
+                            $api.get(`/restaurants/branches/${assignedBranchId}/`)
+                        ),
+                        $api.get(`/layouts/branches/${assignedBranchId}/floors/`),
+                    ]);
+                    if (!active) return;
+                    branchList = [branchRes.data];
+                    floorList = unwrapList(floorsRes.data);
+                } else {
+                    const [branchesRes, floorsRes] = await Promise.all([
+                        $api.get('/restaurants/partner/branches/'),
+                        $api.get('/layouts/partner/floors/'),
+                    ]);
+                    if (!active) return;
+                    branchList = unwrapList(branchesRes.data);
+                    floorList = unwrapList(floorsRes.data);
+                }
+
                 setBranches(branchList);
                 setFloors(floorList);
                 setForm((prev) => ({
                     ...prev,
-                    branch: prev.branch || branchList[0]?.id || '',
+                    branch: prev.branch || branchList[0]?.id || assignedBranchId || '',
                 }));
             } catch (err) {
                 console.error('Manual booking bootstrap error:', err);
@@ -109,9 +131,18 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         }
         (async () => {
             try {
-                const data = await getPartnerTables(form.branch);
+                let list = [];
+                try {
+                    const data = await getPartnerTables(form.branch);
+                    list = unwrapList(data);
+                } catch {
+                    const { data } = await $api.get(`/tables/branches/${form.branch}/tables/`, {
+                        params: form.floor ? { floor_id: form.floor } : {},
+                    });
+                    list = unwrapList(data);
+                }
                 if (!active) return;
-                const list = unwrapList(data).filter((table) => {
+                list = list.filter((table) => {
                     if (!form.floor) return true;
                     return String(table.floor ?? table.floor_id) === String(form.floor);
                 });
@@ -217,6 +248,9 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         }
     };
 
+    const user = getStoredUser();
+    const lockBranch = user?.role === 'receptionist' && branches.length <= 1;
+
     return (
         <>
             <div className={styles.modalBody}>
@@ -230,7 +264,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                     </div>
                     <div className={styles.formGroup}>
                         <label>Branch *</label>
-                        <select name="branch" value={form.branch} onChange={updateField}>
+                        <select name="branch" value={form.branch} onChange={updateField} disabled={lockBranch}>
                             <option value="">Select branch</option>
                             {branches.map((branch) => (
                                 <option key={branch.id} value={branch.id}>{branch.name}</option>

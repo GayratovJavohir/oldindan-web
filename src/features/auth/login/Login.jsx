@@ -1,23 +1,24 @@
-import React from 'react'
-import { useForm } from 'react-hook-form'
-import styles from './Login.module.css'
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import styles from './Login.module.css';
 import AuthService from '../../../services/auth.services';
 import { useNavigate } from 'react-router-dom';
+import { getDefaultRouteForRole, getStoredUser } from '../../../utils/authUser';
 
 export default function Login() {
     const navigate = useNavigate();
+    const [accountType, setAccountType] = useState('owner');
+    const [loginError, setLoginError] = useState('');
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
     const onSubmit = async (data) => {
+        setLoginError('');
         try {
-            const result = await AuthService.login(data.email, data.password);
-
-            if (result) {
-                navigate("/dashboard");
-            }
-
+            await AuthService.login(data.email, data.password, accountType);
+            const user = getStoredUser();
+            navigate(getDefaultRouteForRole(user?.role || (accountType === 'owner' ? 'owner' : 'receptionist')));
         } catch (error) {
-            alert(error.response?.data?.message || "Email or password is incorrect.");
+            setLoginError(error.message || 'Email or password is incorrect.');
         }
     };
 
@@ -30,13 +31,32 @@ export default function Login() {
                     <p className={styles.logoSubtext}>Tizimga kirish</p>
                 </div>
 
+                <div className={styles.accountTypeTabs}>
+                    <button
+                        type="button"
+                        className={`${styles.accountTab} ${accountType === 'owner' ? styles.accountTabActive : ''}`}
+                        onClick={() => setAccountType('owner')}
+                    >
+                        Owner
+                    </button>
+                    <button
+                        type="button"
+                        className={`${styles.accountTab} ${accountType === 'staff' ? styles.accountTabActive : ''}`}
+                        onClick={() => setAccountType('staff')}
+                    >
+                        Staff (Manager / Receptionist)
+                    </button>
+                </div>
+
                 <form className={styles.loginForm} onSubmit={handleSubmit(onSubmit)}>
+                    {loginError && <div className={styles.errorBanner}>{loginError}</div>}
+
                     <div className={styles.inputGroup}>
                         <label htmlFor="email">Email manzili</label>
                         <input
                             id="email"
                             type="email"
-                            placeholder="partner@restaurant.com"
+                            placeholder={accountType === 'owner' ? 'owner@restaurant.com' : 'staff@restaurant.com'}
                             {...register('email', { required: 'Email kiritish majburiy!' })}
                             className={errors.email ? styles.inputError : ''}
                         />
@@ -64,8 +84,12 @@ export default function Login() {
                 </form>
 
                 <div className={styles.divider}></div>
-                <p className={styles.footerText}>Partner login (owner / manager)</p>
+                <p className={styles.footerText}>
+                    {accountType === 'owner'
+                        ? 'Owner login — POST /accounts/owner/login/'
+                        : 'Staff login — POST /accounts/staff/login/'}
+                </p>
             </div>
         </div>
-    )
+    );
 }

@@ -1,13 +1,12 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-import LoginPage from "../pages/LoginPage";
-import DashboardPage from "../pages/DashboardPage";
-import NotFoundPage from "../pages/NotFoundPage";
-import Sidebar from '../components/sidebar/Sidebar';
+import LoginPage from '../pages/LoginPage';
+import DashboardPage from '../pages/DashboardPage';
+import NotFoundPage from '../pages/NotFoundPage';
 import StaffPage from '../pages/StaffPage';
 import BrandPage from '../pages/BrandPage';
-import BranchPage from '../pages/BranchPage'
+import BranchPage from '../pages/BranchPage';
 import TablesPage from '../pages/TablesPage';
 import BookingsPage from '../pages/BookingsPage';
 import LayoutPage from '../pages/LayoutPage';
@@ -15,17 +14,24 @@ import NotificationPage from '../pages/NotificationPage';
 import ManualBookingsPage from '../pages/ManualBookingsPage';
 import ProfilePage from '../pages/ProfilePage';
 import LiveLayoutPage from '../pages/LiveLayoutPage';
+import ProtectedLayout from '../components/ProtectedLayout';
+import { getDefaultRouteForRole, getStoredUser } from '../utils/authUser';
 
-const PageLoader = () => <div className='loader'> Loading Stats </div>;
+const PageLoader = () => <div className="loader">Loading...</div>;
+
+function HomeRedirect() {
+    const user = getStoredUser();
+    const role = user?.role || 'manager';
+    return <Navigate to={getDefaultRouteForRole(role)} replace />;
+}
 
 export default function AppRoutes() {
     return (
         <Suspense fallback={<PageLoader />}>
-            <Sidebar />
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/">
-                    <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route element={<ProtectedLayout />}>
+                    <Route path="/" element={<HomeRedirect />} />
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="bookings" element={<BookingsPage />} />
                     <Route path="manual-bookings" element={<ManualBookingsPage />} />
@@ -41,5 +47,5 @@ export default function AppRoutes() {
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </Suspense>
-    )
+    );
 }
