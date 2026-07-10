@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from '../Profile.module.css';
 import StatCard from '../../dashboard/components/StatCard';
 import StatusBreakdown from '../../dashboard/components/StatusBreakdown';
@@ -6,7 +6,6 @@ import {
     aggregateStats,
     fetchBranchDayStats,
     fetchBranchesDayStats,
-    groupStatsByBrand,
 } from '../../../../services/analytics.services';
 import { getPartnerBrands, getPartnerBranches, getPartnerBranch } from '../../../../services/restaurants.services';
 import { getApiError } from '../../../../utils/apiHelpers';
@@ -17,6 +16,30 @@ function roleLabel(role) {
     if (role === 'manager') return 'Manager';
     if (role === 'receptionist') return 'Receptionist';
     return 'Staff';
+}
+
+function BrandPickerGrid({ brands, onSelect }) {
+    if (!brands.length) {
+        return <p className={styles.emptyBranchNote}>No brands found. Create a brand first.</p>;
+    }
+
+    return (
+        <div className={styles.brandPickerGrid}>
+            {brands.map((brand) => (
+                <button
+                    key={brand.id}
+                    type="button"
+                    className={styles.brandPickerCard}
+                    onClick={() => onSelect(brand)}
+                >
+                    <div className={styles.brandPickerIcon}>◈</div>
+                    <h3>{brand.name}</h3>
+                    <p>{brand.slug}</p>
+                    <span className={styles.brandPickerMeta}>{brand.branches} branches</span>
+                </button>
+            ))}
+        </div>
+    );
 }
 
 function StaffAnalytics() {
@@ -93,9 +116,11 @@ function StaffAnalytics() {
 
 function OwnerAnalytics() {
     const [brands, setBrands] = useState([]);
+    const [allBranches, setAllBranches] = useState([]);
+    const [selectedBrand, setSelectedBrand] = useState(null);
     const [branchStats, setBranchStats] = useState([]);
-    const [totals, setTotals] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadingBrandStats, setLoadingBrandStats] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -108,8 +133,6 @@ function OwnerAnalytics() {
                     getPartnerBrands(),
                     getPartnerBranches(),
                 ]);
-
-                const stats = await fetchBranchesDayStats(branchList);
                 if (!active) return;
 
                 const branchCountByBrand = branchList.reduce((acc, branch) => {
@@ -122,8 +145,7 @@ function OwnerAnalytics() {
                     ...brand,
                     branches: branchCountByBrand[String(brand.id)] ?? brand.branches,
                 })));
-                setBranchStats(stats);
-                setTotals(aggregateStats(stats));
+                setAllBranches(branchList);
             } catch (err) {
                 if (active) setError(getApiError(err));
             } finally {
@@ -133,11 +155,43 @@ function OwnerAnalytics() {
         return () => { active = false; };
     }, []);
 
-    if (loading) return <div className={styles.analyticsLoading}>Loading organization analytics...</div>;
-    if (error) return <div className={styles.analyticsError}>{error}</div>;
+    useEffect(() => {
+        if (!selectedBrand) {
+            setBranchStats([]);
+            return;
+        }
 
-    const brandGroups = groupStatsByBrand(branchStats, brands);
-    const activeBranches = branchStats.filter((s) => s.totalTables > 0 || s.bookingsTotal > 0).length;
+        let active = true;
+        const brandBranches = allBranches.filter(
+            (branch) => String(branch.brandId) === String(selectedBrand.id)
+        );
+
+        (async () => {
+            setLoadingBrandStats(true);
+            try {
+                const stats = brandBranches.length
+                    ? await fetchBranchesDayStats(brandBranches)
+                    : [];
+                if (active) setBranchStats(stats);
+            } catch (err) {
+                if (active) setError(getApiError(err));
+            } finally {
+                if (active) setLoadingBrandStats(false);
+            }
+        })();
+
+        return () => { active = false; };
+    }, [selectedBrand, allBranches]);
+
+    const brandTotals = useMemo(
+        () => aggregateStats(branchStats),
+        [branchStats]
+    );
+
+    if (loading) return <div className={styles.analyticsLoading}>Loading organization analytics...</div>;
+    if (error && !selectedBrand) return <div className={styles.analyticsError}>{error}</div>;
+
+    const totalBranches = allBranches.length;
 
     return (
         <section className={styles.analyticsSection}>
@@ -145,70 +199,92 @@ function OwnerAnalytics() {
                 <div>
                     <h2 className={styles.sectionTitle}>Organization Analytics</h2>
                     <p className={styles.sectionSub}>
-                        {brands.length} brands · {branchStats.length} branches · Today
+                        {selectedBrand
+                            ? `${selectedBrand.name} · ${selectedBrand.branches} branches · Today`
+                            : `${brands.length} brands · ${totalBranches} branches · Select a brand`}
                     </p>
                 </div>
+                {selectedBrand && (
+                    <button
+                        type="button"
+                        className={styles.backBtn}
+                        onClick={() => setSelectedBrand(null)}
+                    >
+                        ← All brands
+                    </button>
+                )}
             </div>
 
-            <div className={styles.statsGrid}>
-                <StatCard title="BRANDS" value={String(brands.length)} subtext="Registered brands" icon="◈" isPositive />
-                <StatCard title="BRANCHES" value={String(branchStats.length)} subtext={`${activeBranches} active today`} icon="⌂" isPositive />
-                <StatCard title="TODAY'S BOOKINGS" value={String(totals?.bookingsTotal || 0)} subtext="All branches combined" icon="📅" isPositive />
-                <StatCard title="TABLE UTILIZATION" value={`${totals?.utilization || 0}%`} subtext={`${totals?.occupied || 0}/${totals?.totalTables || 0} occupied`} isPositive={(totals?.utilization || 0) > 40} icon="🪑" />
-            </div>
-
-            <div className={styles.orgKpiRow}>
-                <div className={styles.orgKpi}><span>Pending</span><strong>{totals?.pending || 0}</strong></div>
-                <div className={styles.orgKpi}><span>Confirmed</span><strong>{totals?.confirmed || 0}</strong></div>
-                <div className={styles.orgKpi}><span>Completed</span><strong>{totals?.completed || 0}</strong></div>
-                <div className={styles.orgKpi}><span>No shows</span><strong>{totals?.noShows || 0}</strong></div>
-            </div>
-
-            {brandGroups.map(({ brand, branches, totals: brandTotals }) => (
-                <div key={brand.id} className={styles.brandAnalyticsCard}>
-                    <div className={styles.brandAnalyticsHeader}>
-                        <div>
-                            <h3>{brand.name}</h3>
-                            <p>{brand.branches} branches · {brand.slug}</p>
-                        </div>
-                        <div className={styles.brandTotals}>
-                            <span>{brandTotals.bookingsTotal} bookings</span>
-                            <span>{brandTotals.utilization}% util.</span>
-                        </div>
+            {!selectedBrand ? (
+                <>
+                    <div className={styles.statsGrid}>
+                        <StatCard title="BRANDS" value={String(brands.length)} subtext="Your restaurant brands" icon="◈" isPositive />
+                        <StatCard title="BRANCHES" value={String(totalBranches)} subtext="Across all brands" icon="⌂" isPositive />
+                        <StatCard title="TODAY" value="—" subtext="Pick a brand below" icon="📅" />
+                        <StatCard title="UTILIZATION" value="—" subtext="Pick a brand below" icon="🪑" />
                     </div>
 
-                    {branches.length === 0 ? (
+                    <h3 className={styles.pickerTitle}>Select a brand to view branch analytics</h3>
+                    <BrandPickerGrid brands={brands} onSelect={setSelectedBrand} />
+                </>
+            ) : (
+                <>
+                    <div className={styles.statsGrid}>
+                        <StatCard title="BRAND" value={selectedBrand.name} subtext={selectedBrand.slug} icon="◈" isPositive />
+                        <StatCard title="BRANCHES" value={String(selectedBrand.branches)} subtext="In this brand" icon="⌂" isPositive />
+                        <StatCard title="TODAY'S BOOKINGS" value={String(brandTotals.bookingsTotal)} subtext="This brand today" icon="📅" isPositive />
+                        <StatCard title="UTILIZATION" value={`${brandTotals.utilization}%`} subtext={`${brandTotals.occupied}/${brandTotals.totalTables} tables`} isPositive={brandTotals.utilization > 40} icon="🪑" />
+                    </div>
+
+                    <div className={styles.orgKpiRow}>
+                        <div className={styles.orgKpi}><span>Pending</span><strong>{brandTotals.pending}</strong></div>
+                        <div className={styles.orgKpi}><span>Confirmed</span><strong>{brandTotals.confirmed}</strong></div>
+                        <div className={styles.orgKpi}><span>Completed</span><strong>{brandTotals.completed}</strong></div>
+                        <div className={styles.orgKpi}><span>No shows</span><strong>{brandTotals.noShows}</strong></div>
+                    </div>
+
+                    {loadingBrandStats ? (
+                        <div className={styles.analyticsLoading}>Loading branch stats...</div>
+                    ) : branchStats.length === 0 ? (
                         <p className={styles.emptyBranchNote}>No branches for this brand yet.</p>
                     ) : (
-                        <div className={styles.branchStatsTableWrap}>
-                            <table className={styles.branchStatsTable}>
-                                <thead>
-                                    <tr>
-                                        <th>Branch</th>
-                                        <th>Bookings</th>
-                                        <th>Pending</th>
-                                        <th>Tables</th>
-                                        <th>Utilization</th>
-                                        <th>No shows</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {branches.map((branch) => (
-                                        <tr key={branch.branchId}>
-                                            <td>{branch.branchName}</td>
-                                            <td>{branch.bookingsTotal}</td>
-                                            <td>{branch.pending}</td>
-                                            <td>{branch.occupied}/{branch.totalTables}</td>
-                                            <td>{branch.utilization}%</td>
-                                            <td>{branch.noShows}</td>
+                        <div className={styles.brandAnalyticsCard}>
+                            <div className={styles.brandAnalyticsHeader}>
+                                <div>
+                                    <h3>{selectedBrand.name} branches</h3>
+                                    <p>Today's performance by branch</p>
+                                </div>
+                            </div>
+                            <div className={styles.branchStatsTableWrap}>
+                                <table className={styles.branchStatsTable}>
+                                    <thead>
+                                        <tr>
+                                            <th>Branch</th>
+                                            <th>Bookings</th>
+                                            <th>Pending</th>
+                                            <th>Tables</th>
+                                            <th>Utilization</th>
+                                            <th>No shows</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {branchStats.map((branch) => (
+                                            <tr key={branch.branchId}>
+                                                <td>{branch.branchName}</td>
+                                                <td>{branch.bookingsTotal}</td>
+                                                <td>{branch.pending}</td>
+                                                <td>{branch.occupied}/{branch.totalTables}</td>
+                                                <td>{branch.utilization}%</td>
+                                                <td>{branch.noShows}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
-                </div>
-            ))}
+                </>
+            )}
         </section>
     );
 }

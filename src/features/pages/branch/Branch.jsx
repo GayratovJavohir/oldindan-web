@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './Branch.module.css';
 import BranchCard from './components/BranchCard';
 import {
@@ -10,9 +10,10 @@ import {
 import { getApiError } from '../../../utils/apiHelpers';
 import { isOwner } from '../../../utils/authUser';
 
-function BranchModal({ branch, brands, onClose, onSave }) {
+function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
+    const lockedBrand = defaultBrandId || branch?.brandId || '';
     const [form, setForm] = useState({
-        brand: branch?.brandId || brands[0]?.id || '',
+        brand: lockedBrand || brands[0]?.id || '',
         name: branch?.name || '',
         address: branch?.location || '',
         phone: branch?.phone || '',
@@ -48,7 +49,7 @@ function BranchModal({ branch, brands, onClose, onSave }) {
                 <form onSubmit={submit}>
                     <div className={styles.modalBody}>
                         {error && <div className={styles.errorText}>{error}</div>}
-                        {!branch && (
+                        {!branch && !defaultBrandId && (
                             <div className={styles.formGroup}>
                                 <label>Brand *</label>
                                 <select
@@ -139,9 +140,34 @@ function BranchModal({ branch, brands, onClose, onSave }) {
     );
 }
 
+function BrandPickerGrid({ brands, onSelect }) {
+    if (!brands.length) {
+        return <div className={styles.emptyState}>No brands found. Create a brand first.</div>;
+    }
+
+    return (
+        <div className={styles.brandPickerGrid}>
+            {brands.map((brand) => (
+                <button
+                    key={brand.id}
+                    type="button"
+                    className={styles.brandPickerCard}
+                    onClick={() => onSelect(brand)}
+                >
+                    <div className={styles.brandPickerIcon}>◈</div>
+                    <h3>{brand.name}</h3>
+                    <p>{brand.slug}</p>
+                    <span className={styles.brandPickerMeta}>{brand.branches} branches</span>
+                </button>
+            ))}
+        </div>
+    );
+}
+
 export default function Branch() {
     const [branches, setBranches] = useState([]);
     const [brands, setBrands] = useState([]);
+    const [selectedBrand, setSelectedBrand] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showModal, setShowModal] = useState(false);
@@ -156,8 +182,18 @@ export default function Branch() {
                 getPartnerBranches(),
                 getPartnerBrands(),
             ]);
+
+            const branchCountByBrand = branchList.reduce((acc, branch) => {
+                const key = String(branch.brandId);
+                if (key) acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+
             setBranches(branchList);
-            setBrands(brandList);
+            setBrands(brandList.map((brand) => ({
+                ...brand,
+                branches: branchCountByBrand[String(brand.id)] ?? brand.branches,
+            })));
         } catch (err) {
             console.error('Branches load error:', err);
             setError(getApiError(err));
@@ -169,6 +205,11 @@ export default function Branch() {
     useEffect(() => {
         loadData();
     }, [loadData]);
+
+    const filteredBranches = useMemo(() => {
+        if (!selectedBrand) return [];
+        return branches.filter((branch) => String(branch.brandId) === String(selectedBrand.id));
+    }, [branches, selectedBrand]);
 
     const handleSave = async (form, branch) => {
         if (branch) {
@@ -182,11 +223,12 @@ export default function Branch() {
                 is_active: form.is_active,
             });
         } else {
-            if (!form.brand) {
+            const brandId = form.brand || selectedBrand?.id;
+            if (!brandId) {
                 throw new Error('Select a brand before creating a branch.');
             }
             await createPartnerBranchWithUniqueSlug({
-                brand: Number(form.brand),
+                brand: Number(brandId),
                 name: form.name.trim(),
                 address: form.address.trim(),
                 phone: form.phone.trim(),
@@ -200,7 +242,7 @@ export default function Branch() {
     };
 
     const openCreate = () => {
-        if (!brands.length) {
+        if (!selectedBrand && !brands.length) {
             setError('Create a brand first before adding branches.');
             return;
         }
@@ -211,8 +253,21 @@ export default function Branch() {
     return (
         <>
             <header className={styles.branchHeader}>
-                <h1 className={styles.branchTitle}>Branches</h1>
-                {owner && (
+                <div className={styles.headerLeft}>
+                    {selectedBrand && (
+                        <button
+                            type="button"
+                            className={styles.backBtn}
+                            onClick={() => setSelectedBrand(null)}
+                        >
+                            ← Brands
+                        </button>
+                    )}
+                    <h1 className={styles.branchTitle}>
+                        {selectedBrand ? `${selectedBrand.name} — Branches` : 'Branches'}
+                    </h1>
+                </div>
+                {owner && selectedBrand && (
                     <button type="button" className={styles.addBranchBtn} onClick={openCreate}>
                         + Add Branch
                     </button>
@@ -221,13 +276,25 @@ export default function Branch() {
 
             {error && <div className={styles.errorBanner}>{error}</div>}
 
-            <div className={styles.branchContainer}>
+            <div className={selectedBrand ? styles.branchContainer : styles.brandPickerContainer}>
                 {loading ? (
-                    <div className={styles.emptyState}>Loading branches...</div>
-                ) : branches.length === 0 ? (
-                    <div className={styles.emptyState}>No branches found.</div>
+                    <div className={styles.emptyState}>Loading...</div>
+                ) : !selectedBrand ? (
+                    <>
+                        <p className={styles.pickerHint}>Select a brand to view and manage its branches</p>
+                        <BrandPickerGrid brands={brands} onSelect={setSelectedBrand} />
+                    </>
+                ) : filteredBranches.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        No branches for this brand yet.
+                        {owner && (
+                            <button type="button" className={styles.addBranchBtnInline} onClick={openCreate}>
+                                + Add first branch
+                            </button>
+                        )}
+                    </div>
                 ) : (
-                    branches.map((item) => (
+                    filteredBranches.map((item) => (
                         <BranchCard
                             key={item.id}
                             branch={item}
@@ -241,6 +308,7 @@ export default function Branch() {
                 <BranchModal
                     branch={editBranch}
                     brands={brands}
+                    defaultBrandId={selectedBrand?.id}
                     onClose={() => { setShowModal(false); setEditBranch(null); }}
                     onSave={handleSave}
                 />

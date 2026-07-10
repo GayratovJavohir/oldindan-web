@@ -190,6 +190,107 @@
     padding: 24px;
 }
 
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.backBtn {
+    background: transparent;
+    border: 1px solid #3a3a3a;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.backBtn:hover {
+    background: #222;
+}
+
+.brandPickerContainer {
+    margin-left: 210px;
+    padding: 28px;
+    background-color: #0b0b0b;
+    min-height: calc(100vh - 52px);
+}
+
+.pickerHint {
+    color: #7f8898;
+    font-size: 14px;
+    margin: 0 0 20px;
+}
+
+.brandPickerGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.brandPickerCard {
+    background: #131313;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 22px;
+    text-align: left;
+    cursor: pointer;
+    color: #fff;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.brandPickerCard:hover {
+    border-color: #8b1515;
+    background: #181818;
+}
+
+.brandPickerIcon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(139, 21, 21, 0.2);
+    color: #ff6b7a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.brandPickerCard h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+}
+
+.brandPickerCard p {
+    margin: 0 0 10px;
+    color: #888;
+    font-size: 13px;
+}
+
+.brandPickerMeta {
+    font-size: 12px;
+    color: #aaa;
+    background: #1c1c1e;
+    border: 1px solid #2c2c2e;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.addBranchBtnInline {
+    display: block;
+    margin-top: 12px;
+    background: #8b1515;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 .modalOverlay {
     position: fixed;
     inset: 0;
