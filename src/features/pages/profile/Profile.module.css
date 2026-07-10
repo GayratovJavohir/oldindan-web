@@ -1,8 +1,8 @@
 .profileContainer {
-    background-color: #121212;
+    background-color: #0e0e0e;
     color: #ffffff;
-    padding: 24px 28px;
-    min-height: 100vh;
+    padding: 24px 28px 40px;
+    min-height: calc(100vh - 52px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     margin-left: 210px;
 }
@@ -19,7 +19,407 @@
 }
 
 .profileTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.bellIcon {
+    font-size: 20px;
+    color: #888;
+    cursor: pointer;
+}
+
+.profileLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.loadingState,
+.analyticsLoading {
+    color: #888;
+    padding: 24px 0;
+}
+
+.analyticsError,
+.errorBanner {
+    background: rgba(232, 25, 44, 0.1);
+    border: 1px solid rgba(232, 25, 44, 0.3);
+    color: #ff8f98;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+}
+
+.successBanner {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #6ee7a0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+}
+
+.profileHero {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #141820 100%);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.avatarLarge {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e8192c, #8b1515);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.heroInfo {
+    flex: 1;
+}
+
+.heroName {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.heroEmail {
+    margin: 0 0 10px;
+    color: #9aa3b2;
+    font-size: 14px;
+}
+
+.roleBadge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.roleOwner {
+    background: rgba(232, 25, 44, 0.15);
+    color: #ff6b7a;
+    border: 1px solid rgba(232, 25, 44, 0.3);
+}
+
+.roleManager {
+    background: rgba(0, 102, 255, 0.15);
+    color: #6ba3ff;
+    border: 1px solid rgba(0, 102, 255, 0.3);
+}
+
+.roleReceptionist {
+    background: rgba(255, 184, 0, 0.15);
+    color: #ffc94d;
+    border: 1px solid rgba(255, 184, 0, 0.3);
+}
+
+.branchNote {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #7f8898;
+}
+
+.editToggleBtn {
+    background: transparent;
+    border: 1px solid #3a3a3a;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.editToggleBtn:hover {
+    background: #222;
+}
+
+.profileCard {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 20px 24px;
+}
+
+.cardTitle {
+    margin: 0 0 16px;
     font-size: 16px;
     font-weight: 600;
-    color: white;
+}
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.infoLabel {
+    font-size: 12px;
+    color: #7f8898;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.infoValue {
+    font-size: 15px;
+    color: #fff;
+}
+
+.profileForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-size: 13px;
+    color: #9aa3b2;
+}
+
+.formGroup input {
+    background: #121212;
+    border: 1px solid #2a2a2a;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+
+.formGroup input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.saveBtn {
+    align-self: flex-start;
+    background: #8b1515;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.analyticsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.analyticsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.sectionTitle {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sectionSub {
+    margin: 4px 0 0;
+    color: #7f8898;
+    font-size: 13px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.analyticsGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+}
+
+.miniStatsCard {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.miniStatsCard h3 {
+    margin: 0 0 16px;
+    font-size: 15px;
+}
+
+.miniStatRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2a2a;
+    color: #9aa3b2;
+    font-size: 14px;
+}
+
+.miniStatRow strong {
+    color: #fff;
+}
+
+.orgKpiRow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.orgKpi {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.orgKpi span {
+    font-size: 12px;
+    color: #7f8898;
+    text-transform: uppercase;
+}
+
+.orgKpi strong {
+    font-size: 22px;
+}
+
+.brandAnalyticsCard {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.brandAnalyticsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.brandAnalyticsHeader h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+}
+
+.brandAnalyticsHeader p {
+    margin: 0;
+    color: #7f8898;
+    font-size: 13px;
+}
+
+.brandTotals {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-size: 13px;
+    color: #9aa3b2;
+}
+
+.branchStatsTableWrap {
+    overflow-x: auto;
+}
+
+.branchStatsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.branchStatsTable th {
+    text-align: left;
+    font-size: 11px;
+    color: #7f8898;
+    letter-spacing: 0.4px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.branchStatsTable td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #222;
+    font-size: 14px;
+    color: #e0e0e0;
+}
+
+.branchStatsTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.emptyBranchNote {
+    padding: 16px 20px;
+    color: #7f8898;
+    margin: 0;
+    font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+    .statsGrid,
+    .orgKpiRow {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .infoGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .analyticsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .profileContainer,
+    .profileHeader {
+        margin-left: 0;
+    }
+
+    .profileHero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .statsGrid,
+    .orgKpiRow,
+    .infoGrid,
+    .formRow {
+        grid-template-columns: 1fr;
+    }
 }

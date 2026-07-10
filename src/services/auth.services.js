@@ -63,6 +63,17 @@ const AuthService = {
         return response.data;
     },
 
+    async updateProfile(payload) {
+        try {
+            const response = await $api.patch('/accounts/me/', payload);
+            const user = mapProfile(response.data, getAccountType());
+            setStoredUser(user);
+            return response.data;
+        } catch (err) {
+            throw new Error(getApiError(err));
+        }
+    },
+
     logout() {
         localStorage.removeItem('rp_access');
         localStorage.removeItem('rp_refresh');
