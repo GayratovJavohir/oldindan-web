@@ -8,8 +8,8 @@ export function mapTableFromApi(table) {
 
     return {
         id: table.id,
-        name: table.name || table.label || `Table ${table.id}`,
-        seats: table.seats ?? table.capacity ?? table.seat_count ?? 0,
+        name: table.name || table.label || table.number || `Table ${table.id}`,
+        seats: table.seats ?? table.capacity ?? table.seat_count ?? table.max_seats ?? 0,
         shape: table.shape || 'rect',
         branchId,
         branchName: table.branch_name || table.branch?.name || '',
@@ -17,8 +17,8 @@ export function mapTableFromApi(table) {
         floorName: table.floor_name || table.floor?.name || '',
         zoneId,
         zoneName: table.zone_name || table.zone?.name || '',
-        is_active: table.is_active !== false,
-        status: table.is_active === false ? 'inactive' : 'active',
+        is_active: table.is_active !== false && table.status !== 'inactive',
+        status: table.is_active === false || table.status === 'inactive' ? 'inactive' : 'active',
         raw: table,
     };
 }
@@ -37,13 +37,22 @@ export async function getBranchTables(branchId, params = {}) {
 
 export async function loadTablesForBranch(branchId, floorId = null) {
     const params = floorId ? { floor_id: floorId } : {};
-    try {
-        const partnerList = await getPartnerTables(branchId, params);
-        if (partnerList.length) return partnerList;
-    } catch {
-        // fallback below
+    const results = await Promise.allSettled([
+        getPartnerTables(branchId, params),
+        getBranchTables(branchId, params),
+    ]);
+
+    const merged = new Map();
+    results.forEach((result) => {
+        if (result.status !== 'fulfilled') return;
+        result.value.forEach((table) => merged.set(String(table.id), table));
+    });
+
+    let list = Array.from(merged.values());
+    if (floorId) {
+        list = list.filter((table) => String(table.floorId) === String(floorId));
     }
-    return getBranchTables(branchId, params);
+    return list;
 }
 
 export async function getPartnerTable(id) {

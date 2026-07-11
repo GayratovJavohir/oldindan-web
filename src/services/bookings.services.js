@@ -32,9 +32,9 @@ export function mapBookingFromApi(booking) {
     const last = booking.last_name || booking.consumer?.last_name || '';
     const guestName = [first, last].filter(Boolean).join(' ').trim()
         || booking.guest_name
+        || booking.contact_name
         || booking.consumer_name
         || booking.user_name
-        || booking.contact_name
         || 'Guest';
 
     return {
@@ -123,6 +123,23 @@ export const checkInBooking = async (data) => {
 };
 
 export const createManualBooking = async (payload) => {
-    const response = await $api.post('/bookings/partner/manual-create/', payload);
+    const body = {
+        branch_id: payload.branch_id ?? payload.branch,
+        floor_id: payload.floor_id ?? payload.floor,
+        table_id: payload.table_id ?? payload.table,
+        first_name: payload.first_name?.trim(),
+        last_name: payload.last_name?.trim(),
+        phone: payload.phone?.trim(),
+        guest_count: payload.guest_count,
+        children_count: payload.children_count ?? 0,
+        booking_start: payload.booking_start,
+        booking_end: payload.booking_end,
+        special_request: payload.special_request || '',
+    };
+
+    const zoneId = payload.zone_id ?? payload.zone;
+    if (zoneId) body.zone_id = zoneId;
+
+    const response = await $api.post('/bookings/partner/manual-create/', body);
     return response.data;
 };

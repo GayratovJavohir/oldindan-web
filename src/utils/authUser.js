@@ -73,10 +73,14 @@ export function canManageStaff() {
     return isOwner();
 }
 
+export function canCreateManualBooking() {
+    return getStoredUser()?.role === 'receptionist';
+}
+
 export const ROUTE_ACCESS = {
     '/dashboard': ['owner', 'manager'],
     '/bookings': ['owner', 'manager', 'receptionist'],
-    '/manual-bookings': ['owner', 'manager', 'receptionist'],
+    '/manual-bookings': ['receptionist'],
     '/live-view': ['owner', 'manager'],
     '/floor-layout': ['owner', 'manager'],
     '/tables': ['owner', 'manager'],

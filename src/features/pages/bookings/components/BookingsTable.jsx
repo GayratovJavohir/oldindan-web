@@ -4,8 +4,10 @@ import ManualBookingModal from './ManualBookingModal';
 import BookingFilters from '../components/BookingsFilter';
 import BookingRow from '../components/BookingsRow';
 import { checkInBooking, getPartnerBookings, noShowBooking, updateBookingStatus } from '../../../../services/bookings.services';
+import { canCreateManualBooking } from '../../../../utils/authUser';
 
 export default function BookingsTable() {
+  const canManualBooking = canCreateManualBooking();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,9 +78,11 @@ export default function BookingsTable() {
       <div className={styles.mainCard}>
         <div className={styles.header}>
           <h2 className={styles.title}>All Bookings</h2>
-          <button className={styles.manualBtn} onClick={() => setIsModalOpen(true)}>
-            + Manual Booking
-          </button>
+          {canManualBooking && (
+            <button className={styles.manualBtn} onClick={() => setIsModalOpen(true)}>
+              + Manual Booking
+            </button>
+          )}
         </div>
 
         <BookingFilters onApplyFilters={handleApplyFilters} />
@@ -133,7 +137,7 @@ export default function BookingsTable() {
         </div>
       </div>
 
-      {isModalOpen && (
+      {canManualBooking && isModalOpen && (
         <ManualBookingModal
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
