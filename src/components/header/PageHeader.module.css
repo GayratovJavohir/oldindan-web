@@ -1,0 +1,283 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    height: 52px;
+    padding: 0 28px;
+    margin-left: 210px;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bellBtn {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    line-height: 1;
+}
+
+.bellBtn:hover {
+    background: #252525;
+}
+
+.bellIcon {
+    font-size: 20px;
+    color: #888;
+}
+
+.bellBadge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    border: none;
+    z-index: 1200;
+    cursor: pointer;
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(420px, 92vw);
+    height: 100vh;
+    background: #111;
+    border-right: 1px solid #2a2a2a;
+    z-index: 1201;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.35);
+    animation: slideInLeft 0.22s ease;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0.6; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.drawerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.drawerTitleRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.drawerTitleRow h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.unreadPill {
+    background: #222;
+    border: 1px solid #333;
+    color: #aaa;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.drawerActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.markAllBtn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #ddd;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.markAllBtn:hover:not(:disabled) {
+    background: #222;
+}
+
+.markAllBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.closeBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: transparent;
+    color: #aaa;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.closeBtn:hover {
+    background: #222;
+    color: #fff;
+}
+
+.drawerBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.drawerItem {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #222;
+    color: inherit;
+    padding: 16px 20px;
+    cursor: pointer;
+}
+
+.drawerItem:hover {
+    background: #181818;
+}
+
+.drawerItemUnread {
+    background: rgba(231, 76, 60, 0.05);
+}
+
+.drawerItemTop {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.drawerItemIcon {
+    font-size: 14px;
+}
+
+.drawerItemTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.drawerItemDesc {
+    margin: 0 0 6px 24px;
+    color: #888;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.drawerItemTime {
+    margin-left: 24px;
+    color: #555;
+    font-size: 12px;
+}
+
+.drawerEmpty {
+    color: #777;
+    padding: 24px 20px;
+    font-size: 14px;
+}
+
+.drawerFooter {
+    padding: 14px 20px;
+    border-top: 1px solid #2a2a2a;
+}
+
+.viewAllLink {
+    color: #6ba3ff;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.viewAllLink:hover {
+    text-decoration: underline;
+}
+
+.successToast {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: #1f7a45;
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    animation: toastIn 0.2s ease;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .header {
+        margin-left: 0;
+    }
+
+    .drawer {
+        left: 0;
+        width: 100vw;
+    }
+}

@@ -1,14 +1,12 @@
 import React from 'react'
+import PageHeader from '../../../components/header/PageHeader'
 import styles from './Table.module.css'
 import TableCard from './components/TableCard';
 
 export default function Table() {
   return (
     <>
-      <header className={styles.tablesHeader}>
-          <h1 className={styles.tablesTitle}>Tables</h1>
-          <div className={styles.bellIcon}>🔔</div>
-      </header>
+      <PageHeader title="Tables" />
       <div className={styles.tablesContainer}>
         <TableCard />
       </div>

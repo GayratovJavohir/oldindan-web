@@ -412,6 +412,32 @@
     margin-top: 2px;
 }
 
+.notificationRowUnread {
+    background: rgba(231, 76, 60, 0.04);
+    margin: 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 8px;
+}
+
+.notifEmpty {
+    color: #777;
+    font-size: 14px;
+    padding: 12px 0;
+}
+
+.viewAllLink {
+    font-size: 12px;
+    color: #6ba3ff;
+    text-decoration: none;
+    margin-left: 8px;
+    align-self: center;
+}
+
+.viewAllLink:hover {
+    text-decoration: underline;
+}
+
 
 .bookingItem {
     display: flex;

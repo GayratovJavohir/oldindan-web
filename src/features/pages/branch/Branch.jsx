@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import PageHeader from '../../../components/header/PageHeader';
 import styles from './Branch.module.css';
 import BranchCard from './components/BranchCard';
 import {
@@ -252,27 +253,27 @@ export default function Branch() {
 
     return (
         <>
-            <header className={styles.branchHeader}>
-                <div className={styles.headerLeft}>
-                    {selectedBrand && (
-                        <button
-                            type="button"
-                            className={styles.backBtn}
-                            onClick={() => setSelectedBrand(null)}
-                        >
-                            ← Brands
-                        </button>
-                    )}
-                    <h1 className={styles.branchTitle}>
-                        {selectedBrand ? `${selectedBrand.name} — Branches` : 'Branches'}
-                    </h1>
-                </div>
-                {owner && selectedBrand && (
-                    <button type="button" className={styles.addBranchBtn} onClick={openCreate}>
-                        + Add Branch
-                    </button>
+            <PageHeader
+                title={selectedBrand ? `${selectedBrand.name} — Branches` : 'Branches'}
+                actions={(
+                    <>
+                        {selectedBrand && (
+                            <button
+                                type="button"
+                                className={styles.backBtn}
+                                onClick={() => setSelectedBrand(null)}
+                            >
+                                ← Brands
+                            </button>
+                        )}
+                        {owner && selectedBrand && (
+                            <button type="button" className={styles.addBranchBtn} onClick={openCreate}>
+                                + Add Branch
+                            </button>
+                        )}
+                    </>
                 )}
-            </header>
+            />
 
             {error && <div className={styles.errorBanner}>{error}</div>}
 

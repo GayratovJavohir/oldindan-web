@@ -1,14 +1,12 @@
 import React from 'react'
+import PageHeader from '../../../components/header/PageHeader'
 import styles from './Floor.module.css'
 import LayoutFloor from './components/LayoutFloor'
 
 export default function Layout() {
     return (
         <>
-            <header className={styles.layoutHeader}>
-                <h1 className={styles.layoutTitle}>Live View</h1>
-                <div className={styles.bellIcon}>🔔</div>
-            </header>
+            <PageHeader title="Floor Layout" />
             <div className={styles.layoutContainer}>
                 <LayoutFloor />
             </div>

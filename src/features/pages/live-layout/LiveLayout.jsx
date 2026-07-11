@@ -1,14 +1,12 @@
 import React from 'react'
+import PageHeader from '../../../components/header/PageHeader'
 import styles from './LiveLayout.module.css'
 import LiveFloor from './components/LiveFloor'
 
 export default function LiveLayout() {
     return (
         <>
-            <header className={styles.liveLayoutHeader}>
-                <h1 className={styles.liveLayoutTitle}>Live View</h1>
-                <div className={styles.bellIcon}>🔔</div>
-            </header>
+            <PageHeader title="Live View" />
             <div className={styles.liveLayoutContainer}>
                 <LiveFloor />
             </div>

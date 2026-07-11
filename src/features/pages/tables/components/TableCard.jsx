@@ -1,22 +1,244 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from '../Table.module.css';
+import $api from '../../../../config/api.config';
+import { getPartnerBranches } from '../../../../services/restaurants.services';
+import {
+    createPartnerTable,
+    deletePartnerTable,
+    getPartnerTables,
+    patchPartnerTable,
+} from '../../../../services/tables.services';
+import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
+
+function TableModal({ table, branches, floors, onClose, onSave }) {
+    const [form, setForm] = useState({
+        branch: table?.branchId || branches[0]?.id || '',
+        floor: table?.floorId || '',
+        zone: table?.zoneId || '',
+        name: table?.name || '',
+        seats: table?.seats ?? 2,
+        shape: table?.shape || 'rect',
+        is_active: table ? table.is_active : true,
+    });
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+
+    const branchFloors = floors.filter((floor) => String(floor.branch ?? floor.branch_id) === String(form.branch));
+
+    const submit = async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        setError('');
+        try {
+            await onSave(form, table);
+            onClose();
+        } catch (err) {
+            setError(getApiError(err));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className={styles.modalContent}>
+                <div className={styles.modalHeader}>
+                    <h3 className={styles.modalTitle}>{table ? 'Edit Table' : 'Add Table'}</h3>
+                    <button type="button" className={styles.closeBtn} onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={submit}>
+                    <div className={styles.modalBody}>
+                        {error && <div className={styles.errorText}>{error}</div>}
+                        {!table && (
+                            <div className={styles.formGroup}>
+                                <label>Branch *</label>
+                                <select
+                                    value={form.branch}
+                                    onChange={(e) => setForm({ ...form, branch: e.target.value, floor: '' })}
+                                    required
+                                >
+                                    <option value="">Select branch</option>
+                                    {branches.map((branch) => (
+                                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>Floor *</label>
+                                <select
+                                    value={form.floor}
+                                    onChange={(e) => setForm({ ...form, floor: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select floor</option>
+                                    {branchFloors.map((floor) => (
+                                        <option key={floor.id} value={floor.id}>{floor.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Zone ID</label>
+                                <input
+                                    type="number"
+                                    value={form.zone}
+                                    onChange={(e) => setForm({ ...form, zone: e.target.value })}
+                                    placeholder="Optional"
+                                />
+                            </div>
+                        </div>
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>Name *</label>
+                                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Seats *</label>
+                                <input type="number" min="1" value={form.seats} onChange={(e) => setForm({ ...form, seats: Number(e.target.value) })} required />
+                            </div>
+                        </div>
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>Shape</label>
+                                <select value={form.shape} onChange={(e) => setForm({ ...form, shape: e.target.value })}>
+                                    <option value="rect">rect</option>
+                                    <option value="round">round</option>
+                                    <option value="square">square</option>
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Status</label>
+                                <select value={form.is_active ? 'active' : 'inactive'} onChange={(e) => setForm({ ...form, is_active: e.target.value === 'active' })}>
+                                    <option value="active">active</option>
+                                    <option value="inactive">inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={styles.modalFooter}>
+                        <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+                        <button type="submit" className={styles.submitBtn} disabled={busy}>
+                            {busy ? 'Saving...' : (table ? 'Save Changes' : 'Create Table')}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
 
 export default function TableCard() {
+    const [tables, setTables] = useState([]);
+    const [branches, setBranches] = useState([]);
+    const [floors, setFloors] = useState([]);
+    const [branchFilter, setBranchFilter] = useState('');
+    const [floorFilter, setFloorFilter] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [editTable, setEditTable] = useState(null);
+
+    const loadData = useCallback(async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const [branchList, floorsRes] = await Promise.all([
+                getPartnerBranches(),
+                $api.get('/layouts/partner/floors/'),
+            ]);
+            setBranches(branchList);
+            setFloors(unwrapList(floorsRes.data));
+
+            const allTables = [];
+            for (const branch of branchList) {
+                try {
+                    const branchTables = await getPartnerTables(branch.id);
+                    allTables.push(...branchTables);
+                } catch {
+                    // skip branch
+                }
+            }
+            setTables(allTables);
+        } catch (err) {
+            setError(getApiError(err));
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    const filteredTables = useMemo(() => tables.filter((table) => {
+        if (branchFilter && String(table.branchId) !== String(branchFilter)) return false;
+        if (floorFilter && String(table.floorId) !== String(floorFilter)) return false;
+        return true;
+    }), [tables, branchFilter, floorFilter]);
+
+    const branchFloors = useMemo(
+        () => floors.filter((floor) => !branchFilter || String(floor.branch ?? floor.branch_id) === String(branchFilter)),
+        [floors, branchFilter]
+    );
+
+    const handleSave = async (form, table) => {
+        const payload = {
+            name: form.name.trim(),
+            seats: Number(form.seats),
+            shape: form.shape,
+            is_active: form.is_active,
+            floor: Number(form.floor),
+        };
+        if (form.zone) payload.zone = Number(form.zone);
+        if (!table) payload.branch = Number(form.branch);
+
+        if (table) {
+            await patchPartnerTable(table.id, payload);
+        } else {
+            await createPartnerTable(payload);
+        }
+        await loadData();
+    };
+
+    const handleDeactivate = async (table) => {
+        await patchPartnerTable(table.id, { is_active: false });
+        await loadData();
+    };
+
+    const handleDelete = async (table) => {
+        await deletePartnerTable(table.id);
+        await loadData();
+    };
+
     return (
         <div className={styles.pageTables}>
             <div className={styles.cardTable}>
-
                 <div className={styles.cardTableHeader}>
                     <h2 className={styles.headerTitle}>Tables</h2>
                     <div className={styles.buttonWrapper}>
-                        <select id="floors" name="floors">
-                            <option value=""> All floors</option>
-                            <option value="floor1">Floor 1</option>
-                            <option value="floor2">Floor 2</option>
+                        <select
+                            value={branchFilter}
+                            onChange={(e) => { setBranchFilter(e.target.value); setFloorFilter(''); }}
+                        >
+                            <option value="">All branches</option>
+                            {branches.map((branch) => (
+                                <option key={branch.id} value={branch.id}>{branch.name}</option>
+                            ))}
                         </select>
-                        <button className={styles.addBtn}>+ Add Table </button>
+                        <select value={floorFilter} onChange={(e) => setFloorFilter(e.target.value)}>
+                            <option value="">All floors</option>
+                            {branchFloors.map((floor) => (
+                                <option key={floor.id} value={floor.id}>{floor.name}</option>
+                            ))}
+                        </select>
+                        <button type="button" className={styles.addBtn} onClick={() => { setEditTable(null); setShowModal(true); }}>
+                            + Add Table
+                        </button>
                     </div>
                 </div>
+
+                {error && <div className={styles.errorBanner}>{error}</div>}
 
                 <div className={styles.tableWrapper}>
                     <table className={styles.Table}>
@@ -34,39 +256,46 @@ export default function TableCard() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>#1</td>
-                                <td>T1</td>
-                                <td>KFC Almazor</td>
-                                <td>Floor 1</td>
-                                <td>VIP</td>
-                                <td>2</td>
-                                <td>round</td>
-                                <td className={styles.status}>active</td>
-                                <td>
-                                    <button className={styles.editBtn}>Edit</button>
-                                    <button className={styles.deactiveBtn}>Deactive</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#2</td>
-                                <td>T2</td>
-                                <td>KFC Chilanzar</td>
-                                <td>Floor 1</td>
-                                <td>Indoor</td>
-                                <td>4</td>
-                                <td>rect</td>
-                                <td className={styles.status}>active</td>
-                                <td>
-                                    <button className={styles.editBtn}>Edit</button>
-                                    <button className={styles.deactiveBtn}>Deactive</button>
-                                </td>
-                            </tr>
+                            {loading ? (
+                                <tr><td colSpan={9}>Loading...</td></tr>
+                            ) : filteredTables.length === 0 ? (
+                                <tr><td colSpan={9}>No tables found.</td></tr>
+                            ) : (
+                                filteredTables.map((table) => (
+                                    <tr key={table.id}>
+                                        <td>#{table.id}</td>
+                                        <td>{table.name}</td>
+                                        <td>{table.branchName || table.branchId}</td>
+                                        <td>{table.floorName || table.floorId || '—'}</td>
+                                        <td>{table.zoneName || table.zoneId || '—'}</td>
+                                        <td>{table.seats}</td>
+                                        <td>{table.shape}</td>
+                                        <td className={styles.status}>{table.status}</td>
+                                        <td>
+                                            <button type="button" className={styles.editBtn} onClick={() => { setEditTable(table); setShowModal(true); }}>Edit</button>
+                                            {table.is_active ? (
+                                                <button type="button" className={styles.deactiveBtn} onClick={() => handleDeactivate(table)}>Deactivate</button>
+                                            ) : (
+                                                <button type="button" className={styles.deactiveBtn} onClick={() => handleDelete(table)}>Delete</button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
-
             </div>
+
+            {showModal && (
+                <TableModal
+                    table={editTable}
+                    branches={branches}
+                    floors={floors}
+                    onClose={() => { setShowModal(false); setEditTable(null); }}
+                    onSave={handleSave}
+                />
+            )}
         </div>
     );
 }

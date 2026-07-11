@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from '../Bookings.module.css';
 import $api from '../../../../config/api.config';
 import { createManualBooking, getOccupiedTables } from '../../../../services/bookings.services';
-import { getPartnerTables } from '../../../../services/tables.services';
+import { getConsumers } from '../../../../services/consumers.services';
+import { loadTablesForBranch } from '../../../../services/tables.services';
 import { getStoredUser } from '../../../../utils/authUser';
 
 function toLocalInputValue(date) {
@@ -50,6 +51,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
     const [branches, setBranches] = useState([]);
     const [floors, setFloors] = useState([]);
     const [tables, setTables] = useState([]);
+    const [consumers, setConsumers] = useState([]);
     const [occupiedIds, setOccupiedIds] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -88,8 +90,12 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                     floorList = unwrapList(floorsRes.data);
                 }
 
+                const consumerList = await getConsumers();
+                if (!active) return;
+
                 setBranches(branchList);
                 setFloors(floorList);
+                setConsumers(consumerList);
                 setForm((prev) => ({
                     ...prev,
                     branch: prev.branch || branchList[0]?.id || assignedBranchId || '',
@@ -121,37 +127,32 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 table: '',
             }));
         }
-    }, [form.branch, form.floor, branchFloors]);
+    }, [form.branch, branchFloors]);
 
     useEffect(() => {
         let active = true;
         if (!form.branch) {
             setTables([]);
-            return;
+            return undefined;
         }
+
         (async () => {
             try {
-                let list = [];
-                try {
-                    const data = await getPartnerTables(form.branch);
-                    list = unwrapList(data);
-                } catch {
-                    const { data } = await $api.get(`/tables/branches/${form.branch}/tables/`, {
-                        params: form.floor ? { floor_id: form.floor } : {},
-                    });
-                    list = unwrapList(data);
-                }
+                const list = await loadTablesForBranch(form.branch, form.floor || null);
                 if (!active) return;
-                list = list.filter((table) => {
-                    if (!form.floor) return true;
-                    return String(table.floor ?? table.floor_id) === String(form.floor);
-                });
-                setTables(list);
+
+                const filtered = form.floor
+                    ? list.filter((table) => String(table.floorId) === String(form.floor))
+                    : list;
+
+                setTables(filtered);
             } catch (err) {
                 console.error('Manual booking tables error:', err);
                 if (active) setErrorMessage(err.response?.data?.detail || err.message || 'Failed to load tables.');
             }
+            return undefined;
         })();
+
         return () => {
             active = false;
         };
@@ -160,17 +161,16 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
     const zones = useMemo(() => {
         const map = new Map();
         tables.forEach((table) => {
-            const zoneId = table.zone ?? table.zone_id ?? null;
+            const zoneId = table.zoneId;
             if (!zoneId) return;
-            const zoneName = table.zone_name || table.zone?.name || `Zone #${zoneId}`;
-            map.set(String(zoneId), { id: zoneId, name: zoneName });
+            map.set(String(zoneId), { id: zoneId, name: table.zoneName || `Zone #${zoneId}` });
         });
         return Array.from(map.values());
     }, [tables]);
 
     useEffect(() => {
-        if (!zones.some((zone) => String(zone.id) === String(form.zone))) {
-            setForm((prev) => ({ ...prev, zone: zones[0]?.id || '' }));
+        if (form.zone && !zones.some((zone) => String(zone.id) === String(form.zone))) {
+            setForm((prev) => ({ ...prev, zone: '' }));
         }
     }, [zones, form.zone]);
 
@@ -178,7 +178,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         let active = true;
         if (!form.branch || !form.floor || !form.booking_start || !form.booking_end) {
             setOccupiedIds([]);
-            return;
+            return undefined;
         }
         (async () => {
             try {
@@ -201,14 +201,12 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         };
     }, [form.branch, form.floor, form.booking_start, form.booking_end]);
 
-    const filteredTables = useMemo(() => {
-        return tables.filter((table) => {
-            const zoneId = table.zone ?? table.zone_id ?? '';
-            const matchesZone = !form.zone || String(zoneId) === String(form.zone);
-            const notOccupied = !occupiedIds.includes(String(table.id));
-            return matchesZone && notOccupied && table.is_active !== false;
-        });
-    }, [tables, form.zone, occupiedIds]);
+    const filteredTables = useMemo(() => tables.filter((table) => {
+        const matchesZone = !form.zone || String(table.zoneId) === String(form.zone);
+        const notOccupied = !occupiedIds.includes(String(table.id));
+        const isActive = table.is_active !== false && table.status !== 'inactive';
+        return matchesZone && notOccupied && isActive;
+    }), [tables, form.zone, occupiedIds]);
 
     useEffect(() => {
         if (!filteredTables.some((table) => String(table.id) === String(form.table))) {
@@ -222,6 +220,11 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
     };
 
     const handleSubmit = async () => {
+        if (!form.branch || !form.floor || !form.table) {
+            setErrorMessage('Select branch, floor and table.');
+            return;
+        }
+
         setSaving(true);
         setErrorMessage('');
         try {
@@ -259,8 +262,15 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Guest user ID (optional)</label>
-                        <input name="guest" type="number" placeholder="Existing consumer ID" value={form.guest} onChange={updateField} />
+                        <label>Guest (consumer)</label>
+                        <select name="guest" value={form.guest} onChange={updateField}>
+                            <option value="">Select consumer</option>
+                            {consumers.map((consumer) => (
+                                <option key={consumer.id} value={consumer.id}>
+                                    {consumer.name}{consumer.phone ? ` · ${consumer.phone}` : ''}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div className={styles.formGroup}>
                         <label>Branch *</label>
@@ -297,14 +307,17 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                         <label>Table *</label>
-                        <select name="table" value={form.table} onChange={updateField}>
-                            <option value="">Select table</option>
+                        <select name="table" value={form.table} onChange={updateField} disabled={!filteredTables.length}>
+                            <option value="">{filteredTables.length ? 'Select table' : 'No available tables'}</option>
                             {filteredTables.map((table) => (
                                 <option key={table.id} value={table.id}>
-                                    {table.name} - {table.seats ?? 0} seats
+                                    {table.name} - {table.seats} seats
                                 </option>
                             ))}
                         </select>
+                        {!loading && form.floor && !filteredTables.length && (
+                            <span style={{ color: '#888', fontSize: 12 }}>No tables on this floor. Check branch/floor or create tables first.</span>
+                        )}
                     </div>
                     <div className={styles.formGroup}>
                         <label>Guest count *</label>

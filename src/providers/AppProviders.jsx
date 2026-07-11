@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import AuthService from '../services/auth.services';
 import { getStoredUser, mapProfile, setStoredUser, getAccountType } from '../utils/authUser';
+import { NotificationProvider } from '../context/NotificationContext';
 
 function AuthBootstrap({ children }) {
     useEffect(() => {
@@ -18,7 +19,9 @@ function AuthBootstrap({ children }) {
 export const AppProviders = ({ children }) => {
     return (
         <AuthBootstrap>
-            {children}
+            <NotificationProvider>
+                {children}
+            </NotificationProvider>
         </AuthBootstrap>
     );
 };

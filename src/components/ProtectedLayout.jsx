@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/sidebar/Sidebar';
+import { NotificationDrawer } from '../components/header/PageHeader';
 import {
     canAccessRoute,
     getDefaultRouteForRole,
@@ -34,6 +35,7 @@ export default function ProtectedLayout() {
     return (
         <>
             <Sidebar />
+            <NotificationDrawer />
             <Outlet />
         </>
     );

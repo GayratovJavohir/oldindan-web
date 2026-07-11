@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Dashboard.module.css';
-import Sidebar from '../../../components/sidebar/Sidebar';
+import PageHeader from '../../../components/header/PageHeader';
 import StatCard from './components/StatCard';
 import UpcomingBookings from './components/UpcomingBookings';
 import StatusBreakdown from './components/StatusBreakdown';
@@ -40,12 +40,7 @@ export default function Dashboard() {
       ]);
 
       const countOfOccupied = Array.isArray(occupiedData) ? occupiedData.length : 0;
-
-      const totalTablesList = Array.isArray(allTablesData)
-        ? allTablesData
-        : (Array.isArray(allTablesData?.results) ? allTablesData.results : []);
-
-      const countOfTotalTables = totalTablesList.length || 0;
+      const countOfTotalTables = allTablesData.length || 0;
 
       setOccupiedTables({
         occupied: countOfOccupied,
@@ -76,7 +71,12 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    return <p className={styles.loadingText}>Loading stats...</p>;
+    return (
+      <>
+        <PageHeader title="Dashboard" />
+        <p className={styles.loadingText}>Loading stats...</p>
+      </>
+    );
   }
 
   const utilizationPercentage = occupiedTables.total > 0
@@ -84,15 +84,9 @@ export default function Dashboard() {
     : 0;
 
   return (
-
-
     <>
-      <header className={styles.header}>
-        <h1>Dashboard</h1>
-        <div className={styles.bellIcon}>🔔</div>
-      </header>
+      <PageHeader title="Dashboard" />
       <div className={styles.dashboardContainer}>
-
         <section className={styles.statsGrid}>
           <StatCard
             title="TODAY'S BOOKINGS"
@@ -135,6 +129,7 @@ export default function Dashboard() {
         <section className={styles.notificationsSection}>
           <RecentNotifications />
         </section>
-      </div></>
+      </div>
+    </>
   );
 }
