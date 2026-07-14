@@ -76,7 +76,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 if (!active) return;
 
                 setBranchName(branchRes.data?.name || `Branch #${assignedBranchId}`);
-                setForm((prev) => ({ ...prev, branch: assignedBranchId }));
+                setForm((prev) => ({ ...prev, branch: String(assignedBranchId) }));
             } catch (err) {
                 console.error('Manual booking bootstrap error:', err);
                 if (active) setErrorMessage(getApiError(err));
@@ -225,8 +225,11 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         setErrorMessage('');
         try {
             const payload = {
+                branch: Number(form.branch),
                 branch_id: Number(form.branch),
+                floor: Number(form.floor),
                 floor_id: Number(form.floor),
+                table: Number(form.table),
                 table_id: Number(form.table),
                 first_name: form.first_name.trim(),
                 last_name: form.last_name.trim(),
@@ -237,7 +240,10 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 booking_end: toApiDateTime(form.booking_end),
                 special_request: form.special_request || '',
             };
-            if (form.zone) payload.zone_id = Number(form.zone);
+            if (form.zone) {
+                payload.zone = Number(form.zone);
+                payload.zone_id = Number(form.zone);
+            }
 
             await createManualBooking(payload);
             if (onSuccess) onSuccess();

@@ -18,6 +18,8 @@ export function mapBrandFromApi(brand, branchCount = 0) {
         created: formatDate(brand.created_at || brand.created),
         raw: brand,
     };
+
+
 }
 
 export function mapBranchFromApi(branch) {

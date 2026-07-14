@@ -117,16 +117,24 @@ export const noShowBooking = async (id, note = '') => {
     return response.data;
 };
 
-export const checkInBooking = async (data) => {
-    const response = await $api.post('/bookings/partner/checkin/', data);
+export const checkInBooking = async (id, data) => {
+    const response = await $api.post(`/bookings/partner/${id}/checkin/`, data);
     return response.data;
 };
 
 export const createManualBooking = async (payload) => {
+    const branchId = payload.branch_id ?? payload.branch;
+    const floorId = payload.floor_id ?? payload.floor;
+    const tableId = payload.table_id ?? payload.table;
+    const zoneId = payload.zone_id ?? payload.zone;
+
     const body = {
-        branch_id: payload.branch_id ?? payload.branch,
-        floor_id: payload.floor_id ?? payload.floor,
-        table_id: payload.table_id ?? payload.table,
+        branch: branchId,
+        branch_id: branchId,
+        floor: floorId,
+        floor_id: floorId,
+        table: tableId,
+        table_id: tableId,
         first_name: payload.first_name?.trim(),
         last_name: payload.last_name?.trim(),
         phone: payload.phone?.trim(),
@@ -137,8 +145,10 @@ export const createManualBooking = async (payload) => {
         special_request: payload.special_request || '',
     };
 
-    const zoneId = payload.zone_id ?? payload.zone;
-    if (zoneId) body.zone_id = zoneId;
+    if (zoneId) {
+        body.zone = zoneId;
+        body.zone_id = zoneId;
+    }
 
     const response = await $api.post('/bookings/partner/manual-create/', body);
     return response.data;
