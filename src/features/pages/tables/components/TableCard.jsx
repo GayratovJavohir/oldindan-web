@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import styles from '../Table.module.css';
-import $api from '../../../../config/api.config';
 import { getPartnerBranches } from '../../../../services/restaurants.services';
+import { getPartnerFloors } from '../../../../services/layouts.services';
 import {
-    createPartnerTable,
+    createTableWithLayout,
     deletePartnerTable,
     getPartnerTables,
     patchPartnerTable,
 } from '../../../../services/tables.services';
-import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
+import { getApiError } from '../../../../utils/apiHelpers';
 
 function TableModal({ table, branches, floors, onClose, onSave }) {
     const [form, setForm] = useState({
@@ -17,13 +18,14 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
         zone: table?.zoneId || '',
         name: table?.name || '',
         seats: table?.seats ?? 2,
-        shape: table?.shape || 'rect',
+        shape: table?.shape === 'rect' ? 'rect' : 'round',
         is_active: table ? table.is_active : true,
     });
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
 
-    const branchFloors = floors.filter((floor) => String(floor.branch ?? floor.branch_id) === String(form.branch));
+    const branchFloors = floors.filter((floor) => String(floor.branchId) === String(form.branch));
+    const floorZones = branchFloors.find((f) => String(f.id) === String(form.floor))?.zones || [];
 
     const submit = async (e) => {
         e.preventDefault();
@@ -54,7 +56,7 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
                                 <label>Branch *</label>
                                 <select
                                     value={form.branch}
-                                    onChange={(e) => setForm({ ...form, branch: e.target.value, floor: '' })}
+                                    onChange={(e) => setForm({ ...form, branch: e.target.value, floor: '', zone: '' })}
                                     required
                                 >
                                     <option value="">Select branch</option>
@@ -69,8 +71,9 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
                                 <label>Floor *</label>
                                 <select
                                     value={form.floor}
-                                    onChange={(e) => setForm({ ...form, floor: e.target.value })}
+                                    onChange={(e) => setForm({ ...form, floor: e.target.value, zone: '' })}
                                     required
+                                    disabled={Boolean(table)}
                                 >
                                     <option value="">Select floor</option>
                                     {branchFloors.map((floor) => (
@@ -79,13 +82,16 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
                                 </select>
                             </div>
                             <div className={styles.formGroup}>
-                                <label>Zone ID</label>
-                                <input
-                                    type="number"
+                                <label>Zone</label>
+                                <select
                                     value={form.zone}
                                     onChange={(e) => setForm({ ...form, zone: e.target.value })}
-                                    placeholder="Optional"
-                                />
+                                >
+                                    <option value="">No zone</option>
+                                    {floorZones.map((zone) => (
+                                        <option key={zone.id} value={zone.id}>{zone.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                         <div className={styles.formRow}>
@@ -99,14 +105,15 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
                             </div>
                         </div>
                         <div className={styles.formRow}>
-                            <div className={styles.formGroup}>
-                                <label>Shape</label>
-                                <select value={form.shape} onChange={(e) => setForm({ ...form, shape: e.target.value })}>
-                                    <option value="rect">rect</option>
-                                    <option value="round">round</option>
-                                    <option value="square">square</option>
-                                </select>
-                            </div>
+                            {!table && (
+                                <div className={styles.formGroup}>
+                                    <label>Shape</label>
+                                    <select value={form.shape} onChange={(e) => setForm({ ...form, shape: e.target.value })}>
+                                        <option value="round">round</option>
+                                        <option value="rect">rect</option>
+                                    </select>
+                                </div>
+                            )}
                             <div className={styles.formGroup}>
                                 <label>Status</label>
                                 <select value={form.is_active ? 'active' : 'inactive'} onChange={(e) => setForm({ ...form, is_active: e.target.value === 'active' })}>
@@ -115,6 +122,11 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
                                 </select>
                             </div>
                         </div>
+                        {!table && (
+                            <div className={styles.errorText} style={{ color: '#aaa' }}>
+                                Table layout item avtomatik yaratiladi. Joylashuvni Floor Layout da sozlang.
+                            </div>
+                        )}
                     </div>
                     <div className={styles.modalFooter}>
                         <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
@@ -143,12 +155,12 @@ export default function TableCard() {
         setLoading(true);
         setError('');
         try {
-            const [branchList, floorsRes] = await Promise.all([
+            const [branchList, floorList] = await Promise.all([
                 getPartnerBranches(),
-                $api.get('/layouts/partner/floors/'),
+                getPartnerFloors(),
             ]);
             setBranches(branchList);
-            setFloors(unwrapList(floorsRes.data));
+            setFloors(floorList);
 
             const allTables = [];
             for (const branch of branchList) {
@@ -178,25 +190,33 @@ export default function TableCard() {
     }), [tables, branchFilter, floorFilter]);
 
     const branchFloors = useMemo(
-        () => floors.filter((floor) => !branchFilter || String(floor.branch ?? floor.branch_id) === String(branchFilter)),
+        () => floors.filter((floor) => !branchFilter || String(floor.branchId) === String(branchFilter)),
         [floors, branchFilter]
     );
 
     const handleSave = async (form, table) => {
-        const payload = {
-            name: form.name.trim(),
-            seats: Number(form.seats),
-            shape: form.shape,
-            is_active: form.is_active,
-            floor: Number(form.floor),
-        };
-        if (form.zone) payload.zone = Number(form.zone);
-        if (!table) payload.branch = Number(form.branch);
-
         if (table) {
+            const payload = {
+                name: form.name.trim(),
+                seats: Number(form.seats),
+                is_active: form.is_active,
+            };
+            if (form.zone) payload.zone = Number(form.zone);
+            else payload.zone = null;
             await patchPartnerTable(table.id, payload);
         } else {
-            await createPartnerTable(payload);
+            await createTableWithLayout({
+                branchId: form.branch,
+                floorId: form.floor,
+                zoneId: form.zone || null,
+                name: form.name.trim(),
+                seats: Number(form.seats),
+                shape: form.shape === 'rect' ? 'rect' : 'round',
+                width: form.shape === 'rect' ? 140 : 90,
+                height: 90,
+                x: 100 + Math.floor(Math.random() * 200),
+                y: 100 + Math.floor(Math.random() * 160),
+            });
         }
         await loadData();
     };
@@ -232,6 +252,7 @@ export default function TableCard() {
                                 <option key={floor.id} value={floor.id}>{floor.name}</option>
                             ))}
                         </select>
+                        <Link to="/floor-layout" className={styles.editBtn}>Open Floor Layout</Link>
                         <button type="button" className={styles.addBtn} onClick={() => { setEditTable(null); setShowModal(true); }}>
                             + Add Table
                         </button>
@@ -250,7 +271,7 @@ export default function TableCard() {
                                 <th>FLOOR</th>
                                 <th>ZONE</th>
                                 <th>SEATS</th>
-                                <th>SHAPE</th>
+                                <th>LAYOUT ITEM</th>
                                 <th>STATUS</th>
                                 <th>ACTIONS</th>
                             </tr>
@@ -269,7 +290,7 @@ export default function TableCard() {
                                         <td>{table.floorName || table.floorId || '—'}</td>
                                         <td>{table.zoneName || table.zoneId || '—'}</td>
                                         <td>{table.seats}</td>
-                                        <td>{table.shape}</td>
+                                        <td>{table.layoutItemId || '—'}</td>
                                         <td className={styles.status}>{table.status}</td>
                                         <td>
                                             <button type="button" className={styles.editBtn} onClick={() => { setEditTable(table); setShowModal(true); }}>Edit</button>

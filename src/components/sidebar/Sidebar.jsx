@@ -11,7 +11,7 @@ const navItems = {
   ],
   BOOKINGS: [
     { label: 'All Bookings', icon: '☰', badgeKey: 'booking', path: '/bookings', roles: ['owner', 'manager', 'receptionist'] },
-    { label: 'Live View', icon: '◷', path: '/live-view', roles: ['owner', 'manager'] },
+    { label: 'Live View', icon: '◷', path: '/live-view', roles: ['owner', 'manager', 'receptionist'] },
     { label: 'Manual Booking', icon: '+', path: '/manual-bookings', roles: ['receptionist'] },
   ],
   VENUE: [

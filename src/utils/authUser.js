@@ -81,7 +81,7 @@ export const ROUTE_ACCESS = {
     '/dashboard': ['owner', 'manager'],
     '/bookings': ['owner', 'manager', 'receptionist'],
     '/manual-bookings': ['receptionist'],
-    '/live-view': ['owner', 'manager'],
+    '/live-view': ['owner', 'manager', 'receptionist'],
     '/floor-layout': ['owner', 'manager'],
     '/tables': ['owner', 'manager'],
     '/branches': ['owner'],

@@ -28,16 +28,16 @@ function plusHours(value, hours) {
     return toLocalInputValue(date);
 }
 
-export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'Create Booking' }) {
+export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'Create Booking', initialValues = null }) {
     const initialStart = toLocalInputValue(new Date());
     const [form, setForm] = useState({
         first_name: '',
         last_name: '',
         phone: '',
         branch: '',
-        floor: '',
-        zone: '',
-        table: '',
+        floor: initialValues?.floor || '',
+        zone: initialValues?.zone || '',
+        table: initialValues?.table || '',
         guest_count: 2,
         children_count: 0,
         booking_start: initialStart,
@@ -101,14 +101,19 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 if (!active) return;
                 const floorList = unwrapList(response.data);
                 setFloors(floorList);
-                setForm((prev) => ({
-                    ...prev,
-                    floor: floorList.some((f) => String(f.id) === String(prev.floor))
-                        ? prev.floor
-                        : (floorList[0]?.id || ''),
-                    zone: '',
-                    table: '',
-                }));
+                setForm((prev) => {
+                    const preferredFloor = initialValues?.floor || prev.floor;
+                    const nextFloor = floorList.some((f) => String(f.id) === String(preferredFloor))
+                        ? preferredFloor
+                        : (floorList[0]?.id || '');
+                    const keepPrefill = String(nextFloor) === String(initialValues?.floor);
+                    return {
+                        ...prev,
+                        floor: nextFloor || '',
+                        zone: keepPrefill ? (initialValues?.zone || prev.zone || '') : '',
+                        table: keepPrefill ? (initialValues?.table || prev.table || '') : '',
+                    };
+                });
             } catch (err) {
                 if (active) setErrorMessage(getApiError(err));
             }
@@ -130,12 +135,15 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 const list = await loadTablesForBranch(form.branch, form.floor);
                 if (!active) return;
                 setTables(list);
-                setForm((prev) => ({
-                    ...prev,
-                    table: list.some((t) => String(t.id) === String(prev.table))
-                        ? prev.table
-                        : (list[0]?.id || ''),
-                }));
+                setForm((prev) => {
+                    const preferred = initialValues?.table || prev.table;
+                    return {
+                        ...prev,
+                        table: list.some((t) => String(t.id) === String(preferred))
+                            ? preferred
+                            : (list[0]?.id || ''),
+                    };
+                });
             } catch (err) {
                 if (active) {
                     setTables([]);
