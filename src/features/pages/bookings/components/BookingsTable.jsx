@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
 import ManualBookingModal from './ManualBookingModal';
 import CheckInModal from '../../../../components/CheckInModal';
@@ -9,6 +10,7 @@ import { canCreateManualBooking } from '../../../../utils/authUser';
 import { getApiError } from '../../../../utils/apiHelpers';
 
 export default function BookingsTable() {
+  const { t } = useTranslation();
   const canManualBooking = canCreateManualBooking();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,28 +71,18 @@ export default function BookingsTable() {
     }
   };
 
-  const handleNextPage = () => {
-    setPagination((prev) => ({ ...prev, page: prev.page + 1 }));
-  };
-
-  const handlePrevPage = () => {
-    if (pagination.page > 1) {
-      setPagination((prev) => ({ ...prev, page: prev.page - 1 }));
-    }
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.mainCard}>
         <div className={styles.header}>
-          <h2 className={styles.title}>All Bookings</h2>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <h2 className={styles.title}>{t('bookings.allBookings')}</h2>
+          <div className={styles.headerActions}>
             <button type="button" className={styles.manualBtn} onClick={() => setShowQuickCheckIn(true)}>
-              Check In by code
+              {t('bookings.checkInByCode')}
             </button>
             {canManualBooking && (
               <button type="button" className={styles.manualBtn} onClick={() => setIsModalOpen(true)}>
-                + Manual Booking
+                {t('bookings.manualBooking')}
               </button>
             )}
           </div>
@@ -105,21 +97,21 @@ export default function BookingsTable() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>CODE</th>
-                <th>GUEST</th>
-                <th>BRANCH / TABLE</th>
-                <th>DATE & TIME</th>
-                <th>GUESTS</th>
-                <th>STATUS</th>
-                <th>SOURCE</th>
-                <th>ACTIONS</th>
+                <th>{t('bookings.code')}</th>
+                <th>{t('bookings.guest')}</th>
+                <th>{t('bookings.branchTable')}</th>
+                <th>{t('bookings.dateTime')}</th>
+                <th>{t('common.guests')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('common.source')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
+                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('common.loading')}</td></tr>
               ) : bookings.length === 0 ? (
-                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No bookings found.</td></tr>
+                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('bookings.noBookings')}</td></tr>
               ) : (
                 bookings.map((booking) => (
                   <BookingRow
@@ -135,14 +127,23 @@ export default function BookingsTable() {
 
         <div className={styles.pagination}>
           <span className={styles.resultsCount}>
-            Total results: {pagination.totalCount} (Page: {pagination.page})
+            {t('bookings.totalResults')}: {pagination.totalCount} ({t('bookings.page')}: {pagination.page})
           </span>
           <div className={styles.paginationBtns}>
-            <button type="button" className={styles.pageBtn} onClick={handlePrevPage} disabled={pagination.page === 1}>
-              &larr; Prev
+            <button
+              type="button"
+              className={styles.pageBtn}
+              onClick={() => pagination.page > 1 && setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+              disabled={pagination.page === 1}
+            >
+              &larr; {t('bookings.prev')}
             </button>
-            <button type="button" className={styles.pageBtn} onClick={handleNextPage}>
-              Next &rarr;
+            <button
+              type="button"
+              className={styles.pageBtn}
+              onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+            >
+              {t('bookings.next')} &rarr;
             </button>
           </div>
         </div>

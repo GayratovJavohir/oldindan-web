@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../features/pages/bookings/Bookings.module.css';
 import BrandBranchSelect from './BrandBranchSelect';
 import { checkInByNumber } from '../services/bookings.services';
@@ -12,6 +13,7 @@ export default function CheckInModal({
     onClose,
     onSuccess,
 }) {
+    const { t } = useTranslation();
     const user = getStoredUser();
     const isOwner = user?.role === 'owner';
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
@@ -57,7 +59,7 @@ export default function CheckInModal({
         <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div className={styles.modalContent} style={{ maxWidth: 440 }}>
                 <div className={styles.modalHeader}>
-                    <h2 className={styles.modalTitle}>Check In</h2>
+                    <h2 className={styles.modalTitle}>{t('bookings.checkIn')}</h2>
                     <button type="button" className={styles.closeBtn} onClick={onClose}>&times;</button>
                 </div>
                 <form onSubmit={submit}>
@@ -68,7 +70,7 @@ export default function CheckInModal({
                             </p>
                         )}
                         <div className={styles.formGroup}>
-                            <label>Booking code (6 belgi) *</label>
+                            <label>{t('bookings.bookingCode')} *</label>
                             <input
                                 value={bookingNumber}
                                 onChange={(e) => setBookingNumber(
@@ -107,11 +109,11 @@ export default function CheckInModal({
                     </div>
                     <div className={styles.modalFooter}>
                         <button type="button" className={styles.modalCancelBtn} onClick={onClose}>
-                            {result ? 'Close' : 'Cancel'}
+                            {result ? t('common.close') : t('common.cancel')}
                         </button>
                         {!result && (
                             <button type="submit" className={styles.modalSubmitBtn} disabled={busy}>
-                                {busy ? 'Checking in...' : 'Check In'}
+                                {busy ? t('bookings.checkingIn') : t('bookings.checkIn')}
                             </button>
                         )}
                     </div>

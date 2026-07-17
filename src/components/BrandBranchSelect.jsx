@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getPartnerBrands, getPartnerBranches } from '../services/restaurants.services';
 import { getApiError } from '../utils/apiHelpers';
 
@@ -17,6 +18,7 @@ export default function BrandBranchSelect({
     showLabels = true,
     disabled = false,
 }) {
+    const { t } = useTranslation();
     const [brands, setBrands] = useState([]);
     const [branches, setBranches] = useState([]);
     const [brandId, setBrandId] = useState(controlledBrandId || '');
@@ -102,7 +104,7 @@ export default function BrandBranchSelect({
     return (
         <div className={className} style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'end' }}>
             <label className={fieldClassName} style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: '#999' }}>
-                {showLabels && <span>Brand</span>}
+                {showLabels && <span>{t('common.brand')}</span>}
                 <select
                     className={selectClassName}
                     style={selectClassName ? undefined : selectStyle}
@@ -110,14 +112,14 @@ export default function BrandBranchSelect({
                     onChange={(e) => handleBrandChange(e.target.value)}
                     disabled={disabled || loading}
                 >
-                    <option value="">Select brand</option>
+                    <option value="">{t('common.selectBrand')}</option>
                     {brands.map((brand) => (
                         <option key={brand.id} value={brand.id}>{brand.name}</option>
                     ))}
                 </select>
             </label>
             <label className={fieldClassName} style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: '#999' }}>
-                {showLabels && <span>Branch</span>}
+                {showLabels && <span>{t('common.branch')}</span>}
                 <select
                     className={selectClassName}
                     style={selectClassName ? undefined : selectStyle}
@@ -125,7 +127,7 @@ export default function BrandBranchSelect({
                     onChange={(e) => onBranchChange?.(e.target.value)}
                     disabled={disabled || loading || !brandId}
                 >
-                    <option value="">Select branch</option>
+                    <option value="">{t('common.selectBranch')}</option>
                     {brandBranches.map((branch) => (
                         <option key={branch.id} value={branch.id}>{branch.name}</option>
                     ))}

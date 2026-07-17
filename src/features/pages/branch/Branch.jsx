@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageHeader from '../../../components/header/PageHeader';
 import LocationMapPicker from '../../../components/LocationMapPicker';
 import styles from './Branch.module.css';
@@ -304,6 +305,7 @@ function BrandPickerGrid({ brands, onSelect }) {
 }
 
 export default function Branch() {
+    const { t } = useTranslation();
     const [branches, setBranches] = useState([]);
     const [brands, setBrands] = useState([]);
     const [selectedBrand, setSelectedBrand] = useState(null);
@@ -397,7 +399,7 @@ export default function Branch() {
     return (
         <>
             <PageHeader
-                title={selectedBrand ? `${selectedBrand.name} — Branches` : 'Branches'}
+                title={selectedBrand ? `${selectedBrand.name} — ${t('pages.branches')}` : t('pages.branches')}
                 actions={(
                     <>
                         {selectedBrand && (
@@ -406,12 +408,12 @@ export default function Branch() {
                                 className={styles.backBtn}
                                 onClick={() => setSelectedBrand(null)}
                             >
-                                ← Brands
+                                {t('branches.brandsBack')}
                             </button>
                         )}
                         {owner && selectedBrand && (
                             <button type="button" className={styles.addBranchBtn} onClick={openCreate}>
-                                + Add Branch
+                                {t('branches.addBranch')}
                             </button>
                         )}
                     </>
@@ -422,18 +424,18 @@ export default function Branch() {
 
             <div className={selectedBrand ? styles.branchContainer : styles.brandPickerContainer}>
                 {loading ? (
-                    <div className={styles.emptyState}>Loading...</div>
+                    <div className={styles.emptyState}>{t('common.loading')}</div>
                 ) : !selectedBrand ? (
                     <>
-                        <p className={styles.pickerHint}>Select a brand to view and manage its branches</p>
+                        <p className={styles.pickerHint}>{t('branches.selectBrandHint')}</p>
                         <BrandPickerGrid brands={brands} onSelect={setSelectedBrand} />
                     </>
                 ) : filteredBranches.length === 0 ? (
                     <div className={styles.emptyState}>
-                        No branches for this brand yet.
+                        {t('branches.noBranches')}
                         {owner && (
                             <button type="button" className={styles.addBranchBtnInline} onClick={openCreate}>
-                                + Add first branch
+                                {t('branches.addFirst')}
                             </button>
                         )}
                     </div>

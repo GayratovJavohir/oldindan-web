@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import styles from '../Branch.module.css';
 
 export default function BranchCard({ branch, onEdit }) {
+    const { t } = useTranslation();
     const { id, name, status, location, phone, floors, tables, fee, hasDeposit, brandId } = branch;
 
     return (
@@ -44,7 +46,7 @@ export default function BranchCard({ branch, onEdit }) {
 
             <div className={styles.cardActions}>
                 {onEdit && (
-                    <button type="button" className={styles.actionBtn} onClick={onEdit}>Edit</button>
+                    <button type="button" className={styles.actionBtn} onClick={onEdit}>{t('common.edit')}</button>
                 )}
                 <Link
                     to={`/floor-layout?branchId=${id}${brandId ? `&brandId=${brandId}` : ''}`}

@@ -505,3 +505,66 @@
     background: #8b1515;
     color: #fff;
 }
+
+/* responsive-i18n */
+
+@media (max-width: 1100px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .mainContentGrid {
+        grid-template-columns: 1fr !important;
+    }
+    .workspace {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboardContainer,
+    .bookingsContainer,
+    .layoutContainer,
+    .liveLayoutContainer,
+    .tablesContainer,
+    .branchContainer,
+    .brandPickerContainer,
+    .manualContainer,
+    .container {
+        margin-left: 0 !important;
+        padding: var(--page-pad) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .statsGrid {
+        grid-template-columns: 1fr !important;
+    }
+    .header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+    .headerActions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .tableWrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .modalContent,
+    .modalContentWide {
+        max-width: calc(100vw - 24px) !important;
+        margin: 12px;
+    }
+    .formRow {
+        grid-template-columns: 1fr !important;
+    }
+    .hoursRow {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    .hoursDay {
+        grid-column: 1 / -1;
+    }
+}

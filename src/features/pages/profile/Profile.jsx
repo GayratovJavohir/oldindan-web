@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../../../components/header/PageHeader'
 import styles from './Profile.module.css'
 import ProfileCard from './components/ProfileCard'
@@ -11,11 +12,12 @@ function subtitleForRole(role) {
 }
 
 export default function Profile() {
+    const { t } = useTranslation();
     const user = getStoredUser();
 
     return (
         <>
-            <PageHeader title="Profile" />
+            <PageHeader title={t('pages.profile')} />
             <div className={styles.profileContainer}>
                 <p className={styles.sectionSub} style={{ marginTop: 0 }}>
                     {subtitleForRole(user?.role)}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './Dashboard.module.css';
 import PageHeader from '../../../components/header/PageHeader';
 import StatCard from './components/StatCard';
@@ -17,6 +18,7 @@ function todayISO() {
 }
 
 export default function Dashboard() {
+    const { t } = useTranslation();
     const user = getStoredUser();
     const isOwner = user?.role === 'owner';
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
@@ -67,7 +69,7 @@ export default function Dashboard() {
             setBookingsList(list);
             setOccupiedTables({
                 occupied: occupiedCount,
-                total: tables.filter((t) => t.is_active).length || tables.length,
+                total: tables.filter((tbl) => tbl.is_active).length || tables.length,
             });
             setPendingBookings(list.filter((b) => b.status === 'Pending').length);
             setNoShowsCount(list.filter((b) => b.status === 'No Show').length);
@@ -86,7 +88,6 @@ export default function Dashboard() {
             setLoading(false);
             setError('Branch biriktirilmagan.');
         }
-        // owner waits for BrandBranchSelect
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -104,7 +105,7 @@ export default function Dashboard() {
     return (
         <>
             <PageHeader
-                title="Dashboard"
+                title={t('pages.dashboard')}
                 actions={isOwner ? (
                     <BrandBranchSelect
                         brandId={brandId}
@@ -117,35 +118,35 @@ export default function Dashboard() {
 
             {error && <p className={styles.loadingText} style={{ color: '#ff6b6b' }}>{error}</p>}
             {loading ? (
-                <p className={styles.loadingText}>Loading stats...</p>
+                <p className={styles.loadingText}>{t('dashboard.loadingStats')}</p>
             ) : (
                 <div className={styles.dashboardContainer}>
                     <section className={styles.statsGrid}>
                         <StatCard
-                            title="TODAY'S BOOKINGS"
+                            title={t('dashboard.todaysBookings')}
                             value={String(bookingsList.length)}
-                            subtext="Today for selected branch"
+                            subtext={t('dashboard.todayForBranch')}
                             isPositive
                             icon="📅"
                         />
                         <StatCard
-                            title="PENDING"
+                            title={t('dashboard.pending')}
                             value={String(pendingBookings)}
-                            subtext={pendingBookings > 0 ? 'Needs attention' : 'All cleared'}
+                            subtext={pendingBookings > 0 ? t('dashboard.needsAttention') : t('dashboard.allCleared')}
                             status={pendingBookings > 0 ? 'pending' : 'normal'}
                             icon="👤"
                         />
                         <StatCard
-                            title="OCCUPIED TABLES"
+                            title={t('dashboard.occupiedTables')}
                             value={`${occupiedTables.occupied}/${occupiedTables.total}`}
-                            subtext={`${utilizationPercentage}% utilization`}
+                            subtext={`${utilizationPercentage}% ${t('dashboard.utilization')}`}
                             isPositive={utilizationPercentage > 50}
                             icon="🪑"
                         />
                         <StatCard
-                            title="NO SHOWS TODAY"
+                            title={t('dashboard.noShowsToday')}
                             value={String(noShowsCount)}
-                            subtext="from today's visits"
+                            subtext={t('dashboard.fromTodaysVisits')}
                             isPositive={noShowsCount === 0}
                             icon="🚫"
                         />

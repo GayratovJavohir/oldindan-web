@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
 
 export default function BookingRow({ booking, onStatusChange }) {
+    const { t } = useTranslation();
     const getStatusStyle = (status) => {
         switch (status) {
             case 'Confirmed': return styles.statusConfirmed;
@@ -14,11 +16,11 @@ export default function BookingRow({ booking, onStatusChange }) {
         }
     };
 
-    const guestName = booking.guestName || booking.user_name || 'Guest';
-    const branchName = booking.branch || booking.branch_name || 'Branch';
-    const tableName = booking.table || booking.table_name || 'Table';
+    const guestName = booking.guestName || booking.user_name || t('bookings.guest');
+    const branchName = booking.branch || booking.branch_name || t('common.branch');
+    const tableName = booking.table || booking.table_name || t('common.table');
     const guestsCount = booking.guest_count || booking.guestsCount || 0;
-    const sourceLabel = String(booking.source || '').toLowerCase() === 'manual' ? '💻 Manual' : '📱 App';
+    const sourceLabel = String(booking.source || '').toLowerCase().includes('manual') ? '💻 Manual' : '📱 App';
     const note = booking.special_request || booking.raw?.special_request || '';
 
     return (
@@ -52,43 +54,35 @@ export default function BookingRow({ booking, onStatusChange }) {
             </td>
             <td>
                 <div className={styles.actions}>
-                    <button className={styles.viewBtn} type="button" title={note || 'No special request'}>
-                        View
+                    <button className={styles.viewBtn} type="button" title={note || '—'}>
+                        {t('bookings.view')}
                     </button>
                     {booking.status === 'Pending' && (
                         <>
-                            <button
-                                type="button"
-                                className={styles.confirmBtn}
-                                onClick={() => onStatusChange(booking, 'confirm')}
-                            >
-                                Confirm
+                            <button type="button" className={styles.confirmBtn} onClick={() => onStatusChange(booking, 'confirm')}>
+                                {t('bookings.confirm')}
                             </button>
-                            <button
-                                type="button"
-                                className={styles.cancelBtn}
-                                onClick={() => onStatusChange(booking, 'cancel')}
-                            >
-                                Cancel
+                            <button type="button" className={styles.cancelBtn} onClick={() => onStatusChange(booking, 'cancel')}>
+                                {t('bookings.cancel')}
                             </button>
                         </>
                     )}
                     {booking.status === 'Confirmed' && (
                         <>
                             <button type="button" className={styles.confirmBtn} onClick={() => onStatusChange(booking, 'checkin')}>
-                                Check In
+                                {t('bookings.checkIn')}
                             </button>
                             <button type="button" className={styles.cancelBtn} onClick={() => onStatusChange(booking, 'cancel')}>
-                                Cancel
+                                {t('bookings.cancel')}
                             </button>
                             <button type="button" className={styles.cancelBtn} onClick={() => onStatusChange(booking, 'no_show')}>
-                                No Show
+                                {t('bookings.noShow')}
                             </button>
                         </>
                     )}
                     {booking.status === 'Checked In' && (
                         <button type="button" className={styles.confirmBtn} onClick={() => onStatusChange(booking, 'complete')}>
-                            Complete
+                            {t('bookings.complete')}
                         </button>
                     )}
                 </div>
