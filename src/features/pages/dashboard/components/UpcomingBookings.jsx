@@ -1,52 +1,75 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import styles from '../Dashboard.module.css';
+
+function parseStart(booking) {
+    const raw = booking.booking_start || '';
+    const d = new Date(raw);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function statusClass(status) {
+    const key = String(status || '').toLowerCase().replace(/\s+/g, '');
+    if (key.includes('pending')) return styles.statusPending;
+    if (key.includes('confirm')) return styles.statusConfirmed;
+    if (key.includes('check')) return styles.statusCheckedIn;
+    return styles.statusDefault;
+}
+
 export default function UpcomingBookings({ bookings = [] }) {
+    const upcomingList = useMemo(() => {
+        const now = Date.now();
+        const active = new Set(['Pending', 'Confirmed', 'Checked In']);
 
-  const upcomingList = bookings
-    .filter(b => b.status?.toLowerCase() !== 'canceled' && b.status?.toLowerCase() !== 'no_show')
-    .slice(0, 4);
+        return [...bookings]
+            .filter((b) => active.has(b.status))
+            .map((b) => ({ booking: b, start: parseStart(b) }))
+            .filter(({ start }) => start && start.getTime() >= now - 60 * 60 * 1000)
+            .sort((a, b) => a.start - b.start)
+            .slice(0, 6)
+            .map(({ booking }) => booking);
+    }, [bookings]);
 
-  return (
-    <div className={styles.bookingBlock}>
-      <div className={styles.blockHeader}>
-        <h3>Upcoming bookings</h3>
-        <button className={styles.viewAllBtn}>View all</button>
-      </div>
+    return (
+        <div className={styles.bookingBlock}>
+            <div className={styles.blockHeader}>
+                <h3 className={styles.blockTitle}>Upcoming bookings</h3>
+                <Link to="/bookings" className={styles.viewAllBtn}>View all</Link>
+            </div>
 
-      <div className="bookingRow"></div>
-      <div className={styles.bookingList}>
-        {upcomingList.length === 0 ? (
-          <p className={styles.emptyText}>Bugun uchun kelayotgan buyurtmalar yo'q.</p>
-        ) : (
-          upcomingList.map((booking) => {
-            const startTime = booking.booking_start ? booking.booking_start.split(' ')[1]?.substring(0, 5) : '--:--';
-            const endTime = booking.booking_end ? booking.booking_end.split(' ')[1]?.substring(0, 5) : '--:--';
+            <div className={styles.bookingList}>
+                {upcomingList.length === 0 ? (
+                    <p className={styles.emptyText}>Yaqin orada booking yo‘q.</p>
+                ) : (
+                    upcomingList.map((booking) => (
+                        <div key={booking.id} className={styles.bookingItem}>
+                            <div className={styles.bookingTime}>
+                                <strong>{booking.time || '--:--'}</strong>
+                                <span>{booking.endTime || '—'}</span>
+                            </div>
 
-            return (
-              <div key={booking.id} className={styles.bookingItem}>
-                <div className={styles.bookingTime}>
-                  <strong>{startTime}</strong>
-                  <span>{endTime}</span>
-                </div>
+                            <div className={styles.bookingDetails}>
+                                <strong>{booking.guestName || 'Guest'}</strong>
+                                <span>
+                                    {booking.guest_count || 0} guests
+                                    {booking.bookingNumber ? ` · #${booking.bookingNumber}` : ''}
+                                </span>
+                            </div>
 
-                <div className={styles.bookingDetails}>
-                  <strong>{booking.owner_name || booking.user?.full_name || 'Mijoz'}</strong>
-                  <span>{booking.guests_count || 0} guests • {booking.is_vip ? 'VIP' : 'Indoor'}</span>
-                </div>
+                            <div className={styles.bookingTableInfo}>
+                                <strong>{booking.table || 'Table'}</strong>
+                                <span>
+                                    {[booking.branch, booking.floor].filter(Boolean).join(' · ') || '—'}
+                                </span>
+                            </div>
 
-                <div className={styles.bookingTableInfo}>
-                  <strong>{booking.table_name || `Table ${booking.table}`}</strong>
-                  <span>Floor 1</span>
-                </div>
-
-                <div className={`${styles.statusBadge} ${styles[booking.status?.toLowerCase()]}`}>
-                  • {booking.status}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
+                            <div className={`${styles.statusBadge} ${statusClass(booking.status)}`}>
+                                {booking.status}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
 }

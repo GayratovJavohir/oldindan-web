@@ -22,6 +22,60 @@ export function mapBrandFromApi(brand, branchCount = 0) {
 
 }
 
+export const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+export const WEEKDAY_LABELS = {
+    mon: 'Monday',
+    tue: 'Tuesday',
+    wed: 'Wednesday',
+    thu: 'Thursday',
+    fri: 'Friday',
+    sat: 'Saturday',
+    sun: 'Sunday',
+};
+
+export function emptyHoursSchedule() {
+    return WEEKDAY_KEYS.reduce((acc, day) => {
+        acc[day] = { enabled: false, open: '10:00', close: '22:00' };
+        return acc;
+    }, {});
+}
+
+/** API JSON `{ mon: ["10:00","22:00"] }` → UI schedule */
+export function hoursFromApi(hours) {
+    const schedule = emptyHoursSchedule();
+    if (!hours || typeof hours !== 'object') return schedule;
+    WEEKDAY_KEYS.forEach((day) => {
+        const slot = hours[day];
+        if (Array.isArray(slot) && slot.length >= 2 && slot[0] && slot[1]) {
+            schedule[day] = {
+                enabled: true,
+                open: String(slot[0]).slice(0, 5),
+                close: String(slot[1]).slice(0, 5),
+            };
+        }
+    });
+    return schedule;
+}
+
+/** UI schedule → API JSON (faqat enabled kunlar) */
+export function hoursToApi(schedule) {
+    const result = {};
+    WEEKDAY_KEYS.forEach((day) => {
+        const row = schedule?.[day];
+        if (!row?.enabled || !row.open || !row.close) return;
+        result[day] = [row.open, row.close];
+    });
+    return result;
+}
+
+export function defaultWorkingHoursSchedule() {
+    const schedule = emptyHoursSchedule();
+    WEEKDAY_KEYS.forEach((day) => {
+        schedule[day] = { enabled: true, open: '10:00', close: '22:00' };
+    });
+    return schedule;
+}
+
 export function mapBranchFromApi(branch) {
     const brandId = branch.brand_id ?? branch.brand?.id ?? branch.brand ?? null;
     return {
@@ -40,6 +94,8 @@ export function mapBranchFromApi(branch) {
         latitude: branch.latitude,
         longitude: branch.longitude,
         is_active: branch.is_active !== false,
+        workingHours: hoursFromApi(branch.working_hours),
+        bookingHours: hoursFromApi(branch.booking_hours),
         raw: branch,
     };
 }

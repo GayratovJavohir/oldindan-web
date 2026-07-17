@@ -28,8 +28,8 @@ export function mapBookingFromApi(booking) {
     const startDate = start ? String(start).split('T')[0].split(' ')[0] : '';
     const startTime = start ? String(start).split('T')[1]?.slice(0, 5) || String(start).split(' ')[1]?.slice(0, 5) || '' : '';
     const endTime = end ? String(end).split('T')[1]?.slice(0, 5) || String(end).split(' ')[1]?.slice(0, 5) || '' : '';
-    const first = booking.first_name || booking.consumer?.first_name || '';
-    const last = booking.last_name || booking.consumer?.last_name || '';
+    const first = booking.first_name || booking.consumer?.first_name || booking.user?.first_name || '';
+    const last = booking.last_name || booking.consumer?.last_name || booking.user?.last_name || '';
     const guestName = [first, last].filter(Boolean).join(' ').trim()
         || booking.guest_name
         || booking.contact_name
@@ -39,8 +39,9 @@ export function mapBookingFromApi(booking) {
 
     return {
         id: booking.id,
+        bookingNumber: booking.booking_number || booking.number || '',
         guestName,
-        phone: booking.phone || booking.consumer_phone || booking.consumer?.phone || '',
+        phone: booking.phone || booking.consumer_phone || booking.consumer?.phone || booking.user?.phone || '',
         branch: booking.branch_name || booking.branch?.name || booking.branch,
         branchId: booking.branch_id ?? booking.branch?.id ?? booking.branch ?? null,
         floor: booking.floor_name || booking.floor?.name || booking.floor,
@@ -117,8 +118,16 @@ export const noShowBooking = async (id, note = '') => {
     return response.data;
 };
 
-export const checkInBooking = async (id, data) => {
+export const checkInBooking = async (id, data = {}) => {
     const response = await $api.post(`/bookings/partner/${id}/checkin/`, data);
+    return response.data;
+};
+
+/** POST /bookings/partner/checkin/ — body: { booking_number, branch_id? } */
+export const checkInByNumber = async ({ booking_number, branch_id }) => {
+    const body = { booking_number: String(booking_number).trim().toUpperCase() };
+    if (branch_id) body.branch_id = Number(branch_id);
+    const response = await $api.post('/bookings/partner/checkin/', body);
     return response.data;
 };
 

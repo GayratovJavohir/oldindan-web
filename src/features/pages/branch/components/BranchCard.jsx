@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styles from '../Branch.module.css';
 
 export default function BranchCard({ branch, onEdit }) {
-    const { name, status, location, phone, floors, tables, fee, hasDeposit } = branch;
+    const { id, name, status, location, phone, floors, tables, fee, hasDeposit, brandId } = branch;
 
     return (
         <div className={styles.card}>
@@ -45,7 +46,12 @@ export default function BranchCard({ branch, onEdit }) {
                 {onEdit && (
                     <button type="button" className={styles.actionBtn} onClick={onEdit}>Edit</button>
                 )}
-                <button type="button" className={styles.actionBtn}>Layout</button>
+                <Link
+                    to={`/floor-layout?branchId=${id}${brandId ? `&brandId=${brandId}` : ''}`}
+                    className={styles.actionBtn}
+                >
+                    Layout
+                </Link>
             </div>
         </div>
     );

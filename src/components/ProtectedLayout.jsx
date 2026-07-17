@@ -22,7 +22,7 @@ export default function ProtectedLayout() {
 
     if (!user) {
         return (
-            <div className="loader" style={{ marginLeft: 210, padding: 24 }}>
+            <div className="loader" style={{ marginLeft: 'var(--sidebar-width)', padding: 24 }}>
                 Loading workspace...
             </div>
         );

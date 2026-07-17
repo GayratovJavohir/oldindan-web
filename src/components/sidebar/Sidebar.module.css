@@ -12,8 +12,9 @@
     left: 0;
     height: 100vh;
     overflow-y: auto;
+    z-index: 1100;
+    transition: transform 0.22s ease;
 }
-
 
 .brand {
     display: flex;
@@ -41,8 +42,20 @@
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.04em;
+    flex: 1;
 }
 
+.closeMobile {
+    background: #222;
+    border: 1px solid #333;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
 
 .activeBranch {
     margin: 0 12px 20px;
@@ -67,7 +80,6 @@
     font-weight: 600;
     color: #ffffff;
 }
-
 
 .nav {
     flex: 1;
@@ -136,7 +148,6 @@
     text-align: center;
 }
 
-
 .userFooter {
     display: flex;
     align-items: center;
@@ -188,4 +199,26 @@
 
 .signOut:hover {
     color: #e74c3c;
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    border: none;
+    z-index: 1090;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        transform: translateX(-105%);
+        width: min(280px, 86vw);
+        min-width: 0;
+        box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .sidebarOpen {
+        transform: translateX(0);
+    }
 }

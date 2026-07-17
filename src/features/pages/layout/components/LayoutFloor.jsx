@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styles from '../Floor.module.css';
 import FloorCanvas from './FloorCanvas';
+import BrandBranchSelect from '../../../../components/BrandBranchSelect';
 import { getPartnerBranches } from '../../../../services/restaurants.services';
 import {
     LAYOUT_ITEM_TYPES,
@@ -38,9 +40,12 @@ export default function LayoutFloor() {
     const user = getStoredUser();
     const isOwner = user?.role === 'owner';
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
+    const [searchParams, setSearchParams] = useSearchParams();
+    const queryBranchId = searchParams.get('branchId') || '';
+    const queryBrandId = searchParams.get('brandId') || '';
 
-    const [branches, setBranches] = useState([]);
-    const [branchId, setBranchId] = useState(assignedBranchId);
+    const [brandId, setBrandId] = useState(queryBrandId);
+    const [branchId, setBranchId] = useState(queryBranchId || assignedBranchId);
     const [floors, setFloors] = useState([]);
     const [floorId, setFloorId] = useState('');
     const [items, setItems] = useState([]);
@@ -144,12 +149,20 @@ export default function LayoutFloor() {
         (async () => {
             try {
                 if (isOwner) {
-                    const list = await getPartnerBranches();
-                    if (!active) return;
-                    setBranches(list);
-                    const initial = branchId || (list[0] ? String(list[0].id) : '');
-                    setBranchId(initial);
-                    await loadBranchData(initial);
+                    if (queryBranchId) {
+                        // Resolve brand from branch for BrandBranchSelect
+                        try {
+                            const list = await getPartnerBranches();
+                            const match = list.find((b) => String(b.id) === String(queryBranchId));
+                            if (match?.brandId) setBrandId(String(match.brandId));
+                        } catch {
+                            // ignore
+                        }
+                        setBranchId(String(queryBranchId));
+                        await loadBranchData(String(queryBranchId));
+                    } else {
+                        setLoading(false);
+                    }
                 } else if (assignedBranchId) {
                     setBranchId(assignedBranchId);
                     await loadBranchData(assignedBranchId);
@@ -167,6 +180,14 @@ export default function LayoutFloor() {
         return () => { active = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!isOwner || !queryBranchId) return;
+        if (String(queryBranchId) === String(branchId)) return;
+        setBranchId(String(queryBranchId));
+        loadBranchData(String(queryBranchId));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [queryBranchId]);
 
     const reloadFloorItems = async (nextFloorId = floorId) => {
         if (!branchId || !nextFloorId) {
@@ -187,7 +208,17 @@ export default function LayoutFloor() {
     const handleBranchChange = async (value) => {
         setBranchId(value);
         setMessage('');
-        await loadBranchData(value);
+        const params = {};
+        if (brandId) params.brandId = String(brandId);
+        if (value) params.branchId = String(value);
+        setSearchParams(params);
+        if (value) await loadBranchData(value);
+        else {
+            setFloors([]);
+            setFloorId('');
+            setItems([]);
+            setLoading(false);
+        }
     };
 
     const handleFloorChange = async (value) => {
@@ -446,15 +477,14 @@ export default function LayoutFloor() {
             <div className={styles.toolbar}>
                 <div className={styles.toolbarGroup}>
                     {isOwner && (
-                        <label className={styles.field}>
-                            <span>Branch</span>
-                            <select value={branchId} onChange={(e) => handleBranchChange(e.target.value)}>
-                                <option value="">Select branch</option>
-                                {branches.map((b) => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        </label>
+                        <BrandBranchSelect
+                            brandId={brandId}
+                            branchId={branchId}
+                            onBrandChange={(id) => setBrandId(id)}
+                            onBranchChange={handleBranchChange}
+                            fieldClassName={styles.field}
+                            selectClassName={styles.input}
+                        />
                     )}
                     <label className={styles.field}>
                         <span>Floor</span>

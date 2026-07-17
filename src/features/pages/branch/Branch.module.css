@@ -4,7 +4,7 @@
     padding: 24px 28px;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    margin-left: 210px;
+    margin-left: var(--sidebar-width);
 }
 
 /* --- Mavjud Header Styles --- */
@@ -16,7 +16,7 @@
     border-bottom: 1px solid #2a2a2a;
     height: 52px;
     padding: 0 28px;
-    margin-left: 210px;
+    margin-left: var(--sidebar-width);
 }
 
 .branchTitle {
@@ -44,7 +44,7 @@
 
 /* --- Sahifaning asosiy Cardlar konteyneri --- */
 .branchContainer {
-    margin-left: 210px;
+    margin-left: var(--sidebar-width);
     padding: 28px;
     background-color: #0b0b0b;
     min-height: calc(100vh - 52px);
@@ -60,7 +60,7 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    height: 300px;
+    min-height: 280px;
 }
 
 .cardHeader {
@@ -167,6 +167,10 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .actionBtn:hover {
@@ -212,7 +216,7 @@
 }
 
 .brandPickerContainer {
-    margin-left: 210px;
+    margin-left: var(--sidebar-width);
     padding: 28px;
     background-color: #0b0b0b;
     min-height: calc(100vh - 52px);
@@ -309,12 +313,25 @@
     border-radius: 12px;
 }
 
+.modalContentWide {
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    background: #151515;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 .modalHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
     border-bottom: 1px solid #2a2a2a;
+    flex-shrink: 0;
 }
 
 .modalTitle {
@@ -338,6 +355,15 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+}
+
+.modalBodyScroll {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
 }
 
 .formRow {
@@ -366,11 +392,97 @@
     border-radius: 6px;
 }
 
+.hoursBlock {
+    background: #111;
+    border: 1px solid #262626;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hoursHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.hoursTitle {
+    margin: 0;
+    font-size: 14px;
+    color: #fff;
+}
+
+.hoursHint {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #777;
+    line-height: 1.4;
+}
+
+.hoursActions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.hoursMiniBtn {
+    background: #1f1f1f;
+    border: 1px solid #333;
+    color: #ddd;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.hoursTable {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hoursRow {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.hoursRowOff {
+    opacity: 0.45;
+}
+
+.hoursDay {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #ccc;
+}
+
+.hoursRow input[type="time"] {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.hoursSep {
+    color: #666;
+    text-align: center;
+}
+
 .modalFooter {
     display: flex;
     gap: 10px;
     padding: 16px 20px;
     border-top: 1px solid #2a2a2a;
+    flex-shrink: 0;
 }
 
 .cancelBtn,

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from '../LiveLayout.module.css';
 import FloorCanvas from '../../layout/components/FloorCanvas';
 import ManualBookingModal from '../../bookings/components/ManualBookingModal';
-import { getPartnerBranches } from '../../../../services/restaurants.services';
+import BrandBranchSelect from '../../../../components/BrandBranchSelect';
 import {
     getBranchFloors,
     getPartnerFloors,
@@ -56,7 +56,7 @@ export default function LiveFloor() {
     const canBook = canCreateManualBooking();
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
 
-    const [branches, setBranches] = useState([]);
+    const [brandId, setBrandId] = useState('');
     const [branchId, setBranchId] = useState(assignedBranchId);
     const [floors, setFloors] = useState([]);
     const [floorId, setFloorId] = useState('');
@@ -253,18 +253,14 @@ export default function LiveFloor() {
         let active = true;
         (async () => {
             try {
-                if (isOwner) {
-                    const list = await getPartnerBranches();
-                    if (!active) return;
-                    setBranches(list);
-                    const initial = branchId || (list[0] ? String(list[0].id) : '');
-                    setBranchId(initial);
-                    await loadLayout(initial);
-                } else if (assignedBranchId) {
+                if (!isOwner && assignedBranchId) {
                     setBranchId(assignedBranchId);
                     await loadLayout(assignedBranchId);
-                } else {
+                } else if (!isOwner) {
                     setError('Branch biriktirilmagan.');
+                    setLoading(false);
+                } else {
+                    // Owner waits for BrandBranchSelect
                     setLoading(false);
                 }
             } catch (err) {
@@ -292,6 +288,19 @@ export default function LiveFloor() {
         }, POLL_MS);
         return () => clearInterval(timer);
     }, [branchId, floorId, tables, loadOccupancy]);
+
+    const handleBranchChange = async (value) => {
+        setBranchId(value);
+        setSelectedTableId(null);
+        setSelectedBooking(null);
+        if (value) await loadLayout(value);
+        else {
+            setFloors([]);
+            setFloorId('');
+            setItems([]);
+            setTables([]);
+        }
+    };
 
     const handleFloorChange = async (value) => {
         setFloorId(value);
@@ -359,21 +368,13 @@ export default function LiveFloor() {
             <div className={styles.toolbar}>
                 <div className={styles.toolbarGroup}>
                     {isOwner && (
-                        <label className={styles.field}>
-                            <span>Branch</span>
-                            <select
-                                value={branchId}
-                                onChange={(e) => {
-                                    setBranchId(e.target.value);
-                                    loadLayout(e.target.value);
-                                }}
-                            >
-                                <option value="">Select branch</option>
-                                {branches.map((b) => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        </label>
+                        <BrandBranchSelect
+                            brandId={brandId}
+                            branchId={branchId}
+                            onBrandChange={setBrandId}
+                            onBranchChange={handleBranchChange}
+                            fieldClassName={styles.field}
+                        />
                     )}
                     <label className={styles.field}>
                         <span>Floor</span>

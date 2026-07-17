@@ -1,15 +1,89 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PageHeader from '../../../components/header/PageHeader';
+import LocationMapPicker from '../../../components/LocationMapPicker';
 import styles from './Branch.module.css';
 import BranchCard from './components/BranchCard';
 import {
+    WEEKDAY_KEYS,
+    WEEKDAY_LABELS,
     createPartnerBranchWithUniqueSlug,
+    defaultWorkingHoursSchedule,
+    emptyHoursSchedule,
+    getPartnerBranch,
     getPartnerBrands,
     getPartnerBranches,
+    hoursToApi,
     patchPartnerBranch,
 } from '../../../services/restaurants.services';
 import { getApiError } from '../../../utils/apiHelpers';
 import { isOwner } from '../../../utils/authUser';
+
+function HoursEditor({ title, hint, schedule, onChange }) {
+    const updateDay = (day, patch) => {
+        onChange({
+            ...schedule,
+            [day]: { ...schedule[day], ...patch },
+        });
+    };
+
+    const applyAll = () => {
+        const firstEnabled = WEEKDAY_KEYS.map((d) => schedule[d]).find((row) => row.enabled);
+        const open = firstEnabled?.open || '10:00';
+        const close = firstEnabled?.close || '22:00';
+        const next = emptyHoursSchedule();
+        WEEKDAY_KEYS.forEach((day) => {
+            next[day] = { enabled: true, open, close };
+        });
+        onChange(next);
+    };
+
+    const clearAll = () => onChange(emptyHoursSchedule());
+
+    return (
+        <div className={styles.hoursBlock}>
+            <div className={styles.hoursHeader}>
+                <div>
+                    <h4 className={styles.hoursTitle}>{title}</h4>
+                    {hint && <p className={styles.hoursHint}>{hint}</p>}
+                </div>
+                <div className={styles.hoursActions}>
+                    <button type="button" className={styles.hoursMiniBtn} onClick={applyAll}>All days</button>
+                    <button type="button" className={styles.hoursMiniBtn} onClick={clearAll}>Clear</button>
+                </div>
+            </div>
+            <div className={styles.hoursTable}>
+                {WEEKDAY_KEYS.map((day) => {
+                    const row = schedule[day] || { enabled: false, open: '10:00', close: '22:00' };
+                    return (
+                        <div key={day} className={`${styles.hoursRow} ${row.enabled ? '' : styles.hoursRowOff}`}>
+                            <label className={styles.hoursDay}>
+                                <input
+                                    type="checkbox"
+                                    checked={Boolean(row.enabled)}
+                                    onChange={(e) => updateDay(day, { enabled: e.target.checked })}
+                                />
+                                {WEEKDAY_LABELS[day]}
+                            </label>
+                            <input
+                                type="time"
+                                value={row.open}
+                                disabled={!row.enabled}
+                                onChange={(e) => updateDay(day, { open: e.target.value })}
+                            />
+                            <span className={styles.hoursSep}>–</span>
+                            <input
+                                type="time"
+                                value={row.close}
+                                disabled={!row.enabled}
+                                onChange={(e) => updateDay(day, { close: e.target.value })}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
 function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
     const lockedBrand = defaultBrandId || branch?.brandId || '';
@@ -22,9 +96,45 @@ function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
         deposit_enabled: branch?.hasDeposit ?? false,
         deposit_amount: branch?.depositAmount ?? 0,
         is_active: branch ? branch.status === 'Active' : true,
+        workingHours: branch?.workingHours || defaultWorkingHoursSchedule(),
+        bookingHours: branch?.bookingHours || emptyHoursSchedule(),
+        latitude: branch?.latitude ?? '',
+        longitude: branch?.longitude ?? '',
     });
     const [busy, setBusy] = useState(false);
+    const [loadingDetail, setLoadingDetail] = useState(Boolean(branch?.id));
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!branch?.id) return undefined;
+        let active = true;
+        (async () => {
+            setLoadingDetail(true);
+            try {
+                const detail = await getPartnerBranch(branch.id);
+                if (!active) return;
+                setForm((prev) => ({
+                    ...prev,
+                    name: detail.name || prev.name,
+                    address: detail.location || prev.address,
+                    phone: detail.phone || prev.phone,
+                    service_fee: detail.fee ?? prev.service_fee,
+                    deposit_enabled: detail.hasDeposit,
+                    deposit_amount: detail.depositAmount ?? prev.deposit_amount,
+                    is_active: detail.is_active,
+                    workingHours: detail.workingHours || defaultWorkingHoursSchedule(),
+                    bookingHours: detail.bookingHours || emptyHoursSchedule(),
+                    latitude: detail.latitude ?? '',
+                    longitude: detail.longitude ?? '',
+                }));
+            } catch (err) {
+                if (active) setError(getApiError(err));
+            } finally {
+                if (active) setLoadingDetail(false);
+            }
+        })();
+        return () => { active = false; };
+    }, [branch?.id]);
 
     const submit = async (e) => {
         e.preventDefault();
@@ -42,14 +152,15 @@ function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
 
     return (
         <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-            <div className={styles.modalContent}>
+            <div className={styles.modalContentWide}>
                 <div className={styles.modalHeader}>
                     <h3 className={styles.modalTitle}>{branch ? 'Edit Branch' : 'Add Branch'}</h3>
                     <button type="button" className={styles.closeBtn} onClick={onClose}>&times;</button>
                 </div>
                 <form onSubmit={submit}>
-                    <div className={styles.modalBody}>
+                    <div className={styles.modalBodyScroll}>
                         {error && <div className={styles.errorText}>{error}</div>}
+                        {loadingDetail && <div className={styles.errorText} style={{ color: '#aaa' }}>Loading branch details...</div>}
                         {!branch && !defaultBrandId && (
                             <div className={styles.formGroup}>
                                 <label>Brand *</label>
@@ -81,6 +192,20 @@ function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
                                 required
                             />
                         </div>
+
+                        <div className={styles.formGroup}>
+                            <label>Location on map *</label>
+                            <LocationMapPicker
+                                latitude={form.latitude}
+                                longitude={form.longitude}
+                                onChange={({ latitude, longitude }) => setForm((prev) => ({
+                                    ...prev,
+                                    latitude,
+                                    longitude,
+                                }))}
+                            />
+                        </div>
+
                         <div className={styles.formRow}>
                             <div className={styles.formGroup}>
                                 <label>Phone</label>
@@ -128,10 +253,23 @@ function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
+
+                        <HoursEditor
+                            title="Working hours"
+                            hint="Branch ochiq bo‘ladigan kunlar (format: mon → [open, close])"
+                            schedule={form.workingHours}
+                            onChange={(workingHours) => setForm((prev) => ({ ...prev, workingHours }))}
+                        />
+                        <HoursEditor
+                            title="Booking hours"
+                            hint="Ixtiyoriy: bron boshlanishi mumkin bo‘lgan oraliq. Bo‘sh qoldirsangiz working hours ishlatiladi."
+                            schedule={form.bookingHours}
+                            onChange={(bookingHours) => setForm((prev) => ({ ...prev, bookingHours }))}
+                        />
                     </div>
                     <div className={styles.modalFooter}>
                         <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-                        <button type="submit" className={styles.submitBtn} disabled={busy}>
+                        <button type="submit" className={styles.submitBtn} disabled={busy || loadingDetail}>
                             {busy ? 'Saving...' : (branch ? 'Save Changes' : 'Create Branch')}
                         </button>
                     </div>
@@ -213,30 +351,35 @@ export default function Branch() {
     }, [branches, selectedBrand]);
 
     const handleSave = async (form, branch) => {
+        if (form.latitude === '' || form.longitude === '' || form.latitude == null || form.longitude == null) {
+            throw new Error('Xaritadan branch joylashuvini belgilang.');
+        }
+        const working_hours = hoursToApi(form.workingHours);
+        const booking_hours = hoursToApi(form.bookingHours);
+        const basePayload = {
+            name: form.name.trim(),
+            address: form.address.trim(),
+            phone: form.phone.trim(),
+            service_fee: form.service_fee,
+            deposit_enabled: form.deposit_enabled,
+            deposit_amount: form.deposit_amount,
+            is_active: form.is_active,
+            working_hours,
+            booking_hours,
+            latitude: Number(form.latitude),
+            longitude: Number(form.longitude),
+        };
+
         if (branch) {
-            await patchPartnerBranch(branch.id, {
-                name: form.name.trim(),
-                address: form.address.trim(),
-                phone: form.phone.trim(),
-                service_fee: form.service_fee,
-                deposit_enabled: form.deposit_enabled,
-                deposit_amount: form.deposit_amount,
-                is_active: form.is_active,
-            });
+            await patchPartnerBranch(branch.id, basePayload);
         } else {
             const brandId = form.brand || selectedBrand?.id;
             if (!brandId) {
                 throw new Error('Select a brand before creating a branch.');
             }
             await createPartnerBranchWithUniqueSlug({
+                ...basePayload,
                 brand: Number(brandId),
-                name: form.name.trim(),
-                address: form.address.trim(),
-                phone: form.phone.trim(),
-                is_active: form.is_active,
-                service_fee: form.service_fee,
-                deposit_enabled: form.deposit_enabled,
-                deposit_amount: form.deposit_amount,
             });
         }
         await loadData();
