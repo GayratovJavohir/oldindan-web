@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Stage, Layer, Group, Rect, Circle, Text, Transformer } from 'react-konva';
 
 const STATUS_COLORS = {
@@ -97,7 +98,8 @@ function ItemShape({
         },
     };
 
-    const title = item.name || (item.type === 'table' ? 'Table' : labelForType(item.type));
+    const { t } = useTranslation();
+    const title = item.name || (item.type === 'table' ? t('layout.types.table') : labelForType(item.type));
     const seats = item.meta?.seats || item.seats;
 
     return (
@@ -157,7 +159,7 @@ function ItemShape({
                         y={item.y + item.height / 2 + 4}
                         width={item.width}
                         align="center"
-                        text={`${seats} seats`}
+                        text={t('bookings.seatsCount', { count: seats })}
                         fontSize={10}
                         fill="#aaa"
                         listening={false}

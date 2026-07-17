@@ -13,6 +13,7 @@ import {
     markAllNotificationsRead,
     markNotificationRead,
 } from '../services/notifications.services';
+import i18n from '../i18n';
 
 const NotificationContext = createContext(null);
 
@@ -49,7 +50,7 @@ export function NotificationProvider({ children }) {
             setUnreadCount(count);
         } catch (err) {
             console.error('Notifications refresh error:', err);
-            setError(err?.message || 'Failed to load notifications');
+            setError(err?.message || i18n.t('notifications.loadFailed'));
         } finally {
             setLoading(false);
         }
@@ -88,7 +89,7 @@ export function NotificationProvider({ children }) {
         await markAllNotificationsRead();
         setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
         setUnreadCount(0);
-        setSuccessMessage('All notifications read');
+        setSuccessMessage(i18n.t('notifications.allRead'));
         window.setTimeout(() => setSuccessMessage(''), 3000);
     }, []);
 

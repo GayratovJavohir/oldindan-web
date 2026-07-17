@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
 
 export default function BookingFilters({ onApplyFilters }) {
+    const { t } = useTranslation();
     const [filters, setFilters] = useState({
         search: '',
         status: '',
@@ -11,7 +13,7 @@ export default function BookingFilters({ onApplyFilters }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
+        setFilters((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleApply = () => {
@@ -34,19 +36,19 @@ export default function BookingFilters({ onApplyFilters }) {
             <input
                 type="text"
                 name="search"
-                placeholder="Search guest name, phone..."
+                placeholder={t('bookings.searchPlaceholder')}
                 className={styles.searchInput}
                 value={filters.search}
                 onChange={handleChange}
             />
             <select name="status" className={styles.selectInput} value={filters.status} onChange={handleChange}>
-                <option value="">All statuses</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Pending">Pending</option>
-                <option value="Checked In">Checked In</option>
-                <option value="Completed">Completed</option>
-                <option value="Canceled">Canceled</option>
-                <option value="No Show">No Show</option>
+                <option value="">{t('bookings.allStatuses')}</option>
+                <option value="Confirmed">{t('status.confirmed')}</option>
+                <option value="Pending">{t('status.pending')}</option>
+                <option value="Checked In">{t('status.checkedIn')}</option>
+                <option value="Completed">{t('status.completed')}</option>
+                <option value="Canceled">{t('status.canceled')}</option>
+                <option value="No Show">{t('status.noShow')}</option>
             </select>
 
             <input
@@ -55,8 +57,8 @@ export default function BookingFilters({ onApplyFilters }) {
                 placeholder="dd/mm/yyyy"
                 className={styles.dateInput}
                 value={filters.start_date}
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => !e.target.value && (e.target.type = "text")}
+                onFocus={(e) => { e.target.type = 'date'; }}
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                 onChange={handleChange}
             />
             <input
@@ -65,12 +67,12 @@ export default function BookingFilters({ onApplyFilters }) {
                 placeholder="dd/mm/yyyy"
                 className={styles.dateInput}
                 value={filters.end_date}
-                onFocus={(e) => (e.target.type = "date")}
-                onBlur={(e) => !e.target.value && (e.target.type = "text")}
+                onFocus={(e) => { e.target.type = 'date'; }}
+                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
                 onChange={handleChange}
             />
-            <button className={styles.applyBtn} onClick={handleApply}>Apply</button>
-            <button className={styles.applyBtn} onClick={handleReset}>Reset</button>
+            <button type="button" className={styles.applyBtn} onClick={handleApply}>{t('common.apply')}</button>
+            <button type="button" className={styles.applyBtn} onClick={handleReset}>{t('common.reset')}</button>
         </div>
     );
 }

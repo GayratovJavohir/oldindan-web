@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../LiveLayout.module.css';
 import FloorCanvas from '../../layout/components/FloorCanvas';
 import ManualBookingModal from '../../bookings/components/ManualBookingModal';
@@ -17,6 +18,7 @@ import {
 } from '../../../../services/bookings.services';
 import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
 import { canCreateManualBooking, getStoredUser } from '../../../../utils/authUser';
+import { translateStatus } from '../../../../utils/statusI18n';
 
 const CANVAS_W = 960;
 const CANVAS_H = 640;
@@ -34,10 +36,10 @@ function currentWindow() {
     return { start: toIso(start), end: toIso(end) };
 }
 
-function formatSource(source) {
+function formatSource(source, t) {
     const raw = String(source || '').toLowerCase();
-    if (raw.includes('manual') || raw === 'partner_manual') return 'Manual (Reception)';
-    if (raw === 'app') return 'App';
+    if (raw.includes('manual') || raw === 'partner_manual') return t('bookings.sourceManual');
+    if (raw === 'app') return t('bookings.sourceApp');
     return source || '—';
 }
 
@@ -51,6 +53,7 @@ function statusKey(status) {
 }
 
 export default function LiveFloor() {
+    const { t } = useTranslation();
     const user = getStoredUser();
     const isOwner = user?.role === 'owner';
     const canBook = canCreateManualBooking();
@@ -377,9 +380,9 @@ export default function LiveFloor() {
                         />
                     )}
                     <label className={styles.field}>
-                        <span>Floor</span>
+                        <span>{t('common.floor')}</span>
                         <select value={floorId} onChange={(e) => handleFloorChange(e.target.value)} disabled={!branchId}>
-                            <option value="">Select floor</option>
+                            <option value="">{t('common.selectFloor')}</option>
                             {floors.map((f) => (
                                 <option key={f.id} value={f.id}>{f.name}</option>
                             ))}
@@ -387,16 +390,16 @@ export default function LiveFloor() {
                     </label>
                 </div>
                 <div className={styles.stats}>
-                    <span className={styles.statPill}>{availableCount} free</span>
-                    <span className={styles.statPillBusy}>{occupiedCount} busy</span>
-                    {refreshing && <span className={styles.muted}>Refreshing…</span>}
+                    <span className={styles.statPill}>{availableCount} {t('layout.free')}</span>
+                    <span className={styles.statPillBusy}>{occupiedCount} {t('layout.busy')}</span>
+                    {refreshing && <span className={styles.muted}>{t('common.refreshing')}</span>}
                     <button
                         type="button"
                         className={styles.secondaryBtn}
                         onClick={() => loadOccupancy(branchId, floorId, tables)}
                         disabled={!branchId}
                     >
-                        Refresh
+                        {t('common.refresh')}
                     </button>
                 </div>
             </div>
@@ -405,18 +408,18 @@ export default function LiveFloor() {
                 <div className={styles.canvasWrap}>
                     <header className={styles.header}>
                         <div className={styles.legend}>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.availableDot}`} /> Available</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> Pending</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> Confirmed</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> Checked In</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.availableDot}`} /> {t('layout.available')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> {t('layout.pending')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> {t('layout.confirmed')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> {t('layout.checkedIn')}</span>
                         </div>
                     </header>
 
                     {error && <div className={styles.errorBanner}>{error}</div>}
                     {loading ? (
-                        <div className={styles.emptyState}>Loading live view...</div>
+                        <div className={styles.emptyState}>{t('layout.loadingLive')}</div>
                     ) : !floorId ? (
-                        <div className={styles.emptyState}>Floor tanlang. Layout Floor sahifasida joylashtiring.</div>
+                        <div className={styles.emptyState}>{t('layout.pickFloorHint')}</div>
                     ) : (
                         <div className={styles.canvas}>
                             <FloorCanvas
@@ -442,23 +445,24 @@ export default function LiveFloor() {
                 </div>
 
                 <aside className={styles.detailPanel}>
-                    <h3>Table details</h3>
+                    <h3>{t('layout.tableDetails')}</h3>
                     {!selectedTable ? (
-                        <p className={styles.muted}>Stolni tanlang — bandlik, booking manbasi va mehmon ma&apos;lumoti chiqadi.</p>
+                        <p className={styles.muted}>{t('layout.selectTableHint')}</p>
                     ) : (
                         <div className={styles.detailCard}>
                             <div className={styles.detailTitle}>{selectedTable.name}</div>
-                            <div className={styles.detailRow}><span>Seats</span><strong>{selectedTable.seats}</strong></div>
+                            <div className={styles.detailRow}><span>{t('common.seats')}</span><strong>{selectedTable.seats}</strong></div>
                             <div className={styles.detailRow}>
-                                <span>Zone</span>
+                                <span>{t('common.zone')}</span>
                                 <strong>{selectedTable.zoneName || selectedTable.zoneId || '—'}</strong>
                             </div>
                             <div className={styles.detailRow}>
-                                <span>Status</span>
+                                <span>{t('common.status')}</span>
                                 <strong className={styles[`status_${statusKey(selectedOcc?.is_occupied ? selectedOcc.status : 'available')}`]}>
-                                    {selectedOcc?.is_occupied
-                                        ? statusKey(selectedOcc.status).replace('_', ' ')
-                                        : 'available'}
+                                    {translateStatus(
+                                        t,
+                                        selectedOcc?.is_occupied ? statusKey(selectedOcc.status) : 'available'
+                                    )}
                                 </strong>
                             </div>
 
@@ -466,29 +470,31 @@ export default function LiveFloor() {
                                 <>
                                     <hr className={styles.divider} />
                                     <div className={styles.detailRow}>
-                                        <span>Guest</span>
+                                        <span>{t('bookings.guest')}</span>
                                         <strong>{selectedBooking?.guestName || '—'}</strong>
                                     </div>
                                     <div className={styles.detailRow}>
-                                        <span>Phone</span>
+                                        <span>{t('common.phone')}</span>
                                         <strong>{selectedBooking?.phone || '—'}</strong>
                                     </div>
                                     <div className={styles.detailRow}>
-                                        <span>Source</span>
-                                        <strong>{formatSource(selectedBooking?.source)}</strong>
+                                        <span>{t('common.source')}</span>
+                                        <strong>{formatSource(selectedBooking?.source, t)}</strong>
                                     </div>
                                     <div className={styles.detailRow}>
-                                        <span>Time</span>
+                                        <span>{t('common.time')}</span>
                                         <strong>
                                             {(selectedBooking?.time || '—')}
                                             {selectedBooking?.endTime ? ` – ${selectedBooking.endTime}` : ''}
                                         </strong>
                                     </div>
                                     <div className={styles.detailRow}>
-                                        <span>Guests</span>
+                                        <span>{t('common.guests')}</span>
                                         <strong>
                                             {selectedBooking?.guest_count ?? '—'}
-                                            {selectedBooking?.children_count ? ` (+${selectedBooking.children_count} kids)` : ''}
+                                            {selectedBooking?.children_count
+                                                ? ` (${t('layout.kids', { count: selectedBooking.children_count })})`
+                                                : ''}
                                         </strong>
                                     </div>
                                     {selectedBooking?.special_request ? (
@@ -497,14 +503,14 @@ export default function LiveFloor() {
                                 </>
                             ) : (
                                 <>
-                                    <p className={styles.muted}>Hozir bu stol bo&apos;sh.</p>
+                                    <p className={styles.muted}>{t('layout.tableEmpty')}</p>
                                     {canBook && (
                                         <button
                                             type="button"
                                             className={styles.primaryBtn}
                                             onClick={() => openBookForTable(selectedTable)}
                                         >
-                                            Book this table
+                                            {t('layout.bookThisTable')}
                                         </button>
                                     )}
                                 </>
@@ -512,28 +518,28 @@ export default function LiveFloor() {
                         </div>
                     )}
 
-                    <h3>Busy now</h3>
+                    <h3>{t('layout.busyNow')}</h3>
                     <ul className={styles.busyList}>
                         {tables
-                            .filter((t) => String(t.floorId) === String(floorId) && occupancy[String(t.id)]?.is_occupied)
-                            .map((t) => {
-                                const booking = bookingByTableId[String(t.id)];
-                                const occ = occupancy[String(t.id)];
+                            .filter((tbl) => String(tbl.floorId) === String(floorId) && occupancy[String(tbl.id)]?.is_occupied)
+                            .map((tbl) => {
+                                const booking = bookingByTableId[String(tbl.id)];
+                                const occ = occupancy[String(tbl.id)];
                                 return (
-                                    <li key={t.id}>
+                                    <li key={tbl.id}>
                                         <button type="button" onClick={() => {
-                                            setSelectedTableId(t.id);
+                                            setSelectedTableId(tbl.id);
                                             setSelectedBooking(booking || null);
                                         }}>
-                                            <strong>{t.name}</strong>
-                                            <span>{formatSource(booking?.source)} · {statusKey(occ?.status)}</span>
-                                            <span>{booking?.guestName || 'Guest'}</span>
+                                            <strong>{tbl.name}</strong>
+                                            <span>{formatSource(booking?.source, t)} · {translateStatus(t, statusKey(occ?.status))}</span>
+                                            <span>{booking?.guestName || t('bookings.guest')}</span>
                                         </button>
                                     </li>
                                 );
                             })}
-                        {!tables.some((t) => String(t.floorId) === String(floorId) && occupancy[String(t.id)]?.is_occupied) && (
-                            <li className={styles.muted}>Band stol yo‘q</li>
+                        {!tables.some((tbl) => String(tbl.floorId) === String(floorId) && occupancy[String(tbl.id)]?.is_occupied) && (
+                            <li className={styles.muted}>{t('layout.noBusy')}</li>
                         )}
                     </ul>
                 </aside>

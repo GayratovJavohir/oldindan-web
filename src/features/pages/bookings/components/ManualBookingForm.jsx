@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
 import $api from '../../../../config/api.config';
 import { createManualBooking, getOccupiedTables } from '../../../../services/bookings.services';
@@ -28,7 +29,9 @@ function plusHours(value, hours) {
     return toLocalInputValue(date);
 }
 
-export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'Create Booking', initialValues = null }) {
+export default function ManualBookingForm({ onClose, onSuccess, submitLabel, initialValues = null }) {
+    const { t } = useTranslation();
+    const resolvedSubmitLabel = submitLabel || t('bookings.createBooking');
     const initialStart = toLocalInputValue(new Date());
     const [form, setForm] = useState({
         first_name: '',
@@ -67,7 +70,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
             setErrorMessage('');
             try {
                 if (!assignedBranchId) {
-                    throw new Error('Receptionist account has no assigned branch.');
+                    throw new Error(t('common.noBranchAssigned'));
                 }
 
                 const branchRes = await $api.get(`/restaurants/partner/branches/${assignedBranchId}/`).catch(() =>
@@ -75,7 +78,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                 );
                 if (!active) return;
 
-                setBranchName(branchRes.data?.name || `Branch #${assignedBranchId}`);
+                setBranchName(branchRes.data?.name || `${t('common.branch')} #${assignedBranchId}`);
                 setForm((prev) => ({ ...prev, branch: String(assignedBranchId) }));
             } catch (err) {
                 console.error('Manual booking bootstrap error:', err);
@@ -86,7 +89,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         })();
 
         return () => { active = false; };
-    }, [allowed, user?.branchId]);
+    }, [allowed, user?.branchId, t]);
 
     useEffect(() => {
         if (!allowed || !form.branch) {
@@ -163,11 +166,11 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
             if (!table.zoneId) return;
             map.set(String(table.zoneId), {
                 id: table.zoneId,
-                name: table.zoneName || `Zone #${table.zoneId}`,
+                name: table.zoneName || `${t('common.zone')} #${table.zoneId}`,
             });
         });
         return Array.from(map.values());
-    }, [tables]);
+    }, [tables, t]);
 
     useEffect(() => {
         if (!allowed || !form.branch || !form.floor || !form.booking_start || !form.booking_end) {
@@ -221,11 +224,11 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
 
     const handleSubmit = async () => {
         if (!form.first_name.trim() || !form.last_name.trim() || !form.phone.trim()) {
-            setErrorMessage('Ism, familiya va telefon raqamini kiriting.');
+            setErrorMessage(t('bookings.needNamePhone'));
             return;
         }
         if (!form.branch || !form.floor || !form.table) {
-            setErrorMessage('Floor va table tanlang.');
+            setErrorMessage(t('bookings.needFloorTable'));
             return;
         }
 
@@ -267,7 +270,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
         return (
             <div className={styles.modalBody}>
                 <div style={{ color: '#cf222e', fontSize: 14 }}>
-                    Manual booking faqat receptionist uchun.
+                    {t('bookings.onlyReceptionist')}
                 </div>
             </div>
         );
@@ -276,45 +279,45 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
     return (
         <>
             <div className={styles.modalBody}>
-                {loading && <div style={{ color: '#aaaaaa' }}>Loading form data...</div>}
+                {loading && <div style={{ color: '#aaaaaa' }}>{t('bookings.loadingForm')}</div>}
                 {errorMessage && <div style={{ color: '#cf222e', fontSize: 14 }}>{errorMessage}</div>}
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Ism *</label>
-                        <input name="first_name" value={form.first_name} onChange={updateField} placeholder="Doniyor" required />
+                        <label>{t('bookings.firstName')} *</label>
+                        <input name="first_name" value={form.first_name} onChange={updateField} required />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Familiya *</label>
-                        <input name="last_name" value={form.last_name} onChange={updateField} placeholder="Karimov" required />
+                        <label>{t('bookings.lastName')} *</label>
+                        <input name="last_name" value={form.last_name} onChange={updateField} required />
                     </div>
                 </div>
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Telefon *</label>
+                        <label>{t('common.phone')} *</label>
                         <input name="phone" value={form.phone} onChange={updateField} placeholder="+998 90 123 45 67" required />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Branch</label>
-                        <input type="text" value={branchName || (form.branch ? `Branch #${form.branch}` : '')} readOnly />
+                        <label>{t('common.branch')}</label>
+                        <input type="text" value={branchName || (form.branch ? `${t('common.branch')} #${form.branch}` : '')} readOnly />
                     </div>
                 </div>
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Floor *</label>
+                        <label>{t('common.floor')} *</label>
                         <select name="floor" value={form.floor} onChange={updateField} disabled={!form.branch}>
-                            <option value="">Select floor</option>
+                            <option value="">{t('common.selectFloor')}</option>
                             {floors.map((floor) => (
                                 <option key={floor.id} value={floor.id}>{floor.name}</option>
                             ))}
                         </select>
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Zone</label>
+                        <label>{t('common.zone')}</label>
                         <select name="zone" value={form.zone} onChange={updateField} disabled={!zones.length}>
-                            <option value="">Any zone</option>
+                            <option value="">{t('bookings.anyZone')}</option>
                             {zones.map((zone) => (
                                 <option key={zone.id} value={zone.id}>{zone.name}</option>
                             ))}
@@ -324,7 +327,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Table *</label>
+                        <label>{t('common.table')} *</label>
                         <select
                             name="table"
                             value={form.table}
@@ -333,52 +336,53 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
                         >
                             <option value="">
                                 {loadingTables
-                                    ? 'Loading tables...'
-                                    : (selectableTables.length ? 'Select table' : 'No tables on this floor')}
+                                    ? t('bookings.loadingTables')
+                                    : (selectableTables.length ? t('common.selectTable') : t('bookings.noTablesOnFloor'))}
                             </option>
                             {selectableTables.map((table) => {
                                 const occupied = occupiedIds.includes(String(table.id));
                                 return (
                                     <option key={table.id} value={table.id}>
-                                        {table.name} · {table.seats} seats{occupied ? ' (occupied)' : ''}
+                                        {table.name} · {t('bookings.seatsCount', { count: table.seats })}
+                                        {occupied ? ` ${t('bookings.occupiedSuffix')}` : ''}
                                     </option>
                                 );
                             })}
                         </select>
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Guest count *</label>
+                        <label>{t('bookings.guestCount')} *</label>
                         <input name="guest_count" type="number" min="1" value={form.guest_count} onChange={updateField} />
                     </div>
                 </div>
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Children count</label>
+                        <label>{t('bookings.childrenCount')}</label>
                         <input name="children_count" type="number" min="0" value={form.children_count} onChange={updateField} />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Booking start *</label>
+                        <label>{t('bookings.bookingStart')} *</label>
                         <input name="booking_start" type="datetime-local" value={form.booking_start} onChange={updateField} />
                     </div>
                 </div>
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label>Booking end *</label>
+                        <label>{t('bookings.bookingEnd')} *</label>
                         <input name="booking_end" type="datetime-local" value={form.booking_end} onChange={updateField} />
                     </div>
                     <div className={styles.formGroup}>
-                        <label>Occupied in range</label>
-                        <input type="text" value={`${occupiedIds.length} table(s) occupied`} readOnly />
+                        <label>{t('bookings.occupiedInRange')}</label>
+                        <input type="text" value={t('bookings.tablesOccupied', { count: occupiedIds.length })} readOnly />
                     </div>
                 </div>
 
                 <div className={styles.formGroup}>
-                    <label>Special request</label>
+                    <label>{t('bookings.specialRequest')}</label>
                     <textarea
                         name="special_request"
-                        placeholder="Walk-in guest, birthday, allergy..."
+                        placeholder={t('bookings.specialPlaceholder')}
                         rows="4"
                         value={form.special_request}
                         onChange={updateField}
@@ -389,11 +393,11 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel = 'C
             <div className={styles.modalFooter}>
                 {onClose && (
                     <button type="button" className={styles.modalCancelBtn} onClick={onClose}>
-                        Cancel
+                        {t('common.cancel')}
                     </button>
                 )}
                 <button type="button" className={styles.modalSubmitBtn} onClick={handleSubmit} disabled={saving || loading || loadingTables}>
-                    {saving ? 'Saving...' : submitLabel}
+                    {saving ? t('common.saving') : resolvedSubmitLabel}
                 </button>
             </div>
         </>

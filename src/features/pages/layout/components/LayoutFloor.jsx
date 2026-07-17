@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styles from '../Floor.module.css';
 import FloorCanvas from './FloorCanvas';
 import BrandBranchSelect from '../../../../components/BrandBranchSelect';
@@ -37,6 +38,7 @@ function nextTempId() {
 }
 
 export default function LayoutFloor() {
+    const { t } = useTranslation();
     const user = getStoredUser();
     const isOwner = user?.role === 'owner';
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
@@ -167,7 +169,7 @@ export default function LayoutFloor() {
                     setBranchId(assignedBranchId);
                     await loadBranchData(assignedBranchId);
                 } else {
-                    setError('Branch biriktirilmagan.');
+                    setError(t('common.noBranchAssigned'));
                     setLoading(false);
                 }
             } catch (err) {
@@ -234,7 +236,7 @@ export default function LayoutFloor() {
 
     const handleCreateFloor = async () => {
         if (!branchId || !floorForm.name.trim()) {
-            setError('Floor nomini kiriting.');
+            setError(t('layout.needFloorName'));
             return;
         }
         setSaving(true);
@@ -247,7 +249,7 @@ export default function LayoutFloor() {
                 is_active: true,
             });
             setFloorForm({ name: '', sort_order: 0 });
-            setMessage('Floor yaratildi.');
+            setMessage(t('layout.floorCreated'));
             await loadBranchData(branchId, floor.id);
         } catch (err) {
             setError(getApiError(err));
@@ -258,13 +260,13 @@ export default function LayoutFloor() {
 
     const handleRenameFloor = async () => {
         if (!currentFloor) return;
-        const name = window.prompt('Floor nomi', currentFloor.name);
+        const name = window.prompt(t('layout.renameFloorPrompt'), currentFloor.name);
         if (!name?.trim()) return;
         setSaving(true);
         try {
             await patchPartnerFloor(currentFloor.id, { name: name.trim() });
             await loadBranchData(branchId, currentFloor.id);
-            setMessage('Floor yangilandi.');
+            setMessage(t('layout.floorUpdated'));
         } catch (err) {
             setError(getApiError(err));
         } finally {
@@ -274,11 +276,11 @@ export default function LayoutFloor() {
 
     const handleDeleteFloor = async () => {
         if (!currentFloor) return;
-        if (!window.confirm(`"${currentFloor.name}" floor o'chirilsinmi? Ichidagi zone/itemlar ham o'chadi.`)) return;
+        if (!window.confirm(t('layout.confirmDeleteFloor', { name: currentFloor.name }))) return;
         setSaving(true);
         try {
             await deletePartnerFloor(currentFloor.id);
-            setMessage('Floor o\'chirildi.');
+            setMessage(t('layout.floorDeleted'));
             await loadBranchData(branchId);
         } catch (err) {
             setError(getApiError(err));
@@ -289,7 +291,7 @@ export default function LayoutFloor() {
 
     const handleCreateZone = async () => {
         if (!floorId || !zoneForm.name.trim()) {
-            setError('Zone nomi va floor kerak.');
+            setError(t('layout.needZoneFloor'));
             return;
         }
         setSaving(true);
@@ -304,7 +306,7 @@ export default function LayoutFloor() {
             });
             setZoneForm({ name: '', color: ZONE_COLORS[(zones.length + 1) % ZONE_COLORS.length] });
             await loadBranchData(branchId, floorId);
-            setMessage('Zone yaratildi.');
+            setMessage(t('layout.zoneCreated'));
         } catch (err) {
             setError(getApiError(err));
         } finally {
@@ -313,12 +315,12 @@ export default function LayoutFloor() {
     };
 
     const handleDeleteZone = async (zone) => {
-        if (!window.confirm(`"${zone.name}" zone o'chirilsinmi?`)) return;
+        if (!window.confirm(t('layout.confirmDeleteZone', { name: zone.name }))) return;
         setSaving(true);
         try {
             await deletePartnerZone(zone.id);
             await loadBranchData(branchId, floorId);
-            setMessage('Zone o\'chirildi.');
+            setMessage(t('layout.zoneDeleted'));
         } catch (err) {
             setError(getApiError(err));
         } finally {
@@ -328,7 +330,7 @@ export default function LayoutFloor() {
 
     const addItemFromPalette = () => {
         if (!floorId) {
-            setError('Avval floor tanlang yoki yarating.');
+            setError(t('layout.needFloorFirst'));
             return;
         }
         const defaults = getTypeDefaults(paletteType);
@@ -355,7 +357,7 @@ export default function LayoutFloor() {
         };
         setItems((prev) => [...prev, item]);
         setSelectedId(tempId);
-        setMessage('Element qo\'shildi — Save bosib backendga yuboring.');
+        setMessage(t('layout.itemAdded'));
     };
 
     const updateSelectedLocal = (patch) => {
@@ -431,7 +433,7 @@ export default function LayoutFloor() {
                     .sort((a, b) => a.sortOrder - b.sortOrder)
             );
             setSelectedId(null);
-            setMessage('Layout saqlandi.');
+            setMessage(t('layout.layoutSaved'));
         } catch (err) {
             setError(getApiError(err));
         } finally {
@@ -441,7 +443,7 @@ export default function LayoutFloor() {
 
     const handleDeleteSelected = async () => {
         if (!selectedItem) return;
-        if (!window.confirm('Tanlangan element o\'chirilsinmi?')) return;
+        if (!window.confirm(t('layout.confirmDeleteItem'))) return;
 
         setSaving(true);
         setError('');
@@ -463,7 +465,7 @@ export default function LayoutFloor() {
                 return String(key) !== String(selectedKey);
             }));
             setSelectedId(null);
-            setMessage('Element o\'chirildi.');
+            setMessage(t('layout.itemDeleted'));
             if (selectedItem.id) await reloadFloorItems(floorId);
         } catch (err) {
             setError(getApiError(err));
@@ -487,34 +489,34 @@ export default function LayoutFloor() {
                         />
                     )}
                     <label className={styles.field}>
-                        <span>Floor</span>
+                        <span>{t('common.floor')}</span>
                         <select value={floorId} onChange={(e) => handleFloorChange(e.target.value)} disabled={!branchId}>
-                            <option value="">Select floor</option>
+                            <option value="">{t('common.selectFloor')}</option>
                             {floors.map((f) => (
                                 <option key={f.id} value={f.id}>{f.name}</option>
                             ))}
                         </select>
                     </label>
-                    <button type="button" className={styles.secondaryBtn} onClick={handleRenameFloor} disabled={!currentFloor || saving}>Rename</button>
-                    <button type="button" className={styles.dangerBtn} onClick={handleDeleteFloor} disabled={!currentFloor || saving}>Delete floor</button>
+                    <button type="button" className={styles.secondaryBtn} onClick={handleRenameFloor} disabled={!currentFloor || saving}>{t('layout.rename')}</button>
+                    <button type="button" className={styles.dangerBtn} onClick={handleDeleteFloor} disabled={!currentFloor || saving}>{t('layout.deleteFloor')}</button>
                 </div>
 
                 <div className={styles.toolbarGroup}>
                     <input
                         className={styles.input}
-                        placeholder="New floor name"
+                        placeholder={t('layout.newFloor')}
                         value={floorForm.name}
                         onChange={(e) => setFloorForm((p) => ({ ...p, name: e.target.value }))}
                     />
                     <button type="button" className={styles.primaryBtn} onClick={handleCreateFloor} disabled={!branchId || saving}>
-                        + Floor
+                        {t('layout.addFloor')}
                     </button>
                 </div>
             </div>
 
             <div className={styles.workspace}>
                 <aside className={styles.sidebarPanel}>
-                    <h3>Palette</h3>
+                    <h3>{t('layout.palette')}</h3>
                     <div className={styles.paletteGrid}>
                         {LAYOUT_ITEM_TYPES.map((type) => (
                             <button
@@ -523,7 +525,7 @@ export default function LayoutFloor() {
                                 className={`${styles.paletteBtn} ${paletteType === type.value ? styles.paletteBtnActive : ''}`}
                                 onClick={() => setPaletteType(type.value)}
                             >
-                                {type.label}
+                                {t(`layout.types.${type.value}`)}
                             </button>
                         ))}
                     </div>
@@ -532,7 +534,7 @@ export default function LayoutFloor() {
                         <div className={styles.stack}>
                             <input
                                 className={styles.input}
-                                placeholder="Table name"
+                                placeholder={t('layout.tableName')}
                                 value={tableDraft.name}
                                 onChange={(e) => setTableDraft((p) => ({ ...p, name: e.target.value }))}
                             />
@@ -557,14 +559,14 @@ export default function LayoutFloor() {
                     )}
 
                     <button type="button" className={styles.primaryBtn} onClick={addItemFromPalette} disabled={!floorId || saving}>
-                        Add to floor
+                        {t('layout.addToFloor')}
                     </button>
 
-                    <h3>Zones</h3>
+                    <h3>{t('layout.zones')}</h3>
                     <div className={styles.stack}>
                         <input
                             className={styles.input}
-                            placeholder="Zone name"
+                            placeholder={t('layout.zoneName')}
                             value={zoneForm.name}
                             onChange={(e) => setZoneForm((p) => ({ ...p, name: e.target.value }))}
                         />
@@ -593,15 +595,15 @@ export default function LayoutFloor() {
                                 <button type="button" onClick={() => handleDeleteZone(zone)}>×</button>
                             </li>
                         ))}
-                        {!zones.length && <li className={styles.muted}>No zones yet</li>}
+                        {!zones.length && <li className={styles.muted}>{t('layout.noZones')}</li>}
                     </ul>
 
                     <div className={styles.actionsSticky}>
                         <button type="button" className={styles.primaryBtn} onClick={saveSelectedOrAll} disabled={saving || !floorId}>
-                            {saving ? 'Saving...' : 'Save layout'}
+                            {saving ? t('common.saving') : t('layout.saveLayout')}
                         </button>
                         <button type="button" className={styles.dangerBtn} onClick={handleDeleteSelected} disabled={!selectedItem || saving}>
-                            Delete selected
+                            {t('layout.deleteSelected')}
                         </button>
                     </div>
                 </aside>
@@ -609,22 +611,22 @@ export default function LayoutFloor() {
                 <div className={styles.canvasWrap}>
                     <header className={styles.header}>
                         <div className={styles.legend}>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.availableDot}`} /> Available</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> Pending</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> Confirmed</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> Checked In</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.availableDot}`} /> {t('layout.available')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> {t('layout.pending')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> {t('layout.confirmed')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> {t('layout.checkedIn')}</span>
                         </div>
                         <span className={styles.muted}>
-                            {currentFloor ? `${currentFloor.name} · ${enrichedItems.length} items` : 'Floor tanlang'}
+                            {currentFloor ? `${currentFloor.name} · ${enrichedItems.length}` : t('common.selectFloor')}
                         </span>
                     </header>
 
                     {error && <div className={styles.errorBanner}>{error}</div>}
                     {message && <div className={styles.successBanner}>{message}</div>}
                     {loading ? (
-                        <div className={styles.emptyState}>Loading layout...</div>
+                        <div className={styles.emptyState}>{t('layout.loadingLayout')}</div>
                     ) : !floorId ? (
-                        <div className={styles.emptyState}>Floor yarating yoki tanlang.</div>
+                        <div className={styles.emptyState}>{t('layout.emptyFloor')}</div>
                     ) : (
                         <div className={styles.canvas}>
                             <FloorCanvas
@@ -643,17 +645,17 @@ export default function LayoutFloor() {
                 </div>
 
                 <aside className={styles.inspector}>
-                    <h3>Inspector</h3>
+                    <h3>{t('layout.inspector')}</h3>
                     {!selectedItem ? (
-                        <p className={styles.muted}>Element tanlang yoki palette dan qo&apos;shing.</p>
+                        <p className={styles.muted}>{t('layout.selectElement')}</p>
                     ) : (
                         <div className={styles.stack}>
                             <label className={styles.field}>
-                                <span>Type</span>
+                                <span>{t('common.type')}</span>
                                 <input className={styles.input} value={selectedItem.type} readOnly />
                             </label>
                             <label className={styles.field}>
-                                <span>Name</span>
+                                <span>{t('common.name')}</span>
                                 <input
                                     className={styles.input}
                                     value={selectedItem.name || ''}
@@ -662,7 +664,7 @@ export default function LayoutFloor() {
                             </label>
                             {selectedItem.type === 'table' && (
                                 <label className={styles.field}>
-                                    <span>Seats</span>
+                                    <span>{t('common.seats')}</span>
                                     <input
                                         className={styles.input}
                                         type="number"
@@ -675,7 +677,7 @@ export default function LayoutFloor() {
                                 </label>
                             )}
                             <label className={styles.field}>
-                                <span>Zone</span>
+                                <span>{t('common.zone')}</span>
                                 <select
                                     className={styles.input}
                                     value={selectedItem.zoneId || ''}
@@ -683,14 +685,14 @@ export default function LayoutFloor() {
                                         zoneId: e.target.value ? Number(e.target.value) : null,
                                     })}
                                 >
-                                    <option value="">No zone</option>
+                                    <option value="">{t('common.noZone')}</option>
                                     {zones.map((zone) => (
                                         <option key={zone.id} value={zone.id}>{zone.name}</option>
                                     ))}
                                 </select>
                             </label>
                             <label className={styles.field}>
-                                <span>Shape</span>
+                                <span>{t('common.shape')}</span>
                                 <select
                                     className={styles.input}
                                     value={selectedItem.shape || 'rect'}
@@ -742,7 +744,7 @@ export default function LayoutFloor() {
                                 </label>
                             </div>
                             {(selectedItem.dirty || selectedItem.isNew) && (
-                                <span className={styles.dirtyBadge}>Unsaved changes</span>
+                                <span className={styles.dirtyBadge}>{t('layout.unsaved')}</span>
                             )}
                         </div>
                     )}

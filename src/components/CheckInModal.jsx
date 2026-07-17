@@ -29,12 +29,12 @@ export default function CheckInModal({
         e.preventDefault();
         const code = bookingNumber.trim().toUpperCase();
         if (!/^[A-Z0-9]{6}$/.test(code)) {
-            setError('6 belgilik booking kodini kiriting (masalan A3X9K2).');
+            setError(t('bookings.invalidCode'));
             return;
         }
         const bid = branchId || assignedBranchId || initialBranchId;
         if (!bid) {
-            setError('Check-in uchun branch tanlang.');
+            setError(t('bookings.needBranch'));
             return;
         }
 
@@ -101,7 +101,7 @@ export default function CheckInModal({
                         {error && <div style={{ color: '#cf222e', fontSize: 14 }}>{error}</div>}
                         {result && (
                             <div style={{ color: '#7dcea0', fontSize: 14 }}>
-                                ✓ {result.detail || 'Checked in'}
+                                ✓ {result.detail || t('bookings.checkedInOk')}
                                 {result.guest ? ` — ${result.guest}` : ''}
                                 {result.table ? ` · ${result.table}` : ''}
                             </div>

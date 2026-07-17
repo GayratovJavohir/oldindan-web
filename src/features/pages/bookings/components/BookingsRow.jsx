@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
+import { translateStatus } from '../../../../utils/statusI18n';
 
 export default function BookingRow({ booking, onStatusChange }) {
     const { t } = useTranslation();
@@ -20,7 +21,9 @@ export default function BookingRow({ booking, onStatusChange }) {
     const branchName = booking.branch || booking.branch_name || t('common.branch');
     const tableName = booking.table || booking.table_name || t('common.table');
     const guestsCount = booking.guest_count || booking.guestsCount || 0;
-    const sourceLabel = String(booking.source || '').toLowerCase().includes('manual') ? '💻 Manual' : '📱 App';
+    const sourceLabel = String(booking.source || '').toLowerCase().includes('manual')
+        ? t('bookings.sourceManual')
+        : t('bookings.sourceApp');
     const note = booking.special_request || booking.raw?.special_request || '';
 
     return (
@@ -46,7 +49,7 @@ export default function BookingRow({ booking, onStatusChange }) {
             <td className={styles.guestsCount}>{guestsCount}</td>
             <td>
                 <span className={`${styles.statusBadge} ${getStatusStyle(booking.status)}`}>
-                    {booking.status}
+                    {translateStatus(t, booking.status)}
                 </span>
             </td>
             <td>

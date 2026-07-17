@@ -1,26 +1,26 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styles from '../Notification.module.css';
 import { useNotifications } from '../../../../context/NotificationContext';
 
-const TYPE_FILTERS = [
-    { value: 'all', label: 'All types' },
-    { value: 'booking', label: 'Bookings' },
-    { value: 'other', label: 'Other' },
-];
-
-const READ_FILTERS = [
-    { value: 'all', label: 'All' },
-    { value: 'unread', label: 'Unread' },
-    { value: 'read', label: 'Read' },
-];
-
 export default function NotificationTable() {
+    const { t } = useTranslation();
     const { notifications, counts, loading, error, markRead, markAllRead } = useNotifications();
     const [typeFilter, setTypeFilter] = useState('all');
     const [readFilter, setReadFilter] = useState('all');
     const [busyId, setBusyId] = useState(null);
     const [markingAll, setMarkingAll] = useState(false);
+
+    const typeFilters = [
+        { value: 'all', label: t('notifications.allTypes') },
+        { value: 'booking', label: t('notifications.bookingsType') },
+        { value: 'other', label: t('notifications.otherType') },
+    ];
+    const readFilters = [
+        { value: 'all', label: t('notifications.filterAll') },
+        { value: 'unread', label: t('notifications.filterUnread') },
+        { value: 'read', label: t('notifications.filterRead') },
+    ];
 
     const filtered = useMemo(() => notifications.filter((item) => {
         if (typeFilter !== 'all' && item.category !== typeFilter) return false;
@@ -52,9 +52,13 @@ export default function NotificationTable() {
         <div className={styles.mainCard}>
             <div className={styles.header}>
                 <div>
-                    <h2 className={styles.title}>Notifications</h2>
+                    <h2 className={styles.title}>{t('notifications.title')}</h2>
                     <p className={styles.subtitle}>
-                        {counts.total} unread · {counts.booking} booking · {counts.other} other
+                        {t('notifications.subtitle', {
+                            unread: counts.total,
+                            booking: counts.booking,
+                            other: counts.other,
+                        })}
                     </p>
                 </div>
                 <button
@@ -63,7 +67,7 @@ export default function NotificationTable() {
                     onClick={handleMarkAll}
                     disabled={markingAll || counts.total === 0}
                 >
-                    {markingAll ? 'Marking...' : 'Mark all read'}
+                    {markingAll ? t('notifications.marking') : t('notifications.markAllRead')}
                 </button>
             </div>
 
@@ -73,7 +77,7 @@ export default function NotificationTable() {
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
                 >
-                    {TYPE_FILTERS.map((option) => (
+                    {typeFilters.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
                 </select>
@@ -82,51 +86,38 @@ export default function NotificationTable() {
                     value={readFilter}
                     onChange={(e) => setReadFilter(e.target.value)}
                 >
-                    {READ_FILTERS.map((option) => (
+                    {readFilters.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
                 </select>
             </div>
 
-            {error && <div className={styles.errorBanner}>{error}</div>}
+            {error && <div className={styles.errorText}>{error}</div>}
 
-            {loading && !notifications.length ? (
-                <div className={styles.emptyState}>Loading notifications...</div>
-            ) : filtered.length === 0 ? (
-                <div className={styles.emptyState}>No notifications found.</div>
-            ) : (
-                <div className={styles.notificationList}>
-                    {filtered.map((item) => (
+            <div className={styles.list}>
+                {loading && !filtered.length ? (
+                    <div className={styles.empty}>{t('notifications.loading')}</div>
+                ) : filtered.length === 0 ? (
+                    <div className={styles.empty}>{t('notifications.notFound')}</div>
+                ) : (
+                    filtered.map((item) => (
                         <button
                             key={item.id}
                             type="button"
-                            className={`${styles.notificationItem} ${!item.isRead ? styles.notificationUnread : ''}`}
+                            className={`${styles.item} ${!item.isRead ? styles.itemUnread : ''}`}
                             onClick={() => handleMarkOne(item)}
                             disabled={busyId === item.id}
                         >
-                            <div className={styles.itemHeader}>
-                                <span className={styles.icon}>{item.icon}</span>
-                                <span className={styles.itemTitle}>{item.title}</span>
-                                {!item.isRead && <span className={styles.unreadDot} />}
-                            </div>
-                            <p className={styles.itemDescription}>{item.description}</p>
-                            <div className={styles.itemFooter}>
+                            <span className={styles.itemIcon}>{item.icon}</span>
+                            <div className={styles.itemBody}>
+                                <strong>{item.title}</strong>
+                                <span>{item.description}</span>
                                 <span className={styles.itemTime}>{item.timeAgo || '—'}</span>
-                                <span className={styles.itemType}>{item.category}</span>
-                                {item.bookingId && (
-                                    <Link
-                                        to="/bookings"
-                                        className={styles.bookingLink}
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        Booking #{item.bookingId}
-                                    </Link>
-                                )}
                             </div>
                         </button>
-                    ))}
-                </div>
-            )}
+                    ))
+                )}
+            </div>
         </div>
     );
 }

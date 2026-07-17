@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -24,6 +25,7 @@ export default function LocationMapPicker({
     onChange,
     height = 260,
 }) {
+    const { t } = useTranslation();
     const containerRef = useRef(null);
     const mapRef = useRef(null);
     const markerRef = useRef(null);
@@ -98,9 +100,9 @@ export default function LocationMapPicker({
                 }}
             />
             <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 12, color: '#888' }}>
-                <span>Lat: {hasPoint ? lat : '—'}</span>
-                <span>Lng: {hasPoint ? lng : '—'}</span>
-                <span style={{ marginLeft: 'auto' }}>Xaritada joylashuvni bosing</span>
+                <span>{t('common.lat')}: {hasPoint ? lat : '—'}</span>
+                <span>{t('common.lng')}: {hasPoint ? lng : '—'}</span>
+                <span style={{ marginLeft: 'auto' }}>{t('branches.clickMap')}</span>
             </div>
         </div>
     );

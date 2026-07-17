@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/sidebar/Sidebar';
 import { NotificationDrawer } from '../components/header/PageHeader';
@@ -13,6 +14,7 @@ function hasAuthToken() {
 }
 
 export default function ProtectedLayout() {
+    const { t } = useTranslation();
     const location = useLocation();
     const user = getStoredUser();
 
@@ -23,7 +25,7 @@ export default function ProtectedLayout() {
     if (!user) {
         return (
             <div className="loader" style={{ marginLeft: 'var(--sidebar-width)', padding: 24 }}>
-                Loading workspace...
+                {t('common.loadingWorkspace')}
             </div>
         );
     }
