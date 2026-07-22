@@ -193,6 +193,7 @@
     "pending": "Kutilmoqda",
     "confirmed": "Tasdiqlangan",
     "checkedIn": "Check-in",
+    "occupied": "Band",
     "free": "bo‘sh",
     "busy": "band",
     "tableDetails": "Stol tafsilotlari",

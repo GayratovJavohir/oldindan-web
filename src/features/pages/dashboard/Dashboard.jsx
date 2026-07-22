@@ -112,6 +112,7 @@ export default function Dashboard() {
                         branchId={branchId}
                         onBrandChange={setBrandId}
                         onBranchChange={(id) => setBranchId(id)}
+                        showLabels={false}
                     />
                 ) : null}
             />

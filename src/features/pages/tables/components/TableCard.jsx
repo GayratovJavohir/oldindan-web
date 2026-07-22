@@ -10,10 +10,12 @@ import {
     patchPartnerTable,
 } from '../../../../services/tables.services';
 import { getApiError } from '../../../../utils/apiHelpers';
+import { getStoredUser } from '../../../../utils/authUser';
 
-function TableModal({ table, branches, floors, onClose, onSave }) {
+function TableModal({ table, branches, floors, lockedBranchId, onClose, onSave }) {
+    const defaultBranch = table?.branchId || lockedBranchId || branches[0]?.id || '';
     const [form, setForm] = useState({
-        branch: table?.branchId || branches[0]?.id || '',
+        branch: defaultBranch,
         floor: table?.floorId || '',
         zone: table?.zoneId || '',
         name: table?.name || '',
@@ -54,16 +56,24 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
                         {!table && (
                             <div className={styles.formGroup}>
                                 <label>Branch *</label>
-                                <select
-                                    value={form.branch}
-                                    onChange={(e) => setForm({ ...form, branch: e.target.value, floor: '', zone: '' })}
-                                    required
-                                >
-                                    <option value="">Select branch</option>
-                                    {branches.map((branch) => (
-                                        <option key={branch.id} value={branch.id}>{branch.name}</option>
-                                    ))}
-                                </select>
+                                {lockedBranchId ? (
+                                    <select value={form.branch} disabled required>
+                                        {branches.map((branch) => (
+                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <select
+                                        value={form.branch}
+                                        onChange={(e) => setForm({ ...form, branch: e.target.value, floor: '', zone: '' })}
+                                        required
+                                    >
+                                        <option value="">Select branch</option>
+                                        {branches.map((branch) => (
+                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                         )}
                         <div className={styles.formRow}>
@@ -141,10 +151,15 @@ function TableModal({ table, branches, floors, onClose, onSave }) {
 }
 
 export default function TableCard() {
+    const user = getStoredUser();
+    const isOwner = user?.role === 'owner';
+    const assignedBranchId = user?.branchId ? String(user.branchId) : '';
+    const lockedBranchId = !isOwner && assignedBranchId ? assignedBranchId : '';
+
     const [tables, setTables] = useState([]);
     const [branches, setBranches] = useState([]);
     const [floors, setFloors] = useState([]);
-    const [branchFilter, setBranchFilter] = useState('');
+    const [branchFilter, setBranchFilter] = useState(lockedBranchId);
     const [floorFilter, setFloorFilter] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -155,15 +170,38 @@ export default function TableCard() {
         setLoading(true);
         setError('');
         try {
+            if (!isOwner && !assignedBranchId) {
+                setBranches([]);
+                setFloors([]);
+                setTables([]);
+                setError('Branch biriktirilmagan.');
+                return;
+            }
+
             const [branchList, floorList] = await Promise.all([
                 getPartnerBranches(),
                 getPartnerFloors(),
             ]);
-            setBranches(branchList);
-            setFloors(floorList);
+
+            const scopedBranches = lockedBranchId
+                ? branchList.filter((branch) => String(branch.id) === String(lockedBranchId))
+                : branchList;
+            const scopedFloors = lockedBranchId
+                ? floorList.filter((floor) => String(floor.branchId) === String(lockedBranchId))
+                : floorList;
+
+            setBranches(scopedBranches.length ? scopedBranches : (lockedBranchId ? branchList.filter((b) => String(b.id) === lockedBranchId) : branchList));
+            setFloors(scopedFloors);
+            if (lockedBranchId) setBranchFilter(lockedBranchId);
+
+            const branchesToLoad = lockedBranchId
+                ? scopedBranches.length
+                    ? scopedBranches
+                    : [{ id: lockedBranchId }]
+                : branchList;
 
             const allTables = [];
-            for (const branch of branchList) {
+            for (const branch of branchesToLoad) {
                 try {
                     const branchTables = await getPartnerTables(branch.id);
                     allTables.push(...branchTables);
@@ -177,7 +215,7 @@ export default function TableCard() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [assignedBranchId, isOwner, lockedBranchId]);
 
     useEffect(() => {
         loadData();
@@ -240,8 +278,9 @@ export default function TableCard() {
                         <select
                             value={branchFilter}
                             onChange={(e) => { setBranchFilter(e.target.value); setFloorFilter(''); }}
+                            disabled={Boolean(lockedBranchId)}
                         >
-                            <option value="">All branches</option>
+                            {!lockedBranchId && <option value="">All branches</option>}
                             {branches.map((branch) => (
                                 <option key={branch.id} value={branch.id}>{branch.name}</option>
                             ))}
@@ -313,6 +352,7 @@ export default function TableCard() {
                     table={editTable}
                     branches={branches}
                     floors={floors}
+                    lockedBranchId={lockedBranchId}
                     onClose={() => { setShowModal(false); setEditTable(null); }}
                     onSave={handleSave}
                 />

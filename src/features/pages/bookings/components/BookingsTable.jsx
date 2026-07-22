@@ -6,12 +6,14 @@ import CheckInModal from '../../../../components/CheckInModal';
 import BookingFilters from '../components/BookingsFilter';
 import BookingRow from '../components/BookingsRow';
 import { getPartnerBookings, noShowBooking, updateBookingStatus } from '../../../../services/bookings.services';
-import { canCreateManualBooking } from '../../../../utils/authUser';
+import { canCreateManualBooking, getStoredUser } from '../../../../utils/authUser';
 import { getApiError } from '../../../../utils/apiHelpers';
 
 export default function BookingsTable() {
   const { t } = useTranslation();
+  const user = getStoredUser();
   const canManualBooking = canCreateManualBooking();
+  const assignedBranchId = user?.role !== 'owner' && user?.branchId ? String(user.branchId) : '';
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,6 +29,9 @@ export default function BookingsTable() {
     setErrorMessage('');
     try {
       const params = { page, ...filters };
+      if (assignedBranchId && !params.branch_id) {
+        params.branch_id = assignedBranchId;
+      }
       const data = await getPartnerBookings(params);
       setBookings(data.results || data);
       setPagination({ page, totalCount: data.count || data.length });

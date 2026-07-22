@@ -28,20 +28,52 @@ export function mapBookingFromApi(booking) {
     const startDate = start ? String(start).split('T')[0].split(' ')[0] : '';
     const startTime = start ? String(start).split('T')[1]?.slice(0, 5) || String(start).split(' ')[1]?.slice(0, 5) || '' : '';
     const endTime = end ? String(end).split('T')[1]?.slice(0, 5) || String(end).split(' ')[1]?.slice(0, 5) || '' : '';
-    const first = booking.first_name || booking.consumer?.first_name || booking.user?.first_name || '';
-    const last = booking.last_name || booking.consumer?.last_name || booking.user?.last_name || '';
+
+    // Manual / walk-in: guest lives in first_name/last_name/guest_*; booking.user is often staff creator.
+    const sourceRaw = String(booking.source || '').toLowerCase();
+    const guestObj = booking.guest && typeof booking.guest === 'object' ? booking.guest : null;
+    const consumerObj = booking.consumer && typeof booking.consumer === 'object' ? booking.consumer : null;
+    const isManual = Boolean(
+        booking.created_by_partner
+        || booking.is_walk_in
+        || booking.is_manual
+        || sourceRaw.includes('manual')
+        || sourceRaw === 'partner_manual'
+        || sourceRaw === 'offline'
+    );
+    const allowUserAsGuest = !isManual;
+
+    const first = booking.first_name
+        || booking.guest_first_name
+        || guestObj?.first_name
+        || consumerObj?.first_name
+        || (allowUserAsGuest ? booking.user?.first_name : '')
+        || '';
+    const last = booking.last_name
+        || booking.guest_last_name
+        || guestObj?.last_name
+        || consumerObj?.last_name
+        || (allowUserAsGuest ? booking.user?.last_name : '')
+        || '';
     const guestName = [first, last].filter(Boolean).join(' ').trim()
         || booking.guest_name
+        || guestObj?.name
         || booking.contact_name
         || booking.consumer_name
-        || booking.user_name
+        || (allowUserAsGuest ? booking.user_name : '')
         || 'Guest';
 
     return {
         id: booking.id,
         bookingNumber: booking.booking_number || booking.number || '',
         guestName,
-        phone: booking.phone || booking.consumer_phone || booking.consumer?.phone || booking.user?.phone || '',
+        phone: booking.phone
+            || booking.guest_phone
+            || guestObj?.phone
+            || booking.consumer_phone
+            || consumerObj?.phone
+            || (allowUserAsGuest ? booking.user?.phone : '')
+            || '',
         branch: booking.branch_name || booking.branch?.name || booking.branch,
         branchId: booking.branch_id ?? booking.branch?.id ?? booking.branch ?? null,
         floor: booking.floor_name || booking.floor?.name || booking.floor,
@@ -56,10 +88,11 @@ export function mapBookingFromApi(booking) {
         time: startTime,
         endTime,
         status: normalizeBookingStatus(booking.status),
-        source: booking.source || (booking.created_by_partner ? 'Manual' : 'App'),
+        source: booking.source || (isManual || booking.created_by_partner ? 'Manual' : 'App'),
         special_request: booking.special_request || booking.note || '',
         booking_start: start,
         booking_end: end,
+        isManual,
         raw: booking,
     };
 }
@@ -136,7 +169,14 @@ export const createManualBooking = async (payload) => {
     const floorId = payload.floor_id ?? payload.floor;
     const tableId = payload.table_id ?? payload.table;
     const zoneId = payload.zone_id ?? payload.zone;
+    const firstName = payload.first_name?.trim() || '';
+    const lastName = payload.last_name?.trim() || '';
+    const guestName = [firstName, lastName].filter(Boolean).join(' ').trim()
+        || payload.guest_name?.trim()
+        || '';
+    const phone = payload.phone?.trim() || '';
 
+    // Walk-in guest identity only (not the logged-in receptionist).
     const body = {
         branch: branchId,
         branch_id: branchId,
@@ -144,9 +184,11 @@ export const createManualBooking = async (payload) => {
         floor_id: floorId,
         table: tableId,
         table_id: tableId,
-        first_name: payload.first_name?.trim(),
-        last_name: payload.last_name?.trim(),
-        phone: payload.phone?.trim(),
+        first_name: firstName,
+        last_name: lastName,
+        guest_name: guestName,
+        contact_name: guestName,
+        phone,
         guest_count: payload.guest_count,
         children_count: payload.children_count ?? 0,
         booking_start: payload.booking_start,

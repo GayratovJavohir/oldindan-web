@@ -193,6 +193,7 @@
     "pending": "Pending",
     "confirmed": "Confirmed",
     "checkedIn": "Check-in",
+    "occupied": "Occupied",
     "free": "free",
     "busy": "busy",
     "tableDetails": "Table details",

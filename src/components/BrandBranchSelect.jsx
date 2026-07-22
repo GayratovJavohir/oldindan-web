@@ -102,7 +102,7 @@ export default function BrandBranchSelect({
     };
 
     return (
-        <div className={className} style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'end' }}>
+        <div className={className} style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: showLabels ? 'end' : 'center' }}>
             <label className={fieldClassName} style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: '#999' }}>
                 {showLabels && <span>{t('common.brand')}</span>}
                 <select

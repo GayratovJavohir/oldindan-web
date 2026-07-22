@@ -358,8 +358,8 @@ export default function LiveFloor() {
     };
 
     const occupiedCount = useMemo(
-        () => Object.values(occupancy).filter((o) => o.is_occupied).length,
-        [occupancy]
+        () => tables.filter((t) => String(t.floorId) === String(floorId) && occupancy[String(t.id)]?.is_occupied).length,
+        [tables, floorId, occupancy]
     );
     const availableCount = useMemo(
         () => tables.filter((t) => t.is_active && String(t.floorId) === String(floorId) && !occupancy[String(t.id)]?.is_occupied).length,
@@ -412,6 +412,7 @@ export default function LiveFloor() {
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> {t('layout.pending')}</span>
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> {t('layout.confirmed')}</span>
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> {t('layout.checkedIn')}</span>
+                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.occupiedDot}`} /> {t('layout.occupied')}</span>
                         </div>
                     </header>
 

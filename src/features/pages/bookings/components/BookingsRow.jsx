@@ -17,7 +17,7 @@ export default function BookingRow({ booking, onStatusChange }) {
         }
     };
 
-    const guestName = booking.guestName || booking.user_name || t('bookings.guest');
+    const guestName = booking.guestName || t('bookings.guest');
     const branchName = booking.branch || booking.branch_name || t('common.branch');
     const tableName = booking.table || booking.table_name || t('common.table');
     const guestsCount = booking.guest_count || booking.guestsCount || 0;

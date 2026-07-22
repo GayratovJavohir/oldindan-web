@@ -193,6 +193,7 @@
     "pending": "Ожидание",
     "confirmed": "Подтверждено",
     "checkedIn": "Check-in",
+    "occupied": "Занято",
     "free": "свободно",
     "busy": "занято",
     "tableDetails": "Детали стола",

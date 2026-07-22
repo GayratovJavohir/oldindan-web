@@ -33,7 +33,7 @@ export async function fetchBranchDayStats(branchId, date = todayStr()) {
     ]);
 
     const bookings = unwrapList(bookingsPayload);
-    const occupied = unwrapList(occupiedData).length;
+    const occupied = unwrapList(occupiedData).filter((row) => row.is_occupied).length;
     const totalTables = unwrapList(tablesData).length;
     const utilization = totalTables > 0 ? Math.round((occupied / totalTables) * 100) : 0;
 

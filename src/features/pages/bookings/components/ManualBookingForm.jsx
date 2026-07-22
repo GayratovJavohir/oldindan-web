@@ -189,6 +189,7 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel, ini
                 });
                 if (!active) return;
                 const occupied = unwrapList(data)
+                    .filter((item) => item.is_occupied)
                     .map((item) => item.table_id ?? item.table?.id ?? item.table)
                     .filter(Boolean)
                     .map(String);
