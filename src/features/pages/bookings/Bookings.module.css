@@ -157,6 +157,12 @@
     font-size: 12px;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .guestsCount {
     color: #ffffff;
     font-weight: 500;

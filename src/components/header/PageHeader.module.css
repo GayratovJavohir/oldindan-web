@@ -337,23 +337,8 @@
 }
 
 @media (max-width: 640px) {
-    .header {
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .headerRight {
-        width: 100%;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
     .actionsSlot {
-        display: flex;
-        max-width: 100%;
-        order: 3;
-        flex: 1 1 100%;
-        justify-content: flex-end;
+        display: none;
     }
 
     .drawer {
