@@ -6,28 +6,42 @@ import AuthService from '../../services/auth.services';
 import { getStoredUser } from '../../utils/authUser';
 import { useNotifications } from '../../context/NotificationContext';
 import { useLayout } from '../../context/LayoutContext';
+import {
+  IoGridOutline,
+  IoListOutline,
+  IoPulseOutline,
+  IoAddCircleOutline,
+  IoMapOutline,
+  IoRestaurantOutline,
+  IoBusinessOutline,
+  IoDiamondOutline,
+  IoPeopleOutline,
+  IoNotificationsOutline,
+  IoPersonCircleOutline,
+  IoLogOutOutline,
+} from "react-icons/io5";
 
 const navItems = {
   overview: [
-    { labelKey: 'nav.dashboard', icon: '⊞', path: '/dashboard', roles: ['owner', 'manager'] },
+    { labelKey: 'nav.dashboard', icon: <IoGridOutline />, path: '/dashboard', roles: ['owner', 'manager'] },
   ],
   bookings: [
-    { labelKey: 'nav.allBookings', icon: '☰', badgeKey: 'booking', path: '/bookings', roles: ['owner', 'manager', 'receptionist'] },
-    { labelKey: 'nav.liveView', icon: '◷', path: '/live-view', roles: ['owner', 'manager', 'receptionist'] },
-    { labelKey: 'nav.manualBooking', icon: '+', path: '/manual-bookings', roles: ['receptionist'] },
+    { labelKey: 'nav.allBookings', icon: <IoListOutline />, badgeKey: 'booking', path: '/bookings', roles: ['owner', 'manager', 'receptionist'] },
+    { labelKey: 'nav.liveView', icon: <IoPulseOutline />, path: '/live-view', roles: ['owner', 'manager', 'receptionist'] },
+    { labelKey: 'nav.manualBooking', icon: <IoAddCircleOutline />, path: '/manual-bookings', roles: ['receptionist'] },
   ],
   venue: [
-    { labelKey: 'nav.floorLayout', icon: '⊡', path: '/floor-layout', roles: ['owner', 'manager'] },
-    { labelKey: 'nav.tables', icon: '⊟', path: '/tables', roles: ['owner', 'manager'] },
-    { labelKey: 'nav.branches', icon: '⌂', path: '/branches', roles: ['owner'] },
+    { labelKey: 'nav.floorLayout', icon: <IoMapOutline />, path: '/floor-layout', roles: ['owner', 'manager'] },
+    { labelKey: 'nav.tables', icon: <IoRestaurantOutline />, path: '/tables', roles: ['owner', 'manager'] },
+    { labelKey: 'nav.branches', icon: <IoBusinessOutline />, path: '/branches', roles: ['owner'] },
   ],
   management: [
-    { labelKey: 'nav.brands', icon: '◈', path: '/brands', roles: ['owner'] },
-    { labelKey: 'nav.staff', icon: '👤', path: '/staff', roles: ['owner'] },
+    { labelKey: 'nav.brands', icon: <IoDiamondOutline />, path: '/brands', roles: ['owner'] },
+    { labelKey: 'nav.staff', icon: <IoPeopleOutline />, path: '/staff', roles: ['owner'] },
   ],
   account: [
-    { labelKey: 'nav.notifications', icon: '🔔', badgeKey: 'total', path: '/notifications', roles: ['owner', 'manager', 'receptionist'] },
-    { labelKey: 'nav.profile', icon: '👤', path: '/profile', roles: ['owner', 'manager', 'receptionist'] },
+    { labelKey: 'nav.notifications', icon: <IoNotificationsOutline />, badgeKey: 'total', path: '/notifications', roles: ['owner', 'manager', 'receptionist'] },
+    { labelKey: 'nav.profile', icon: <IoPersonCircleOutline />, path: '/profile', roles: ['owner', 'manager', 'receptionist'] },
   ],
 };
 

@@ -2,6 +2,14 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import styles from '../Branch.module.css';
+import {
+    IoLocationOutline,
+    IoCallOutline,
+    IoBusinessOutline,
+    IoRestaurantOutline,
+    IoCashOutline,
+    IoLockClosedOutline,
+} from "react-icons/io5";
 
 export default function BranchCard({ branch, onEdit }) {
     const { t } = useTranslation();
@@ -18,27 +26,27 @@ export default function BranchCard({ branch, onEdit }) {
 
             <div className={styles.cardBody}>
                 <div className={styles.infoRow}>
-                    <span className={styles.infoIcon}>📍</span>
+                    <span className={styles.infoIcon}><IoLocationOutline /></span>
                     <span className={styles.infoText}>{location}</span>
                 </div>
                 <div className={styles.infoRow}>
-                    <span className={styles.infoIcon}>📞</span>
+                    <span className={styles.infoIcon}><IoCallOutline /></span>
                     <span className={styles.infoText}>{phone}</span>
                 </div>
 
                 <div className={styles.badgeContainer}>
                     <div className={styles.miniBadge}>
-                        <span className={styles.miniIcon}>🏢</span> {floors} {floors > 1 ? 'floors' : 'floor'}
+                        <span className={styles.miniIcon}><IoBusinessOutline /></span> {floors} {floors > 1 ? 'floors' : 'floor'}
                     </div>
                     <div className={styles.miniBadge}>
-                        <span className={styles.miniIcon}>🪑</span> {tables} tables
+                        <span className={styles.miniIcon}><IoRestaurantOutline /></span> {tables} tables
                     </div>
                     <div className={styles.miniBadge}>
-                        <span className={styles.miniIcon}>💰</span> {fee.toLocaleString()} UZS fee
+                        <span className={styles.miniIcon}><IoCashOutline /></span> {fee.toLocaleString()} UZS fee
                     </div>
                     {hasDeposit && (
                         <div className={`${styles.miniBadge} ${styles.depositBadge}`}>
-                            <span className={styles.miniIcon}>🔒</span> Deposit
+                            <span className={styles.miniIcon}><IoLockClosedOutline /></span> Deposit
                         </div>
                     )}
                 </div>

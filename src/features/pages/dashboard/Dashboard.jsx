@@ -7,6 +7,12 @@ import UpcomingBookings from './components/UpcomingBookings';
 import StatusBreakdown from './components/StatusBreakdown';
 import RecentNotifications from './components/RecentNotifications';
 import BrandBranchSelect from '../../../components/BrandBranchSelect';
+import {
+    IoTodaySharp,
+    IoPersonOutline,
+    IoRestaurantOutline,
+    IoCloseCircleOutline,
+} from "react-icons/io5";
 
 import { getOccupiedTables, getPartnerBookings } from '../../../services/bookings.services';
 import { loadTablesForBranch } from '../../../services/tables.services';
@@ -88,12 +94,10 @@ export default function Dashboard() {
             setLoading(false);
             setError('Branch biriktirilmagan.');
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (isOwner && branchId) fetchDashboardStats(branchId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [branchId]);
 
     const utilizationPercentage = useMemo(() => (
@@ -117,8 +121,15 @@ export default function Dashboard() {
             />
 
             {error && <p className={styles.loadingText} style={{ color: '#ff6b6b' }}>{error}</p>}
-            {loading ? (
-                <p className={styles.loadingText}>{t('dashboard.loadingStats')}</p>
+            {!branchId && isOwner ? (
+                <div className={styles.loadingText}>
+                    <h3>👆 Brand va filialni tanlang</h3>
+                    <p>Dashboard statistikalarini ko‘rish uchun avval Brand va Branch ni tanlang.</p>
+                </div>
+            ) : loading ? (
+                <p className={styles.loadingText}>
+                    {t('dashboard.loadingStats')}
+                </p>
             ) : (
                 <div className={styles.dashboardContainer}>
                     <section className={styles.statsGrid}>
@@ -127,28 +138,28 @@ export default function Dashboard() {
                             value={String(bookingsList.length)}
                             subtext={t('dashboard.todayForBranch')}
                             isPositive
-                            icon="📅"
+                            icon={<IoTodaySharp />}
                         />
                         <StatCard
                             title={t('dashboard.pending')}
                             value={String(pendingBookings)}
                             subtext={pendingBookings > 0 ? t('dashboard.needsAttention') : t('dashboard.allCleared')}
                             status={pendingBookings > 0 ? 'pending' : 'normal'}
-                            icon="👤"
+                            icon={<IoPersonOutline />}
                         />
                         <StatCard
                             title={t('dashboard.occupiedTables')}
                             value={`${occupiedTables.occupied}/${occupiedTables.total}`}
                             subtext={`${utilizationPercentage}% ${t('dashboard.utilization')}`}
                             isPositive={utilizationPercentage > 50}
-                            icon="🪑"
+                            icon={<IoRestaurantOutline />}
                         />
                         <StatCard
                             title={t('dashboard.noShowsToday')}
                             value={String(noShowsCount)}
                             subtext={t('dashboard.fromTodaysVisits')}
                             isPositive={noShowsCount === 0}
-                            icon="🚫"
+                            icon={<IoCloseCircleOutline />}
                         />
                     </section>
 
@@ -156,10 +167,6 @@ export default function Dashboard() {
                         <UpcomingBookings bookings={bookingsList} />
                         <StatusBreakdown bookings={bookingsList} />
                     </div>
-
-                    <section className={styles.notificationsSection}>
-                        <RecentNotifications />
-                    </section>
                 </div>
             )}
         </>

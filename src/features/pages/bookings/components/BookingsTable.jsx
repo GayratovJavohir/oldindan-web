@@ -59,7 +59,7 @@ export default function BookingsTable() {
       } else {
         const statusMap = {
           confirm: 'confirmed',
-          cancel: 'cancelled',
+          cancel: 'canceled',
           complete: 'completed',
         };
         await updateBookingStatus(booking.id, statusMap[action] || action);

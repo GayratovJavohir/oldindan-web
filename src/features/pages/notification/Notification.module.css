@@ -25,12 +25,10 @@
 }
 
 .mainCard {
-    background-color: #111111;
-    border: 1px solid #222222;
-    border-radius: 8px;
-    padding: 24px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #ffffff;
+    background: #111;
+    border: 1px solid #252525;
+    border-radius: 12px;
+    padding: 22px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -39,78 +37,81 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
-    color: #ffffff;
     margin: 0;
 }
 
-.markAllBtn {
-    background-color: #1a1a1a;
-    color: #aaaaaa;
-    border: 1px solid #2a2a2a;
-    padding: 6px 14px;
-    border-radius: 6px;
+.subtitle {
+    margin-top: 4px;
     font-size: 13px;
-    font-weight: 500;
+    color: #808080;
+}
+
+.markAllBtn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: #1b1b1b;
+    border: 1px solid #2e2e2e;
+    color: #d7d7d7;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: .2s;
 }
 
 .markAllBtn:hover {
-    background-color: #252525;
-    color: #ffffff;
+    background: #252525;
+    color: #fff;
 }
 
 .filters {
     display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 10px;
+    margin-bottom: 18px;
 }
 
 .selectInput {
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    min-width: 120px;
+    height: 36px;
+    min-width: 130px;
+    padding: 0 12px;
+    background: #181818;
+    border: 1px solid #2b2b2b;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
     outline: none;
-    cursor: pointer;
 }
 
 .selectInput:focus {
-    border-color: #3a3a3a;
+    border-color: #3b82f6;
 }
 
-.notificationList {
+.list {
     display: flex;
     flex-direction: column;
+    gap: 12px;
 }
 
-.notificationItem {
-    padding: 16px 0;
-    border-bottom: 1px solid #222222;
+.item {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    align-items: flex-start;
+    gap: 14px;
     width: 100%;
-    background: none;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    text-align: left;
+    padding: 14px 16px;
+    border: 1px solid #252525;
+    border-radius: 10px;
+    background: #171717;
     cursor: pointer;
-    color: inherit;
+    transition: .2s;
 }
 
-.notificationItem:last-child {
-    border-bottom: none;
+.item:hover {
+    background: #1d1d1d;
+    border-color: #3b82f6;
 }
 
 .itemHeader {
@@ -119,36 +120,41 @@
     gap: 10px;
 }
 
-.icon {
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
+.itemIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #1d2b42;
+    color: #5ea6ff;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.itemBody {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .itemTitle {
-    color: #ffffff;
-    font-weight: 600;
     font-size: 15px;
-    letter-spacing: 0.2px;
+    font-weight: 600;
+    color: #fff;
 }
 
 .itemDescription {
-    color: #888888;
-    font-size: 14px;
-    margin: 0;
-    padding-left: 24px;
+    margin: 4px 0;
+    color: #9a9a9a;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .itemTime {
-    color: #555555;
     font-size: 12px;
-}
-
-.subtitle {
-    margin: 4px 0 0;
-    color: #777;
-    font-size: 13px;
+    color: #666;
 }
 
 .errorBanner,
@@ -164,6 +170,10 @@
 
 .notificationUnread {
     background: rgba(231, 76, 60, 0.04);
+}
+
+.itemUnread {
+    border-left: 3px solid #3b82f6;
 }
 
 .unreadDot {

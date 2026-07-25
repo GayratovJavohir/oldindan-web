@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './PageHeader.module.css';
 import { useNotifications } from '../../context/NotificationContext';
+import { IoIosNotifications } from "react-icons/io";
 import { useLayout } from '../../context/LayoutContext';
 import { setAppLanguage } from '../../i18n';
 
@@ -52,7 +53,7 @@ export default function PageHeader({ title, actions = null }) {
                     onClick={openDrawer}
                     aria-label={t('nav.notifications')}
                 >
-                    <span className={styles.bellIcon}>🔔</span>
+                    <IoIosNotifications className={styles.bellIcon} />
                     {counts.total > 0 && (
                         <span className={styles.bellBadge}>
                             {counts.total > 99 ? '99+' : counts.total}

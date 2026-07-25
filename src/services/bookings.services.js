@@ -14,7 +14,7 @@ function normalizeBookingStatus(status) {
         checked_in: 'Checked In',
         checkedin: 'Checked In',
         completed: 'Completed',
-        cancelled: 'Canceled',
+        canceled: 'Canceled',
         canceled: 'Canceled',
         no_show: 'No Show',
         noshow: 'No Show',
@@ -73,7 +73,7 @@ export function buildBookingFilters(filters = {}) {
             Pending: 'pending',
             'Checked In': 'checked_in',
             Completed: 'completed',
-            Canceled: 'cancelled',
+            Canceled: 'canceled',
             'No Show': 'no_show',
         };
         params.status = statusMap[filters.status] || filters.status;
@@ -109,6 +109,11 @@ export const getPartnerBooking = async (id) => {
 };
 
 export const updateBookingStatus = async (id, status, note = '') => {
+    console.log({
+        url: `/bookings/partner/${id}/status/`,
+        body: { status, note },
+    });
+
     const response = await $api.post(`/bookings/partner/${id}/status/`, { status, note });
     return response.data;
 };
@@ -123,7 +128,6 @@ export const checkInBooking = async (id, data = {}) => {
     return response.data;
 };
 
-/** POST /bookings/partner/checkin/ — body: { booking_number, branch_id? } */
 export const checkInByNumber = async ({ booking_number, branch_id }) => {
     const body = { booking_number: String(booking_number).trim().toUpperCase() };
     if (branch_id) body.branch_id = Number(branch_id);

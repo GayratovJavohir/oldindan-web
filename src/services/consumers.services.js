@@ -55,7 +55,7 @@ export async function getConsumers(params = {}) {
             const list = normalizeConsumerList(response.data);
             if (list.length) return list;
         } catch {
-            // try next endpoint
+            // error
         }
     }
     return getConsumersFromBookings();

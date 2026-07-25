@@ -1,5 +1,16 @@
 import $api from '../config/api.config';
 import { unwrapList } from '../utils/apiHelpers';
+import {
+    IoCalendarOutline,
+    IoCloseCircleOutline,
+    IoCheckmarkCircleOutline,
+    IoCheckmarkDoneCircleOutline,
+    IoLogInOutline,
+    IoPersonOutline,
+    IoSettingsOutline,
+    IoAddCircleOutline,
+    IoNotificationsOutline,
+} from "react-icons/io5";
 
 const BOOKING_KEYWORDS = [
     'booking',
@@ -35,20 +46,39 @@ export function classifyNotificationCategory(type, title = '', message = '', boo
 
 export function pickNotificationIcon(type = '', title = '') {
     const text = `${type} ${title}`.toLowerCase();
-    if (text.includes('new') || text.includes('created')) return '🆕';
-    if (text.includes('cancel')) return '❌';
-    if (text.includes('no_show') || text.includes('no-show') || text.includes('no show')) return '👻';
-    if (text.includes('confirm')) return '✅';
-    if (text.includes('complete')) return '🎉';
-    if (text.includes('check')) return '📥';
-    if (text.includes('layout') || text.includes('table') || text.includes('floor')) return '⚙️';
-    if (text.includes('staff') || text.includes('user')) return '👤';
-    return '🔔';
+
+    if (text.includes('new') || text.includes('created'))
+        return IoAddCircleOutline;
+
+    if (text.includes('cancel'))
+        return IoCloseCircleOutline;
+
+    if (text.includes('confirm'))
+        return IoCheckmarkCircleOutline;
+
+    if (text.includes('complete'))
+        return IoCheckmarkDoneCircleOutline;
+
+    if (text.includes('check'))
+        return IoLogInOutline;
+
+    if (text.includes('layout') || text.includes('table') || text.includes('floor'))
+        return IoSettingsOutline;
+
+    if (text.includes('staff') || text.includes('user'))
+        return IoPersonOutline;
+
+    if (text.includes('booking') || text.includes('reservation'))
+        return IoCalendarOutline;
+
+    return IoNotificationsOutline;
 }
 
 export function mapNotificationFromApi(item) {
     const type = item.notification_type || item.type || item.category || '';
-    const title = item.title || item.subject || 'Notification';
+    const title = (item.title || item.subject || 'Notification')
+        .replace(/[^\p{L}\p{N}\s]/gu, '')
+        .trim();
     const description = item.message || item.body || item.description || item.content || '';
     const bookingId = item.booking_id ?? item.booking?.id ?? item.related_booking_id ?? null;
     const createdAt = item.created_at || item.created || item.timestamp || null;

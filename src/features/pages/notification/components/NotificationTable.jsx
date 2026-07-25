@@ -2,6 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../Notification.module.css';
 import { useNotifications } from '../../../../context/NotificationContext';
+import {
+    IoNotificationsOutline,
+    IoCalendarOutline,
+    IoInformationCircleOutline,
+} from "react-icons/io5";
 
 export default function NotificationTable() {
     const { t } = useTranslation();
@@ -21,6 +26,11 @@ export default function NotificationTable() {
         { value: 'unread', label: t('notifications.filterUnread') },
         { value: 'read', label: t('notifications.filterRead') },
     ];
+
+    const iconMap = {
+        booking: <IoCalendarOutline />,
+        other: <IoInformationCircleOutline />,
+    };
 
     const filtered = useMemo(() => notifications.filter((item) => {
         if (typeFilter !== 'all' && item.category !== typeFilter) return false;
@@ -108,11 +118,21 @@ export default function NotificationTable() {
                             onClick={() => handleMarkOne(item)}
                             disabled={busyId === item.id}
                         >
-                            <span className={styles.itemIcon}>{item.icon}</span>
+                            <span className={styles.itemIcon}>
+                                {iconMap[item.category] || <IoNotificationsOutline />}
+                            </span>
                             <div className={styles.itemBody}>
-                                <strong>{item.title}</strong>
-                                <span>{item.description}</span>
-                                <span className={styles.itemTime}>{item.timeAgo || '—'}</span>
+                                <div className={styles.itemHeader}>
+                                    <strong className={styles.itemTitle}>{item.title}</strong>
+                                </div>
+
+                                <p className={styles.itemDescription}>
+                                    {item.description}
+                                </p>
+
+                                <span className={styles.itemTime}>
+                                    {item.timeAgo || "—"}
+                                </span>
                             </div>
                         </button>
                     ))

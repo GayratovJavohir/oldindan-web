@@ -3,10 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { getPartnerBrands, getPartnerBranches } from '../services/restaurants.services';
 import { getApiError } from '../utils/apiHelpers';
 
-/**
- * Owner: Brand → Branch cascade.
- * Staff with assigned branch: hidden (parent keeps assigned branch).
- */
 export default function BrandBranchSelect({
     branchId,
     onBranchChange,
@@ -15,7 +11,7 @@ export default function BrandBranchSelect({
     className = '',
     fieldClassName = '',
     selectClassName = '',
-    showLabels = true,
+    showLabels = false,
     disabled = false,
 }) {
     const { t } = useTranslation();
@@ -45,20 +41,12 @@ export default function BrandBranchSelect({
                     const match = branchList.find((b) => String(b.id) === String(branchId));
                     if (match?.brandId) nextBrand = String(match.brandId);
                 }
-                if (!nextBrand && brandList[0]) nextBrand = String(brandList[0].id);
                 if (nextBrand) {
                     setBrandId(String(nextBrand));
                     onBrandChange?.(String(nextBrand));
-                }
-
-                const brandBranches = branchList.filter(
-                    (b) => String(b.brandId) === String(nextBrand || '')
-                );
-                if (branchId && brandBranches.some((b) => String(b.id) === String(branchId))) {
-                    // keep existing branch
-                } else if (!bootstrapped.current && brandBranches[0]) {
-                    onBranchChange?.(String(brandBranches[0].id));
-                } else if (!brandBranches.length) {
+                } else {
+                    setBrandId('');
+                    onBrandChange?.('');
                     onBranchChange?.('');
                 }
                 bootstrapped.current = true;
@@ -69,7 +57,6 @@ export default function BrandBranchSelect({
             }
         })();
         return () => { active = false; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -86,9 +73,8 @@ export default function BrandBranchSelect({
     const handleBrandChange = (value) => {
         setBrandId(value);
         onBrandChange?.(value);
-        const next = branches.filter((b) => String(b.brandId) === String(value));
-        if (next[0]) onBranchChange?.(String(next[0].id));
-        else onBranchChange?.('');
+
+        onBranchChange?.('');
     };
 
     const selectStyle = {
