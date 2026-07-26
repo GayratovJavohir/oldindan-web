@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
 import { translateStatus } from '../../../../utils/statusI18n';
 
-export default function BookingRow({ booking, onStatusChange }) {
+export default function BookingRow({ booking, onStatusChange, isReceptionist, onView, }) {
     const { t } = useTranslation();
     const getStatusStyle = (status) => {
         switch (status) {
@@ -57,36 +57,75 @@ export default function BookingRow({ booking, onStatusChange }) {
             </td>
             <td>
                 <div className={styles.actions}>
-                    <button className={styles.viewBtn} type="button" title={note || '—'}>
+                    <button
+                        className={styles.viewBtn}
+                        type="button"
+                        title={note || '—'}
+                        onClick={() => onView(booking)}
+                    >
                         {t('bookings.view')}
                     </button>
-                    {booking.status === 'Pending' && (
+
+                    {isReceptionist && (
                         <>
-                            <button type="button" className={styles.confirmBtn} onClick={() => onStatusChange(booking, 'confirm')}>
-                                {t('bookings.confirm')}
-                            </button>
-                            <button type="button" className={styles.cancelBtn} onClick={() => onStatusChange(booking, 'cancel')}>
-                                {t('bookings.cancel')}
-                            </button>
+                            {booking.status === 'Pending' && (
+                                <>
+                                    <button
+                                        type="button"
+                                        className={styles.confirmBtn}
+                                        onClick={() => onStatusChange(booking, 'confirm')}
+                                    >
+                                        {t('bookings.confirm')}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className={styles.cancelBtn}
+                                        onClick={() => onStatusChange(booking, 'cancel')}
+                                    >
+                                        {t('bookings.cancel')}
+                                    </button>
+                                </>
+                            )}
+
+                            {booking.status === 'Confirmed' && (
+                                <>
+                                    <button
+                                        type="button"
+                                        className={styles.confirmBtn}
+                                        onClick={() => onStatusChange(booking, 'checkin')}
+                                    >
+                                        {t('bookings.checkIn')}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className={styles.cancelBtn}
+                                        onClick={() => onStatusChange(booking, 'cancel')}
+                                    >
+                                        {t('bookings.cancel')}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className={styles.cancelBtn}
+                                        onClick={() => onStatusChange(booking, 'no_show')}
+                                    >
+                                        {t('bookings.noShow')}
+                                    </button>
+                                </>
+                            )}
+
+                            {booking.status === 'Checked In' && (
+                                <button
+                                    type="button"
+                                    className={styles.confirmBtn}
+                                    onClick={() => onStatusChange(booking, 'complete')}
+                                >
+                                    {t('bookings.complete')}
+                                </button>
+                            )}
                         </>
-                    )}
-                    {booking.status === 'Confirmed' && (
-                        <>
-                            <button type="button" className={styles.confirmBtn} onClick={() => onStatusChange(booking, 'checkin')}>
-                                {t('bookings.checkIn')}
-                            </button>
-                            <button type="button" className={styles.cancelBtn} onClick={() => onStatusChange(booking, 'cancel')}>
-                                {t('bookings.cancel')}
-                            </button>
-                            <button type="button" className={styles.cancelBtn} onClick={() => onStatusChange(booking, 'no_show')}>
-                                {t('bookings.noShow')}
-                            </button>
-                        </>
-                    )}
-                    {booking.status === 'Checked In' && (
-                        <button type="button" className={styles.confirmBtn} onClick={() => onStatusChange(booking, 'complete')}>
-                            {t('bookings.complete')}
-                        </button>
                     )}
                 </div>
             </td>

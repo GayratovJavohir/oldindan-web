@@ -77,6 +77,10 @@ export function canCreateManualBooking() {
     return getStoredUser()?.role === 'receptionist';
 }
 
+export function canCheckInBooking() {
+    return getStoredUser()?.role === 'receptionist';
+}
+
 export const ROUTE_ACCESS = {
     '/dashboard': ['owner', 'manager'],
     '/bookings': ['owner', 'manager', 'receptionist'],

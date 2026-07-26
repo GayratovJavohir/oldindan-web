@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../Bookings.module.css';
 import ManualBookingModal from './ManualBookingModal';
@@ -6,21 +6,32 @@ import CheckInModal from '../../../../components/CheckInModal';
 import BookingFilters from '../components/BookingsFilter';
 import BookingRow from '../components/BookingsRow';
 import { getPartnerBookings, noShowBooking, updateBookingStatus } from '../../../../services/bookings.services';
-import { canCreateManualBooking } from '../../../../utils/authUser';
+import { canCreateManualBooking, getStoredUser, canCheckInBooking, } from '../../../../utils/authUser';
 import { getApiError } from '../../../../utils/apiHelpers';
+import BookingDetailsModal from './BookingsDetailsModal';
+import { filterBookingsData } from '../../../../services/bookings.filter';
 
 export default function BookingsTable() {
   const { t } = useTranslation();
   const canManualBooking = canCreateManualBooking();
+  const canCheckIn = canCheckInBooking();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [checkInTarget, setCheckInTarget] = useState(null);
   const [showQuickCheckIn, setShowQuickCheckIn] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  
+
+  const user = getStoredUser();
+  const isReceptionist = user?.role === 'receptionist';
 
   const [pagination, setPagination] = useState({ page: 1, totalCount: 0 });
   const [activeFilters, setActiveFilters] = useState({});
+  const filteredBookings = useMemo(() => {
+    return filterBookingsData(bookings, activeFilters);
+  }, [bookings, activeFilters]);
 
   const fetchBookings = async (page = 1, filters = {}) => {
     setLoading(true);
@@ -77,9 +88,11 @@ export default function BookingsTable() {
         <div className={styles.header}>
           <h2 className={styles.title}>{t('bookings.allBookings')}</h2>
           <div className={styles.headerActions}>
-            <button type="button" className={styles.manualBtn} onClick={() => setShowQuickCheckIn(true)}>
-              {t('bookings.checkInByCode')}
-            </button>
+            {canCheckIn && (
+              <button type="button" className={styles.manualBtn} onClick={() => setShowQuickCheckIn(true)}>
+                {t('bookings.checkInByCode')}
+              </button>
+            )}
             {canManualBooking && (
               <button type="button" className={styles.manualBtn} onClick={() => setIsModalOpen(true)}>
                 {t('bookings.manualBooking')}
@@ -113,11 +126,13 @@ export default function BookingsTable() {
               ) : bookings.length === 0 ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('bookings.noBookings')}</td></tr>
               ) : (
-                bookings.map((booking) => (
+                filteredBookings.map((booking) => (
                   <BookingRow
                     key={booking.id}
                     booking={booking}
                     onStatusChange={handleStatusChange}
+                    isReceptionist={isReceptionist}
+                    onView={setSelectedBooking}
                   />
                 ))
               )}
@@ -156,6 +171,13 @@ export default function BookingsTable() {
             setIsModalOpen(false);
             fetchBookings(1, activeFilters);
           }}
+        />
+      )}
+
+      {selectedBooking && (
+        <BookingDetailsModal
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
         />
       )}
 
