@@ -9,6 +9,9 @@ const STATUS_COLORS = {
     checked_in: { fill: 'rgba(90,39,130,0.35)', stroke: '#a463f2' },
     checkedIn: { fill: 'rgba(90,39,130,0.35)', stroke: '#a463f2' },
     occupied: { fill: 'rgba(140,25,25,0.4)', stroke: '#e85d5d' },
+    completed: { fill: 'rgba(21,74,45,0.35)', stroke: '#4ade80' },
+    canceled: { fill: 'rgba(60,60,60,0.35)', stroke: '#9ca3af' },
+    no_show: { fill: 'rgba(60,60,60,0.35)', stroke: '#9ca3af' },
     facility: { fill: 'rgba(30,30,30,0.9)', stroke: '#555' },
 };
 
@@ -40,6 +43,8 @@ function ItemShape({
     status,
     zoneColor,
     onSelect,
+    onHoverIn,
+    onHoverOut,
     onDragEnd,
     onTransformEnd,
 }) {
@@ -49,12 +54,29 @@ function ItemShape({
     const colors = STATUS_COLORS[liveStatus] || STATUS_COLORS.facility;
     const isRound = item.shape === 'round' || (item.type === 'table' && item.shape !== 'rect');
     const stroke = zoneColor || colors.stroke;
+    const isInteractive = item.type === 'table';
 
     useEffect(() => {
         if (!editable || !selected || !trRef.current || !shapeRef.current) return;
         trRef.current.nodes([shapeRef.current]);
         trRef.current.getLayer()?.batchDraw();
     }, [editable, selected, item.id, item.width, item.height, item.rotation]);
+
+    const handleMouseEnter = (e) => {
+        const stage = e.target.getStage();
+        if (stage && isInteractive) {
+            stage.container().style.cursor = 'pointer';
+        }
+        if (isInteractive) onHoverIn?.(item);
+    };
+
+    const handleMouseLeave = (e) => {
+        const stage = e.target.getStage();
+        if (stage) {
+            stage.container().style.cursor = 'default';
+        }
+        if (isInteractive) onHoverOut?.(item);
+    };
 
     const commonProps = {
         ref: shapeRef,
@@ -64,9 +86,14 @@ function ItemShape({
         height: item.height,
         rotation: item.rotation || 0,
         fill: colors.fill,
-        stroke,
+        stroke: selected ? '#ffffff' : stroke,
         strokeWidth: selected ? 3 : 2,
+        shadowColor: selected ? '#ffffff' : undefined,
+        shadowBlur: selected ? 12 : 0,
+        shadowOpacity: selected ? 0.5 : 0,
         draggable: editable,
+        onMouseEnter: handleMouseEnter,
+        onMouseLeave: handleMouseLeave,
         onClick: (e) => {
             e.cancelBubble = true;
             onSelect?.(item);
@@ -190,6 +217,7 @@ export default function FloorCanvas({
     statusByLayoutItemId = {},
     zoneColorById = {},
     onSelect,
+    onHover,
     onBackgroundClick,
     onItemChange,
 }) {
@@ -205,6 +233,7 @@ export default function FloorCanvas({
             onTouchStart={(e) => {
                 if (e.target === e.target.getStage()) onBackgroundClick?.();
             }}
+            onMouseLeave={() => onHover?.(null)}
         >
             <Layer>
                 {Array.from({ length: Math.ceil(width / 30) }).map((_, i) => (
@@ -239,6 +268,8 @@ export default function FloorCanvas({
                         status={statusByLayoutItemId[item.id] || statusByLayoutItemId[item.tempId]}
                         zoneColor={item.zoneId ? zoneColorById[item.zoneId] : null}
                         onSelect={onSelect}
+                        onHoverIn={(hoveredItem) => onHover?.(hoveredItem)}
+                        onHoverOut={() => onHover?.(null)}
                         onDragEnd={(target, pos) => onItemChange?.(target, pos)}
                         onTransformEnd={(target, next) => onItemChange?.(target, next)}
                     />

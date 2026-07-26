@@ -4,6 +4,7 @@ import styles from '../LiveLayout.module.css';
 import FloorCanvas from '../../layout/components/FloorCanvas';
 import ManualBookingModal from '../../bookings/components/ManualBookingModal';
 import BrandBranchSelect from '../../../../components/BrandBranchSelect';
+import BookingDetailsModal from './BookingTableModal';
 import {
     getBranchFloors,
     getPartnerFloors,
@@ -15,10 +16,12 @@ import {
     getPartnerBooking,
     getPartnerBookings,
     mapBookingFromApi,
+    updateBookingStatus,
+    noShowBooking,
+    checkInBooking,
 } from '../../../../services/bookings.services';
 import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
 import { canCreateManualBooking, getStoredUser } from '../../../../utils/authUser';
-import { translateStatus } from '../../../../utils/statusI18n';
 
 const CANVAS_W = 960;
 const CANVAS_H = 640;
@@ -28,19 +31,18 @@ function toIso(date) {
     return date.toISOString();
 }
 
-function currentWindow() {
+// Tanlangan vaqt bo'yicha 3 soatlik oynani hisoblash
+function getWindowForTime(timeStr) {
     const start = new Date();
-    start.setMinutes(0, 0, 0);
+    if (timeStr) {
+        const [hours, minutes] = timeStr.split(':');
+        start.setHours(parseInt(hours, 10), parseInt(minutes || 0, 10), 0, 0);
+    } else {
+        start.setMinutes(0, 0, 0);
+    }
     const end = new Date(start);
     end.setHours(end.getHours() + 3);
     return { start: toIso(start), end: toIso(end) };
-}
-
-function formatSource(source, t) {
-    const raw = String(source || '').toLowerCase();
-    if (raw.includes('manual') || raw === 'partner_manual') return t('bookings.sourceManual');
-    if (raw === 'app') return t('bookings.sourceApp');
-    return source || '—';
 }
 
 function statusKey(status) {
@@ -48,9 +50,19 @@ function statusKey(status) {
     if (raw === 'checkedin' || raw === 'checked_in') return 'checked_in';
     if (raw === 'pending') return 'pending';
     if (raw === 'confirmed') return 'confirmed';
+    if (raw === 'completed') return 'completed';
+    if (raw === 'canceled' || raw === 'cancelled') return 'canceled';
+    if (raw === 'no_show' || raw === 'noshow') return 'no_show';
     if (raw === 'occupied') return 'occupied';
     return 'available';
 }
+
+const LEGEND_ITEMS = [
+    { key: 'available', label: 'Bo\u2018sh', dotClass: 'availableDot' },
+    { key: 'pending', label: 'Kutilmoqda', dotClass: 'pendingDot' },
+    { key: 'confirmed', label: 'Tasdiqlangan', dotClass: 'confirmedDot' },
+    { key: 'checked_in', label: 'Kelgan', dotClass: 'checkedInDot' },
+];
 
 export default function LiveFloor() {
     const { t } = useTranslation();
@@ -67,29 +79,30 @@ export default function LiveFloor() {
     const [tables, setTables] = useState([]);
     const [occupancy, setOccupancy] = useState({});
     const [bookingByTableId, setBookingByTableId] = useState({});
+
     const [selectedTableId, setSelectedTableId] = useState(null);
     const [selectedBooking, setSelectedBooking] = useState(null);
+
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
     const [showBookModal, setShowBookModal] = useState(false);
     const [bookDefaults, setBookDefaults] = useState(null);
 
-    const currentFloor = useMemo(
-        () => floors.find((f) => String(f.id) === String(floorId)) || null,
-        [floors, floorId]
-    );
+    // Vaqt va Modal statelari
+    const [selectedTime, setSelectedTime] = useState('');
+    const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
 
-    const zoneColorById = useMemo(() => {
-        const map = {};
-        (currentFloor?.zones || []).forEach((z) => { map[z.id] = z.color || '#8c1919'; });
-        return map;
-    }, [currentFloor]);
+    // Hover tooltip statelari
+    const [hoveredTableId, setHoveredTableId] = useState(null);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     const tableByLayoutItem = useMemo(() => {
         const map = {};
         tables.forEach((t) => {
-            if (t.layoutItemId) map[String(t.layoutItemId)] = t;
+            const key = t.layoutItemId ?? t.id;
+            if (key != null) map[String(key)] = t;
         });
         return map;
     }, [tables]);
@@ -125,83 +138,95 @@ export default function LiveFloor() {
                 map[item.id] = 'available';
                 return;
             }
-            map[item.id] = statusKey(occ.status) === 'available' ? 'occupied' : statusKey(occ.status);
+            map[item.id] = statusKey(occ.status);
         });
         return map;
     }, [enrichedItems, occupancy]);
 
     const selectedTable = selectedTableId ? tableById[String(selectedTableId)] : null;
-    const selectedOcc = selectedTableId ? occupancy[String(selectedTableId)] : null;
+    const hoveredTable = hoveredTableId ? tableById[String(hoveredTableId)] : null;
+    const hoveredOcc = hoveredTableId ? occupancy[String(hoveredTableId)] : null;
+    const hoveredBooking = hoveredTableId ? bookingByTableId[String(hoveredTableId)] : null;
 
-    const loadOccupancy = useCallback(async (nextBranchId, nextFloorId, tableList) => {
+    // Stol bandliklarini yuklash funksiyasi
+    const loadOccupancy = useCallback(async (nextBranchId, nextFloorId, tableList, timeVal = '') => {
         if (!nextBranchId) return;
-        const { start, end } = currentWindow();
-        const data = await getOccupiedTables({
-            branch_id: nextBranchId,
-            floor_id: nextFloorId || undefined,
-            booking_start: start,
-            booking_end: end,
-        });
-        const list = unwrapList(data);
-        const nextOcc = {};
-        list.forEach((row) => {
-            const id = row.table_id ?? row.table?.id ?? row.table;
-            if (!id) return;
-            nextOcc[String(id)] = {
-                table_id: id,
-                is_occupied: Boolean(row.is_occupied),
-                booking_id: row.booking_id ?? null,
-                status: row.status || null,
-            };
-        });
-        setOccupancy(nextOcc);
+        const { start, end } = getWindowForTime(timeVal);
+        try {
+            const data = await getOccupiedTables({
+                branch_id: nextBranchId,
+                floor_id: nextFloorId || undefined,
+                booking_start: start,
+                booking_end: end,
+            });
+            const list = unwrapList(data);
+            const nextOcc = {};
+            list.forEach((row) => {
+                const id = row.table_id ?? row.table?.id ?? row.table;
+                if (!id) return;
+                nextOcc[String(id)] = {
+                    table_id: id,
+                    is_occupied: Boolean(row.is_occupied),
+                    booking_id: row.booking_id ?? null,
+                    status: row.status || null,
+                };
+            });
+            setOccupancy(nextOcc);
 
-        const occupiedBookingIds = list
-            .filter((row) => row.is_occupied && row.booking_id)
-            .map((row) => row.booking_id);
+            const occupiedBookingIds = list
+                .filter((row) => row.is_occupied && row.booking_id)
+                .map((row) => row.booking_id);
 
-        const bookingsMap = {};
-        if (occupiedBookingIds.length) {
-            try {
-                const bookingsRes = await getPartnerBookings({
-                    branch_id: nextBranchId,
-                    date: start.slice(0, 10),
-                });
-                (bookingsRes.results || []).forEach((b) => {
-                    if (b.tableId) bookingsMap[String(b.tableId)] = b;
-                });
-            } catch {
-                // fallback below
-            }
-
-            await Promise.all(occupiedBookingIds.map(async (bookingId) => {
-                const already = Object.values(bookingsMap).find((b) => String(b.id) === String(bookingId));
-                if (already) return;
+            const bookingsMap = {};
+            if (occupiedBookingIds.length) {
                 try {
-                    const booking = await getPartnerBooking(bookingId);
-                    if (booking?.tableId) bookingsMap[String(booking.tableId)] = booking;
+                    const bookingsRes = await getPartnerBookings({
+                        branch_id: nextBranchId,
+                        date: start.slice(0, 10),
+                    });
+                    (bookingsRes.results || []).forEach((b) => {
+                        if (b.tableId) bookingsMap[String(b.tableId)] = b;
+                    });
                 } catch {
                     // ignore
                 }
-            }));
-        }
 
-        // ensure every occupied table has at least a stub from occupancy
-        (tableList || tables).forEach((table) => {
-            const occ = nextOcc[String(table.id)];
-            if (occ?.is_occupied && !bookingsMap[String(table.id)] && occ.booking_id) {
-                bookingsMap[String(table.id)] = mapBookingFromApi({
-                    id: occ.booking_id,
-                    status: occ.status,
-                    table: table.id,
-                    table_name: table.name,
-                    source: 'app',
-                });
+                await Promise.all(occupiedBookingIds.map(async (bookingId) => {
+                    const already = Object.values(bookingsMap).find((b) => String(b.id) === String(bookingId));
+                    if (already) return;
+                    try {
+                        const booking = await getPartnerBooking(bookingId);
+                        if (booking?.tableId) bookingsMap[String(booking.tableId)] = booking;
+                    } catch {
+                        // ignore
+                    }
+                }));
             }
-        });
 
-        setBookingByTableId(bookingsMap);
-    }, [tables]);
+            (tableList || tables).forEach((table) => {
+                const occ = nextOcc[String(table.id)];
+                if (occ?.is_occupied && !bookingsMap[String(table.id)] && occ.booking_id) {
+                    bookingsMap[String(table.id)] = mapBookingFromApi({
+                        id: occ.booking_id,
+                        status: occ.status,
+                        table: table.id,
+                        table_name: table.name,
+                        source: 'app',
+                    });
+                }
+            });
+
+            setBookingByTableId(bookingsMap);
+
+            // Modal ochiq bo'lsa, undagi bookingni ham yangilab turamiz
+            setSelectedBooking((prev) => {
+                if (!prev || !selectedTableId) return prev;
+                return bookingsMap[String(selectedTableId)] || prev;
+            });
+        } catch (err) {
+            console.error("Error loading occupancy:", err);
+        }
+    }, [tables, selectedTableId]);
 
     const loadLayout = useCallback(async (nextBranchId, preferredFloorId = null) => {
         if (!nextBranchId) {
@@ -230,6 +255,8 @@ export default function LiveFloor() {
                 .sort((a, b) => a.sortOrder - b.sortOrder);
 
             setFloors(branchFloors);
+            console.log('[DEBUG] tableList from API:', tableList);
+            console.log('[DEBUG] layoutItemId values:', tableList.map(t => ({ id: t.id, name: t.name, layoutItemId: t.layoutItemId, raw_layout_item: t.raw?.layout_item, raw_layout_item_id: t.raw?.layout_item_id })));
             setTables(tableList);
 
             const nextFloorId = preferredFloorId
@@ -244,13 +271,13 @@ export default function LiveFloor() {
                     : []
             );
 
-            await loadOccupancy(nextBranchId, nextFloorId, tableList);
+            await loadOccupancy(nextBranchId, nextFloorId, tableList, selectedTime);
         } catch (err) {
             setError(getApiError(err));
         } finally {
             setLoading(false);
         }
-    }, [assignedBranchId, isOwner, loadOccupancy]);
+    }, [assignedBranchId, isOwner, loadOccupancy, selectedTime]);
 
     useEffect(() => {
         let active = true;
@@ -263,7 +290,6 @@ export default function LiveFloor() {
                     setError('Branch biriktirilmagan.');
                     setLoading(false);
                 } else {
-                    // Owner waits for BrandBranchSelect
                     setLoading(false);
                 }
             } catch (err) {
@@ -274,7 +300,6 @@ export default function LiveFloor() {
             }
         })();
         return () => { active = false; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -282,7 +307,7 @@ export default function LiveFloor() {
         const timer = setInterval(async () => {
             try {
                 setRefreshing(true);
-                await loadOccupancy(branchId, floorId, tables);
+                await loadOccupancy(branchId, floorId, tables, selectedTime);
             } catch {
                 // keep last good state
             } finally {
@@ -290,7 +315,7 @@ export default function LiveFloor() {
             }
         }, POLL_MS);
         return () => clearInterval(timer);
-    }, [branchId, floorId, tables, loadOccupancy]);
+    }, [branchId, floorId, tables, loadOccupancy, selectedTime]);
 
     const handleBranchChange = async (value) => {
         setBranchId(value);
@@ -317,10 +342,16 @@ export default function LiveFloor() {
                 const others = prev.filter((t) => String(t.floorId) !== String(value));
                 return [...others, ...tableList];
             });
-            await loadOccupancy(branchId, value, tableList);
+            await loadOccupancy(branchId, value, tableList, selectedTime);
         } catch (err) {
             setError(getApiError(err));
         }
+    };
+
+    const handleTimeChange = (e) => {
+        const newTime = e.target.value;
+        setSelectedTime(newTime);
+        loadOccupancy(branchId, floorId, tables, newTime);
     };
 
     const handleSelectItem = async (item) => {
@@ -331,97 +362,142 @@ export default function LiveFloor() {
         }
         const tableId = item.tableId || item.meta?.table_id || tableByLayoutItem[String(item.id)]?.id;
         if (!tableId) return;
+
         setSelectedTableId(tableId);
-        const booking = bookingByTableId[String(tableId)] || null;
-        setSelectedBooking(booking);
+        let booking = bookingByTableId[String(tableId)] || null;
 
         const occ = occupancy[String(tableId)];
         if (occ?.booking_id && !booking) {
             try {
                 const full = await getPartnerBooking(occ.booking_id);
-                setSelectedBooking(full);
+                booking = full;
                 setBookingByTableId((prev) => ({ ...prev, [String(tableId)]: full }));
             } catch {
                 // ignore
             }
         }
+
+        setSelectedBooking(booking);
+
+        // Stol band bo'lsa Booking Details modalini ochish, bo'sh bo'lsa Manual Book
+        if (occ?.is_occupied) {
+            setShowBookingDetailsModal(true);
+        } else if (canBook) {
+            setBookDefaults({
+                floor: String(floorId),
+                zone: item.zoneId ? String(item.zoneId) : '',
+                table: String(tableId),
+            });
+            setShowBookModal(true);
+        }
     };
 
-    const openBookForTable = (table) => {
-        if (!canBook || !table) return;
-        setBookDefaults({
-            floor: String(floorId),
-            zone: table.zoneId ? String(table.zoneId) : '',
-            table: String(table.id),
-        });
-        setShowBookModal(true);
+    const handleBookingAction = async (actionType, note = '') => {
+        if (!selectedBooking?.id) return;
+        setActionLoading(true);
+        setError('');
+        try {
+            switch (actionType) {
+                case 'cancel':
+                    await updateBookingStatus(selectedBooking.id, 'canceled', note);
+                    break;
+                case 'noshow':
+                    await noShowBooking(selectedBooking.id, note);
+                    break;
+                case 'confirm':
+                    await updateBookingStatus(selectedBooking.id, 'confirmed', note);
+                    break;
+                case 'checkin':
+                    await checkInBooking(selectedBooking.id, { note });
+                    break;
+                case 'complete':
+                    await updateBookingStatus(selectedBooking.id, 'completed', note);
+                    break;
+                default:
+                    break;
+            }
+            setShowBookingDetailsModal(false);
+            setSelectedBooking(null);
+            setSelectedTableId(null);
+            await loadOccupancy(branchId, floorId, tables, selectedTime);
+        } catch (err) {
+            setError(getApiError(err));
+        } finally {
+            setActionLoading(false);
+        }
     };
-
-    const occupiedCount = useMemo(
-        () => Object.values(occupancy).filter((o) => o.is_occupied).length,
-        [occupancy]
-    );
-    const availableCount = useMemo(
-        () => tables.filter((t) => t.is_active && String(t.floorId) === String(floorId) && !occupancy[String(t.id)]?.is_occupied).length,
-        [tables, floorId, occupancy]
-    );
 
     return (
         <div className={styles.floorContainer}>
-            <div className={styles.toolbar}>
-                <div className={styles.toolbarGroup}>
+            <div className={styles.toolbar} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#fff' }}>Live Floor View</h2>
+
+                <div className={styles.legend}>
+                    {LEGEND_ITEMS.map((li) => (
+                        <div key={li.key} className={styles.legendItem}>
+                            <span className={`${styles.dot} ${styles[li.dotClass]}`} />
+                            {li.label}
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#1a1a1a', padding: '8px 12px', borderRadius: '8px', border: '1px solid #333' }}>
+                        <input
+                            type="time"
+                            value={selectedTime}
+                            onChange={handleTimeChange}
+                            style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '15px', outline: 'none', cursor: 'pointer' }}
+                        />
+                        <span style={{ color: '#666' }}>🕒</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        className={styles.secondaryBtn}
+                        onClick={() => loadOccupancy(branchId, floorId, tables, selectedTime)}
+                        disabled={!branchId}
+                        style={{ padding: '10px 16px', borderRadius: '8px' }}
+                    >
+                        {refreshing ? t('common.refreshing') : 'Refresh'}
+                    </button>
+
+                    <select
+                        value={floorId}
+                        onChange={(e) => handleFloorChange(e.target.value)}
+                        disabled={!branchId}
+                        style={{ padding: '10px 12px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #333', color: '#fff', outline: 'none' }}
+                    >
+                        <option value="">{t('common.selectFloor')}</option>
+                        {floors.map((f) => (
+                            <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                    </select>
+
                     {isOwner && (
                         <BrandBranchSelect
                             brandId={brandId}
                             branchId={branchId}
                             onBrandChange={setBrandId}
                             onBranchChange={handleBranchChange}
-                            fieldClassName={styles.field}
                         />
                     )}
-                    <label className={styles.field}>
-                        <span>{t('common.floor')}</span>
-                        <select value={floorId} onChange={(e) => handleFloorChange(e.target.value)} disabled={!branchId}>
-                            <option value="">{t('common.selectFloor')}</option>
-                            {floors.map((f) => (
-                                <option key={f.id} value={f.id}>{f.name}</option>
-                            ))}
-                        </select>
-                    </label>
-                </div>
-                <div className={styles.stats}>
-                    <span className={styles.statPill}>{availableCount} {t('layout.free')}</span>
-                    <span className={styles.statPillBusy}>{occupiedCount} {t('layout.busy')}</span>
-                    {refreshing && <span className={styles.muted}>{t('common.refreshing')}</span>}
-                    <button
-                        type="button"
-                        className={styles.secondaryBtn}
-                        onClick={() => loadOccupancy(branchId, floorId, tables)}
-                        disabled={!branchId}
-                    >
-                        {t('common.refresh')}
-                    </button>
                 </div>
             </div>
 
-            <div className={styles.workspace}>
+            <div className={styles.workspace} style={{ gridTemplateColumns: '1fr' }}>
                 <div className={styles.canvasWrap}>
-                    <header className={styles.header}>
-                        <div className={styles.legend}>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.availableDot}`} /> {t('layout.available')}</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> {t('layout.pending')}</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> {t('layout.confirmed')}</span>
-                            <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> {t('layout.checkedIn')}</span>
-                        </div>
-                    </header>
-
                     {error && <div className={styles.errorBanner}>{error}</div>}
                     {loading ? (
                         <div className={styles.emptyState}>{t('layout.loadingLive')}</div>
                     ) : !floorId ? (
                         <div className={styles.emptyState}>{t('layout.pickFloorHint')}</div>
                     ) : (
-                        <div className={styles.canvas}>
+                        <div
+                            className={styles.canvas}
+                            onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+                            onMouseLeave={() => setHoveredTableId(null)}
+                        >
                             <FloorCanvas
                                 width={CANVAS_W}
                                 height={CANVAS_H}
@@ -433,126 +509,75 @@ export default function LiveFloor() {
                                 }
                                 editable={false}
                                 statusByLayoutItemId={statusByLayoutItemId}
-                                zoneColorById={zoneColorById}
+                                zoneColorById={{}}
                                 onSelect={handleSelectItem}
+                                onHover={(item) => {
+                                    console.log('[DEBUG] onHover fired:', item);
+                                    if (item?.type === 'table') {
+                                        const tid = item.tableId || item.meta?.table_id;
+                                        setHoveredTableId(tid);
+                                    } else {
+                                        setHoveredTableId(null);
+                                    }
+                                }}
                                 onBackgroundClick={() => {
                                     setSelectedTableId(null);
                                     setSelectedBooking(null);
                                 }}
                             />
-                        </div>
-                    )}
-                </div>
 
-                <aside className={styles.detailPanel}>
-                    <h3>{t('layout.tableDetails')}</h3>
-                    {!selectedTable ? (
-                        <p className={styles.muted}>{t('layout.selectTableHint')}</p>
-                    ) : (
-                        <div className={styles.detailCard}>
-                            <div className={styles.detailTitle}>{selectedTable.name}</div>
-                            <div className={styles.detailRow}><span>{t('common.seats')}</span><strong>{selectedTable.seats}</strong></div>
-                            <div className={styles.detailRow}>
-                                <span>{t('common.zone')}</span>
-                                <strong>{selectedTable.zoneName || selectedTable.zoneId || '—'}</strong>
-                            </div>
-                            <div className={styles.detailRow}>
-                                <span>{t('common.status')}</span>
-                                <strong className={styles[`status_${statusKey(selectedOcc?.is_occupied ? selectedOcc.status : 'available')}`]}>
-                                    {translateStatus(
-                                        t,
-                                        selectedOcc?.is_occupied ? statusKey(selectedOcc.status) : 'available'
-                                    )}
-                                </strong>
-                            </div>
-
-                            {selectedOcc?.is_occupied ? (
-                                <>
-                                    <hr className={styles.divider} />
-                                    <div className={styles.detailRow}>
-                                        <span>{t('bookings.guest')}</span>
-                                        <strong>{selectedBooking?.guestName || '—'}</strong>
+                            {/* HOVER TOOLTIP */}
+                            {hoveredTable && (
+                                <div
+                                    className={styles.tooltipBox}
+                                    style={{ position: 'fixed', left: mousePos.x + 15, top: mousePos.y + 15, zIndex: 9999 }}
+                                >
+                                    <div className={styles.tooltipHeader}>
+                                        <span className={styles.tooltipTitle}>{hoveredTable.name}</span>
+                                        <span className={hoveredOcc?.is_occupied ? styles.tooltipBadgeBusy : styles.tooltipBadgeFree}>
+                                            {hoveredOcc?.is_occupied ? t('layout.busy') : t('layout.available')}
+                                        </span>
                                     </div>
-                                    <div className={styles.detailRow}>
-                                        <span>{t('common.phone')}</span>
-                                        <strong>{selectedBooking?.phone || '—'}</strong>
+                                    <div className={styles.tooltipBody}>
+                                        <div>{hoveredTable.seats} {t('common.seats')} • {hoveredTable.zoneName || '—'}</div>
+                                        {hoveredOcc?.is_occupied && hoveredBooking && (
+                                            <div className={styles.tooltipBookingInfo}>
+                                                <div className={styles.tooltipRow}>
+                                                    <span>👤</span> {hoveredBooking.guestName || t('bookings.guest')}
+                                                </div>
+                                                <div className={styles.tooltipRow}>
+                                                    <span>⏰</span> {hoveredBooking.time} {hoveredBooking.endTime ? `- ${hoveredBooking.endTime}` : ''}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className={styles.detailRow}>
-                                        <span>{t('common.source')}</span>
-                                        <strong>{formatSource(selectedBooking?.source, t)}</strong>
-                                    </div>
-                                    <div className={styles.detailRow}>
-                                        <span>{t('common.time')}</span>
-                                        <strong>
-                                            {(selectedBooking?.time || '—')}
-                                            {selectedBooking?.endTime ? ` – ${selectedBooking.endTime}` : ''}
-                                        </strong>
-                                    </div>
-                                    <div className={styles.detailRow}>
-                                        <span>{t('common.guests')}</span>
-                                        <strong>
-                                            {selectedBooking?.guest_count ?? '—'}
-                                            {selectedBooking?.children_count
-                                                ? ` (${t('layout.kids', { count: selectedBooking.children_count })})`
-                                                : ''}
-                                        </strong>
-                                    </div>
-                                    {selectedBooking?.special_request ? (
-                                        <p className={styles.note}>{selectedBooking.special_request}</p>
-                                    ) : null}
-                                </>
-                            ) : (
-                                <>
-                                    <p className={styles.muted}>{t('layout.tableEmpty')}</p>
-                                    {canBook && (
-                                        <button
-                                            type="button"
-                                            className={styles.primaryBtn}
-                                            onClick={() => openBookForTable(selectedTable)}
-                                        >
-                                            {t('layout.bookThisTable')}
-                                        </button>
-                                    )}
-                                </>
+                                </div>
                             )}
                         </div>
                     )}
-
-                    <h3>{t('layout.busyNow')}</h3>
-                    <ul className={styles.busyList}>
-                        {tables
-                            .filter((tbl) => String(tbl.floorId) === String(floorId) && occupancy[String(tbl.id)]?.is_occupied)
-                            .map((tbl) => {
-                                const booking = bookingByTableId[String(tbl.id)];
-                                const occ = occupancy[String(tbl.id)];
-                                return (
-                                    <li key={tbl.id}>
-                                        <button type="button" onClick={() => {
-                                            setSelectedTableId(tbl.id);
-                                            setSelectedBooking(booking || null);
-                                        }}>
-                                            <strong>{tbl.name}</strong>
-                                            <span>{formatSource(booking?.source, t)} · {translateStatus(t, statusKey(occ?.status))}</span>
-                                            <span>{booking?.guestName || t('bookings.guest')}</span>
-                                        </button>
-                                    </li>
-                                );
-                            })}
-                        {!tables.some((tbl) => String(tbl.floorId) === String(floorId) && occupancy[String(tbl.id)]?.is_occupied) && (
-                            <li className={styles.muted}>{t('layout.noBusy')}</li>
-                        )}
-                    </ul>
-                </aside>
+                </div>
             </div>
 
+            {/* Manual Booking Modal */}
             {showBookModal && (
                 <ManualBookingModal
                     initialValues={bookDefaults}
                     onClose={() => setShowBookModal(false)}
                     onSuccess={async () => {
                         setShowBookModal(false);
-                        await loadOccupancy(branchId, floorId, tables);
+                        await loadOccupancy(branchId, floorId, tables, selectedTime);
                     }}
+                />
+            )}
+
+            {/* Booking Details Modal */}
+            {showBookingDetailsModal && (
+                <BookingDetailsModal
+                    booking={selectedBooking}
+                    table={selectedTable}
+                    loading={actionLoading}
+                    onClose={() => setShowBookingDetailsModal(false)}
+                    onAction={handleBookingAction}
                 />
             )}
         </div>

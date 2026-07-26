@@ -117,10 +117,24 @@
     border-radius: 50%;
 }
 
-.availableDot { background-color: #3f3f46; }
-.pendingDot { background-color: #f5a623; box-shadow: 0 0 8px rgba(245, 166, 35, 0.5); }
-.confirmedDot { background-color: #4c8bf5; box-shadow: 0 0 8px rgba(76, 139, 245, 0.5); }
-.checkedInDot { background-color: #a463f2; box-shadow: 0 0 8px rgba(164, 99, 242, 0.5); }
+.availableDot {
+    background-color: #3f3f46;
+}
+
+.pendingDot {
+    background-color: #f5a623;
+    box-shadow: 0 0 8px rgba(245, 166, 35, 0.5);
+}
+
+.confirmedDot {
+    background-color: #4c8bf5;
+    box-shadow: 0 0 8px rgba(76, 139, 245, 0.5);
+}
+
+.checkedInDot {
+    background-color: #a463f2;
+    box-shadow: 0 0 8px rgba(164, 99, 242, 0.5);
+}
 
 .canvas {
     position: relative;
@@ -265,11 +279,25 @@
     font-size: 13px;
 }
 
-.status_available { color: #9aa0a6; }
-.status_pending { color: #f5a623; }
-.status_confirmed { color: #4c8bf5; }
-.status_checked_in { color: #a463f2; }
-.status_occupied { color: #e85d5d; }
+.status_available {
+    color: #9aa0a6;
+}
+
+.status_pending {
+    color: #f5a623;
+}
+
+.status_confirmed {
+    color: #4c8bf5;
+}
+
+.status_checked_in {
+    color: #a463f2;
+}
+
+.status_occupied {
+    color: #e85d5d;
+}
 
 @media (max-width: 1100px) {
     .workspace {
@@ -287,15 +315,18 @@
     .statsGrid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
+
     .mainContentGrid {
         grid-template-columns: 1fr !important;
     }
+
     .workspace {
         grid-template-columns: 1fr !important;
     }
 }
 
 @media (max-width: 900px) {
+
     .dashboardContainer,
     .bookingsContainer,
     .layoutContainer,
@@ -314,32 +345,172 @@
     .statsGrid {
         grid-template-columns: 1fr !important;
     }
+
     .header {
         flex-direction: column;
         align-items: stretch !important;
         gap: 10px;
     }
+
     .headerActions {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
+
     .tableWrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+
     .modalContent,
     .modalContentWide {
         max-width: calc(100vw - 24px) !important;
         margin: 12px;
     }
+
     .formRow {
         grid-template-columns: 1fr !important;
     }
+
     .hoursRow {
         grid-template-columns: 1fr 1fr !important;
     }
+
     .hoursDay {
         grid-column: 1 / -1;
     }
+}
+
+
+/* ==================== HOVER TOOLTIP ==================== */
+.canvas {
+    position: relative;
+    /* Boshqa existing propertylaringiz saqlanib qoladi */
+}
+
+.tooltipBox {
+    position: absolute;
+    background-color: #1a1a1a;
+    border: 1px solid #2e2e2e;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 180px;
+    z-index: 50;
+    pointer-events: none;
+    /* Tooltip sichqoncha clicklarini to'sib qolmasligi uchun */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #fff;
+}
+
+.tooltipHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2e2e2e;
+}
+
+.tooltipTitle {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.tooltipBadgeBusy {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: rgba(127, 29, 29, 0.3);
+    color: #f87171;
+    border: 1px solid rgba(185, 28, 28, 0.3);
+}
+
+.tooltipBadgeFree {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: rgba(20, 83, 45, 0.3);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.tooltipBody {
+    font-size: 12px;
+    color: #a1a1aa;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tooltipBookingInfo {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #3f3f46;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tooltipRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #e4e4e7;
+}
+
+/* ==================== QUICK ACTIONS (SIDEBAR) ==================== */
+.quickActionsGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.quickActionsGroup button {
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btnActionPrimary {
+    background-color: #991b1b;
+    color: #ffffff;
+    grid-column: span 2;
+    /* Asosiy action katta bo'lishi uchun */
+}
+
+.btnActionPrimary:hover {
+    background-color: #b91c1c;
+}
+
+.btnActionSecondary {
+    background-color: #27272a;
+    color: #e4e4e7;
+    border: 1px solid #3f3f46 !important;
+}
+
+.btnActionSecondary:hover {
+    background-color: #3f3f46;
+}
+
+.btnActionDanger {
+    background-color: rgba(127, 29, 29, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(127, 29, 29, 0.3) !important;
+}
+
+.btnActionDanger:hover {
+    background-color: rgba(127, 29, 29, 0.3);
+}
+
+.status_completed {
+    color: #4ade80;
 }
