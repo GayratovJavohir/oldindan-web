@@ -19,6 +19,28 @@ import { loadTablesForBranch } from '../../../services/tables.services';
 import { getStoredUser } from '../../../utils/authUser';
 import { unwrapList } from '../../../utils/apiHelpers';
 
+const BRAND_STORAGE_KEY = 'kfc_partner_brand_id';
+const BRANCH_STORAGE_KEY = 'kfc_partner_branch_id';
+
+function readStoredValue(key) {
+    if (typeof window === 'undefined') return '';
+    try {
+        return localStorage.getItem(key) || '';
+    } catch {
+        return '';
+    }
+}
+
+function writeStoredValue(key, value) {
+    if (typeof window === 'undefined') return;
+    try {
+        if (value) localStorage.setItem(key, value);
+        else localStorage.removeItem(key);
+    } catch {
+        // ignore
+    }
+}
+
 function todayISO() {
     return new Date().toISOString().slice(0, 10);
 }
@@ -29,8 +51,8 @@ export default function Dashboard() {
     const isOwner = user?.role === 'owner';
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
 
-    const [brandId, setBrandId] = useState('');
-    const [branchId, setBranchId] = useState(assignedBranchId);
+    const [brandId, setBrandId] = useState(() => readStoredValue(BRAND_STORAGE_KEY));
+    const [branchId, setBranchId] = useState(() => assignedBranchId || readStoredValue(BRANCH_STORAGE_KEY));
     const [bookingsList, setBookingsList] = useState([]);
     const [occupiedTables, setOccupiedTables] = useState({ occupied: 0, total: 0 });
     const [pendingBookings, setPendingBookings] = useState(0);
@@ -93,11 +115,18 @@ export default function Dashboard() {
         } else if (!isOwner) {
             setLoading(false);
             setError('Branch biriktirilmagan.');
+        } else if (isOwner && branchId) {
+            // localStorage'dan tiklangan branch bo'lsa, avtomatik yuklaymiz
+            fetchDashboardStats(branchId);
+        } else {
+            setLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (isOwner && branchId) fetchDashboardStats(branchId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [branchId]);
 
     const utilizationPercentage = useMemo(() => (
@@ -114,8 +143,14 @@ export default function Dashboard() {
                     <BrandBranchSelect
                         brandId={brandId}
                         branchId={branchId}
-                        onBrandChange={setBrandId}
-                        onBranchChange={(id) => setBranchId(id)}
+                        onBrandChange={(id) => {
+                            setBrandId(id);
+                            writeStoredValue(BRAND_STORAGE_KEY, id);
+                        }}
+                        onBranchChange={(id) => {
+                            setBranchId(id);
+                            writeStoredValue(BRANCH_STORAGE_KEY, id);
+                        }}
                     />
                 ) : null}
             />

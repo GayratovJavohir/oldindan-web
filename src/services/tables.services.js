@@ -87,9 +87,7 @@ export async function deletePartnerTable(id) {
     await $api.delete(`/tables/partner/tables/${id}/`);
 }
 
-/**
- * Create layout item (type=table) then partner table linked to it.
- */
+
 export async function createTableWithLayout({
     branchId,
     floorId,
@@ -137,7 +135,7 @@ export async function createTableWithLayout({
         try {
             await deletePartnerLayoutItem(layoutItem.id);
         } catch {
-            // ignore cleanup failure
+            // error
         }
         throw err;
     }

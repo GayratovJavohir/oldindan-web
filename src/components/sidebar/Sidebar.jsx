@@ -32,7 +32,6 @@ const navItems = {
   ],
   venue: [
     { labelKey: 'nav.floorLayout', icon: <IoMapOutline />, path: '/floor-layout', roles: ['owner', 'manager'] },
-    { labelKey: 'nav.tables', icon: <IoRestaurantOutline />, path: '/tables', roles: ['owner', 'manager'] },
     { labelKey: 'nav.branches', icon: <IoBusinessOutline />, path: '/branches', roles: ['owner'] },
   ],
   management: [

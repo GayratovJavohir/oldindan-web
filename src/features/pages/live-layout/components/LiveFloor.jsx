@@ -27,11 +27,34 @@ const CANVAS_W = 960;
 const CANVAS_H = 640;
 const POLL_MS = 20000;
 
+// Brand/branch tanlovini saqlash uchun localStorage kalitlari
+// (Dashboard sahifasi bilan bir xil kalit — ikkalasida ham bitta tanlov saqlanib qoladi)
+const BRAND_STORAGE_KEY = 'kfc_partner_brand_id';
+const BRANCH_STORAGE_KEY = 'kfc_partner_branch_id';
+
+function readStoredValue(key) {
+    if (typeof window === 'undefined') return '';
+    try {
+        return localStorage.getItem(key) || '';
+    } catch {
+        return '';
+    }
+}
+
+function writeStoredValue(key, value) {
+    if (typeof window === 'undefined') return;
+    try {
+        if (value) localStorage.setItem(key, value);
+        else localStorage.removeItem(key);
+    } catch {
+        // ignore storage errors (private mode, quota, etc.)
+    }
+}
+
 function toIso(date) {
     return date.toISOString();
 }
 
-// Tanlangan vaqt bo'yicha 3 soatlik oynani hisoblash
 function getWindowForTime(timeStr) {
     const start = new Date();
     if (timeStr) {
@@ -71,8 +94,10 @@ export default function LiveFloor() {
     const canBook = canCreateManualBooking();
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
 
-    const [brandId, setBrandId] = useState('');
-    const [branchId, setBranchId] = useState(assignedBranchId);
+    // Owner uchun oldingi tanlangan brand/branch localStorage'dan tiklanadi.
+    // Birinchi marta kirganda hech narsa saqlanmagan bo'lgani uchun bo'sh turadi.
+    const [brandId, setBrandId] = useState(() => readStoredValue(BRAND_STORAGE_KEY));
+    const [branchId, setBranchId] = useState(() => assignedBranchId || readStoredValue(BRANCH_STORAGE_KEY));
     const [floors, setFloors] = useState([]);
     const [floorId, setFloorId] = useState('');
     const [items, setItems] = useState([]);
@@ -89,18 +114,17 @@ export default function LiveFloor() {
     const [showBookModal, setShowBookModal] = useState(false);
     const [bookDefaults, setBookDefaults] = useState(null);
 
-    // Vaqt va Modal statelari
     const [selectedTime, setSelectedTime] = useState('');
     const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
 
-    // Hover tooltip statelari
     const [hoveredTableId, setHoveredTableId] = useState(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     const tableByLayoutItem = useMemo(() => {
         const map = {};
         tables.forEach((t) => {
+            // Backendda alohida layout_item ID kelmasa, table.id o'zi layout item ID sifatida ishlaydi.
             const key = t.layoutItemId ?? t.id;
             if (key != null) map[String(key)] = t;
         });
@@ -148,7 +172,6 @@ export default function LiveFloor() {
     const hoveredOcc = hoveredTableId ? occupancy[String(hoveredTableId)] : null;
     const hoveredBooking = hoveredTableId ? bookingByTableId[String(hoveredTableId)] : null;
 
-    // Stol bandliklarini yuklash funksiyasi
     const loadOccupancy = useCallback(async (nextBranchId, nextFloorId, tableList, timeVal = '') => {
         if (!nextBranchId) return;
         const { start, end } = getWindowForTime(timeVal);
@@ -218,7 +241,6 @@ export default function LiveFloor() {
 
             setBookingByTableId(bookingsMap);
 
-            // Modal ochiq bo'lsa, undagi bookingni ham yangilab turamiz
             setSelectedBooking((prev) => {
                 if (!prev || !selectedTableId) return prev;
                 return bookingsMap[String(selectedTableId)] || prev;
@@ -255,8 +277,6 @@ export default function LiveFloor() {
                 .sort((a, b) => a.sortOrder - b.sortOrder);
 
             setFloors(branchFloors);
-            console.log('[DEBUG] tableList from API:', tableList);
-            console.log('[DEBUG] layoutItemId values:', tableList.map(t => ({ id: t.id, name: t.name, layoutItemId: t.layoutItemId, raw_layout_item: t.raw?.layout_item, raw_layout_item_id: t.raw?.layout_item_id })));
             setTables(tableList);
 
             const nextFloorId = preferredFloorId
@@ -289,6 +309,9 @@ export default function LiveFloor() {
                 } else if (!isOwner) {
                     setError('Branch biriktirilmagan.');
                     setLoading(false);
+                } else if (isOwner && branchId) {
+                    // localStorage'dan tiklangan branch bo'lsa, avtomatik yuklaymiz
+                    await loadLayout(branchId);
                 } else {
                     setLoading(false);
                 }
@@ -300,6 +323,7 @@ export default function LiveFloor() {
             }
         })();
         return () => { active = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -317,8 +341,14 @@ export default function LiveFloor() {
         return () => clearInterval(timer);
     }, [branchId, floorId, tables, loadOccupancy, selectedTime]);
 
+    const handleBrandChange = (value) => {
+        setBrandId(value);
+        writeStoredValue(BRAND_STORAGE_KEY, value);
+    };
+
     const handleBranchChange = async (value) => {
         setBranchId(value);
+        writeStoredValue(BRANCH_STORAGE_KEY, value);
         setSelectedTableId(null);
         setSelectedBooking(null);
         if (value) await loadLayout(value);
@@ -379,7 +409,6 @@ export default function LiveFloor() {
 
         setSelectedBooking(booking);
 
-        // Stol band bo'lsa Booking Details modalini ochish, bo'sh bo'lsa Manual Book
         if (occ?.is_occupied) {
             setShowBookingDetailsModal(true);
         } else if (canBook) {
@@ -442,6 +471,28 @@ export default function LiveFloor() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+                    {isOwner && (
+                        <BrandBranchSelect
+                            brandId={brandId}
+                            branchId={branchId}
+                            onBrandChange={handleBrandChange}
+                            onBranchChange={handleBranchChange}
+                        />
+                    )}
+
+                    <select
+                        value={floorId}
+                        onChange={(e) => handleFloorChange(e.target.value)}
+                        disabled={!branchId}
+                        style={{ padding: '10px 12px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #333', color: '#fff', outline: 'none' }}
+                    >
+                        <option value="">{t('common.selectFloor')}</option>
+                        {floors.map((f) => (
+                            <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                    </select>
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#1a1a1a', padding: '8px 12px', borderRadius: '8px', border: '1px solid #333' }}>
                         <input
                             type="time"
@@ -461,27 +512,6 @@ export default function LiveFloor() {
                     >
                         {refreshing ? t('common.refreshing') : 'Refresh'}
                     </button>
-
-                    <select
-                        value={floorId}
-                        onChange={(e) => handleFloorChange(e.target.value)}
-                        disabled={!branchId}
-                        style={{ padding: '10px 12px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #333', color: '#fff', outline: 'none' }}
-                    >
-                        <option value="">{t('common.selectFloor')}</option>
-                        {floors.map((f) => (
-                            <option key={f.id} value={f.id}>{f.name}</option>
-                        ))}
-                    </select>
-
-                    {isOwner && (
-                        <BrandBranchSelect
-                            brandId={brandId}
-                            branchId={branchId}
-                            onBrandChange={setBrandId}
-                            onBranchChange={handleBranchChange}
-                        />
-                    )}
                 </div>
             </div>
 
@@ -490,6 +520,8 @@ export default function LiveFloor() {
                     {error && <div className={styles.errorBanner}>{error}</div>}
                     {loading ? (
                         <div className={styles.emptyState}>{t('layout.loadingLive')}</div>
+                    ) : !branchId ? (
+                        <div className={styles.emptyState}>{t('layout.pickBranchHint') || 'Iltimos, filialni tanlang'}</div>
                     ) : !floorId ? (
                         <div className={styles.emptyState}>{t('layout.pickFloorHint')}</div>
                     ) : (
@@ -512,7 +544,6 @@ export default function LiveFloor() {
                                 zoneColorById={{}}
                                 onSelect={handleSelectItem}
                                 onHover={(item) => {
-                                    console.log('[DEBUG] onHover fired:', item);
                                     if (item?.type === 'table') {
                                         const tid = item.tableId || item.meta?.table_id;
                                         setHoveredTableId(tid);
@@ -526,7 +557,6 @@ export default function LiveFloor() {
                                 }}
                             />
 
-                            {/* HOVER TOOLTIP */}
                             {hoveredTable && (
                                 <div
                                     className={styles.tooltipBox}
@@ -558,7 +588,6 @@ export default function LiveFloor() {
                 </div>
             </div>
 
-            {/* Manual Booking Modal */}
             {showBookModal && (
                 <ManualBookingModal
                     initialValues={bookDefaults}
@@ -570,7 +599,6 @@ export default function LiveFloor() {
                 />
             )}
 
-            {/* Booking Details Modal */}
             {showBookingDetailsModal && (
                 <BookingDetailsModal
                     booking={selectedBooking}

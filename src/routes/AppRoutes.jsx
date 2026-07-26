@@ -7,7 +7,6 @@ import NotFoundPage from '../pages/NotFoundPage';
 import StaffPage from '../pages/StaffPage';
 import BrandPage from '../pages/BrandPage';
 import BranchPage from '../pages/BranchPage';
-import TablesPage from '../pages/TablesPage';
 import BookingsPage from '../pages/BookingsPage';
 import LayoutPage from '../pages/LayoutPage';
 import NotificationPage from '../pages/NotificationPage';
@@ -40,7 +39,6 @@ export default function AppRoutes() {
                     <Route path="brands" element={<BrandPage />} />
                     <Route path="staff" element={<StaffPage />} />
                     <Route path="branches" element={<BranchPage />} />
-                    <Route path="tables" element={<TablesPage />} />
                     <Route path="notifications" element={<NotificationPage />} />
                     <Route path="profile" element={<ProfilePage />} />
                 </Route>
