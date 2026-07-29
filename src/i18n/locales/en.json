@@ -176,7 +176,22 @@
     "occupiedSuffix": "(occupied)",
     "tablesOccupied": "{{count}} tables occupied",
     "needNamePhone": "Enter first name, last name, and phone.",
-    "needFloorTable": "Select a floor and table."
+    "needFloorTable": "Select a floor and table.",
+    "bookingDetails": "Booking Details",
+    "location": "Location",
+    "partySize": "Party size",
+    "noSpecialRequest": "No special request",
+    "source": "Source",
+    "bookedViaApp": "Booked via App",
+    "addNote": "Add note / Status update",
+    "optionalNote": "Optional note...",
+    "floorDefault": "Floor 1",
+    "zoneDefault": "Indoor",
+    "guestSingular": "guest",
+    "guestPlural": "guests",
+    "childSingular": "child",
+    "childPlural": "children",
+    "window": "Booking window"
   },
   "layout": {
     "palette": "Palette",

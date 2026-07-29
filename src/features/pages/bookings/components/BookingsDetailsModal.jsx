@@ -1,6 +1,8 @@
 import styles from '../Bookings.module.css';
+import { useTranslation } from 'react-i18next';
 
 export default function BookingDetailsModal({ booking, onClose }) {
+    const { t } = useTranslation();
     if (!booking) return null;
 
     return (
@@ -8,7 +10,7 @@ export default function BookingDetailsModal({ booking, onClose }) {
             <div className={styles.viewModalBox} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.viewModalHeader}>
                     <div className={styles.viewModalTitleGroup}>
-                        <h2>Booking Details</h2>
+                        <h2>{t('bookings.bookingDetails')}</h2>
                         {booking.status && (
                             <span className={`${styles.viewModalStatusBadge} ${styles['status_' + booking.status.toLowerCase()] || ''}`}>
                                 • {booking.status}
@@ -21,13 +23,15 @@ export default function BookingDetailsModal({ booking, onClose }) {
                 <div className={styles.viewModalBody}>
                     <div className={styles.viewModalGridRow}>
                         <div className={styles.viewModalInfoGroup}>
-                            <span className={styles.viewModalLabel}>GUEST</span>
+                            <span className={styles.viewModalLabel}>
+                                {t('bookings.guest')}
+                            </span>
                             <div className={styles.viewModalPrimaryText}>{booking.guestName}</div>
                             <div className={styles.viewModalSecondaryText}>{booking.phone}</div>
                         </div>
 
                         <div className={styles.viewModalInfoGroup}>
-                            <span className={styles.viewModalLabel}>BOOKING WINDOW</span>
+                            <span className={styles.viewModalLabel}>{t('bookings.window')}</span>
                             <div className={styles.viewModalPrimaryText}>{booking.date}</div>
                             <div className={styles.viewModalSecondaryText}>
                                 {booking.time} {booking.endTime ? `→ ${booking.endTime}` : ''}
@@ -37,18 +41,34 @@ export default function BookingDetailsModal({ booking, onClose }) {
 
                     <div className={styles.viewModalGridRow}>
                         <div className={styles.viewModalInfoGroup}>
-                            <span className={styles.viewModalLabel}>LOCATION</span>
+                            <span className={styles.viewModalLabel}>
+                                {t('bookings.location')}
+                            </span>
                             <div className={styles.viewModalPrimaryText}>{booking.branch}</div>
                             <div className={styles.viewModalSecondaryText}>
-                                {booking.floor || 'Floor 1'} • {booking.zone || 'Indoor'} • {booking.table}
+                                {booking.floor || t('bookings.floorDefault')} •{' '}
+                                {booking.zone || t('bookings.zoneDefault')} •{' '}
+                                {booking.table}
                             </div>
                         </div>
 
                         <div className={styles.viewModalInfoGroup}>
-                            <span className={styles.viewModalLabel}>PARTY SIZE</span>
-                            <div className={styles.viewModalPrimaryText}>{booking.guest_count} guests</div>
+                            <span className={styles.viewModalLabel}>
+                                {t('bookings.partySize')}
+                            </span>
+                            <div className={styles.viewModalPrimaryText}>
+                                {booking.guest_count}{' '}
+                                {booking.guest_count === 1
+                                    ? t('bookings.guestSingular')
+                                    : t('bookings.guestPlural')}
+                            </div>
                             {booking.children && (
-                                <div className={styles.viewModalSecondaryText}>{booking.children} children</div>
+                                <div className={styles.viewModalSecondaryText}>
+                                    {booking.children}{' '}
+                                    {booking.children === 1
+                                        ? t('bookings.childSingular')
+                                        : t('bookings.childPlural')}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -56,30 +76,37 @@ export default function BookingDetailsModal({ booking, onClose }) {
                     <hr className={styles.viewModalDivider} />
 
                     <div className={styles.viewModalInfoGroup}>
-                        <span className={styles.viewModalLabel}>SPECIAL REQUEST</span>
+                        <span className={styles.viewModalLabel}>
+                            {t('bookings.specialRequest')}
+                        </span>
+
                         <div className={styles.viewModalRequestText}>
-                            {booking.special_request || 'No special request'}
+                            {booking.special_request || t('bookings.noSpecialRequest')}
                         </div>
                     </div>
 
                     <hr className={styles.viewModalDivider} />
 
                     <div className={styles.viewModalInfoGroup}>
-                        <span className={styles.viewModalLabel}>SOURCE</span>
-                        <div>
-                            <span className={styles.viewModalSourceBadge}>
-                                📱 {booking.source || 'Booked via App'}
-                            </span>
-                        </div>
+                        <span className={styles.viewModalLabel}>
+                            {t('bookings.source')}
+                        </span>
+
+                        <span className={styles.viewModalSourceBadge}>
+                            📱 {booking.source || t('bookings.bookedViaApp')}
+                        </span>
                     </div>
 
                     <hr className={styles.viewModalDivider} />
 
                     <div className={styles.viewModalInfoGroup}>
-                        <span className={styles.viewModalLabel}>ADD NOTE / STATUS UPDATE</span>
+                        <span className={styles.viewModalLabel}>
+                            {t('bookings.addNote')}
+                        </span>
+
                         <input
                             type="text"
-                            placeholder="Optional note..."
+                            placeholder={t('bookings.optionalNote')}
                             className={styles.viewModalNoteInput}
                         />
                     </div>
