@@ -196,7 +196,7 @@
   "layout": {
     "palette": "Palitra",
     "zones": "Zonalar",
-    "inspector": "Inspector",
+    "inspector": "Inspektor",
     "saveLayout": "Layoutni saqlash",
     "deleteSelected": "Tanlanganni o‘chirish",
     "addToFloor": "Qavatga qo‘shish",
@@ -204,45 +204,66 @@
     "addFloor": "+ Qavat",
     "rename": "Nomini o‘zgartirish",
     "deleteFloor": "Qavatni o‘chirish",
+
+    "liveFloorView": "Jonli zal ko‘rinishi",
+
     "available": "Bo‘sh",
     "pending": "Kutilmoqda",
     "confirmed": "Tasdiqlangan",
     "checkedIn": "Tashrif buyurdi",
+
     "free": "bo‘sh",
     "busy": "band",
+
     "tableDetails": "Stol tafsilotlari",
     "busyNow": "Hozir band",
     "bookThisTable": "Bu stolni bron qilish",
-    "selectTableHint": "Stolni tanlang — bandlik va bron ma’lumoti chiqadi.",
+
+    "selectTableHint": "Stolni tanlang — bandlik va bron ma’lumotlari ko‘rsatiladi.",
     "emptyFloor": "Qavat yarating yoki tanlang.",
     "noBusy": "Band stol yo‘q",
+
     "loadingLive": "Jonli ko‘rinish yuklanmoqda...",
     "loadingLayout": "Layout yuklanmoqda...",
-    "pickFloorHint": "Qavat tanlang. Layout sahifasida joylashtiring.",
+
+    "pickBranchHint": "Iltimos, filialni tanlang.",
+    "pickFloorHint": "Qavatni tanlang. Elementlarni Layout sahifasida joylashtiring.",
+
     "tableEmpty": "Hozir bu stol bo‘sh.",
+
     "zoneName": "Zona nomi",
     "addZone": "+ Zona",
     "noZones": "Hali zona yo‘q",
+
     "tableName": "Stol nomi",
+
     "unsaved": "Saqlanmagan o‘zgarishlar",
-    "selectElement": "Element tanlang yoki palitradan qo‘shing.",
+    "selectElement": "Elementni tanlang yoki palitradan qo‘shing.",
+
     "floorCreated": "Qavat yaratildi.",
     "floorUpdated": "Qavat yangilandi.",
     "floorDeleted": "Qavat o‘chirildi.",
+
     "zoneCreated": "Zona yaratildi.",
     "zoneDeleted": "Zona o‘chirildi.",
-    "itemAdded": "Element qo‘shildi — Saqlashni bosing.",
-    "noChanges": "O‘zgarish yo‘q.",
+
+    "itemAdded": "Element qo‘shildi — Saqlash tugmasini bosing.",
+    "noChanges": "O‘zgarishlar yo‘q.",
     "layoutSaved": "Layout saqlandi.",
     "itemDeleted": "Element o‘chirildi.",
+
     "needFloorName": "Qavat nomini kiriting.",
-    "needZoneFloor": "Zona nomi va qavat kerak.",
-    "needFloorFirst": "Avval qavat tanlang yoki yarating.",
-    "confirmDeleteFloor": "\"{{name}}\" qavat o‘chirilsinmi? Ichidagi zona/itemlar ham o‘chadi.",
-    "confirmDeleteZone": "\"{{name}}\" zona o‘chirilsinmi?",
-    "confirmDeleteItem": "Tanlangan element o‘chirilsinmi?",
+    "needZoneFloor": "Zona nomi va qavatni kiriting.",
+    "needFloorFirst": "Avval qavatni tanlang yoki yarating.",
+
+    "confirmDeleteFloor": "\"{{name}}\" qavatini o‘chirmoqchimisiz? Ichidagi barcha zonalar va elementlar ham o‘chiriladi.",
+    "confirmDeleteZone": "\"{{name}}\" zonasini o‘chirmoqchimisiz?",
+    "confirmDeleteItem": "Tanlangan elementni o‘chirmoqchimisiz?",
+
     "renameFloorPrompt": "Qavat nomi",
+
     "kids": "+{{count}} bola",
+
     "types": {
       "table": "Stol",
       "entrance": "Kirish",

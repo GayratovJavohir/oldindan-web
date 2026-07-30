@@ -253,7 +253,8 @@
       "wall": "Wall",
       "divider": "Divider",
       "decor": "Decor"
-    }
+    },
+    "liveFloorView": "Live floor view"
   },
   "branches": {
     "addBranch": "+ Add branch",

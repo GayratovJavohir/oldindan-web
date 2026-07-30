@@ -78,7 +78,7 @@
     "available": "Свободно",
     "pending": "Ожидание",
     "confirmed": "Подтверждено",
-    "checkedIn": "Check-in",
+    "checkedIn": "Гости прибыли",
     "completed": "Завершено",
     "canceled": "Отменено",
     "noShow": "Не пришёл(а)",
@@ -204,45 +204,66 @@
     "addFloor": "+ Этаж",
     "rename": "Переименовать",
     "deleteFloor": "Удалить этаж",
+
+    "liveFloorView": "Онлайн-зал",
+
     "available": "Свободно",
     "pending": "Ожидание",
     "confirmed": "Подтверждено",
-    "checkedIn": "Check-in",
+    "checkedIn": "Гости прибыли",
+
     "free": "свободно",
     "busy": "занято",
+
     "tableDetails": "Детали стола",
     "busyNow": "Сейчас заняты",
     "bookThisTable": "Забронировать этот стол",
+
     "selectTableHint": "Выберите стол — появятся занятость и данные брони.",
     "emptyFloor": "Создайте или выберите этаж.",
     "noBusy": "Нет занятых столов",
+
     "loadingLive": "Загрузка онлайн-зала...",
     "loadingLayout": "Загрузка layout...",
-    "pickFloorHint": "Выберите этаж. Расставьте на странице Layout.",
+
+    "pickBranchHint": "Пожалуйста, выберите филиал.",
+    "pickFloorHint": "Выберите этаж. Расставьте элементы на странице Layout.",
+
     "tableEmpty": "Сейчас этот стол свободен.",
+
     "zoneName": "Название зоны",
     "addZone": "+ Зона",
     "noZones": "Зон пока нет",
+
     "tableName": "Название стола",
+
     "unsaved": "Несохранённые изменения",
-    "selectElement": "Выберите элемент или добавьте из палитры.",
+    "selectElement": "Выберите элемент или добавьте его из палитры.",
+
     "floorCreated": "Этаж создан.",
     "floorUpdated": "Этаж обновлён.",
     "floorDeleted": "Этаж удалён.",
+
     "zoneCreated": "Зона создана.",
     "zoneDeleted": "Зона удалена.",
-    "itemAdded": "Элемент добавлен — нажмите Сохранить.",
+
+    "itemAdded": "Элемент добавлен — нажмите «Сохранить».",
     "noChanges": "Изменений нет.",
     "layoutSaved": "Layout сохранён.",
     "itemDeleted": "Элемент удалён.",
+
     "needFloorName": "Введите название этажа.",
-    "needZoneFloor": "Нужны название зоны и этаж.",
+    "needZoneFloor": "Укажите название зоны и этаж.",
     "needFloorFirst": "Сначала выберите или создайте этаж.",
-    "confirmDeleteFloor": "Удалить этаж «{{name}}»? Зоны и элементы внутри тоже будут удалены.",
+
+    "confirmDeleteFloor": "Удалить этаж «{{name}}»? Все зоны и элементы внутри также будут удалены.",
     "confirmDeleteZone": "Удалить зону «{{name}}»?",
     "confirmDeleteItem": "Удалить выбранный элемент?",
+
     "renameFloorPrompt": "Название этажа",
+
     "kids": "+{{count}} детей",
+
     "types": {
       "table": "Стол",
       "entrance": "Вход",

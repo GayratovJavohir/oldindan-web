@@ -27,8 +27,6 @@ const CANVAS_W = 960;
 const CANVAS_H = 640;
 const POLL_MS = 20000;
 
-// Brand/branch tanlovini saqlash uchun localStorage kalitlari
-// (Dashboard sahifasi bilan bir xil kalit — ikkalasida ham bitta tanlov saqlanib qoladi)
 const BRAND_STORAGE_KEY = 'kfc_partner_brand_id';
 const BRANCH_STORAGE_KEY = 'kfc_partner_branch_id';
 
@@ -80,12 +78,7 @@ function statusKey(status) {
     return 'available';
 }
 
-const LEGEND_ITEMS = [
-    { key: 'available', label: 'Bo\u2018sh', dotClass: 'availableDot' },
-    { key: 'pending', label: 'Kutilmoqda', dotClass: 'pendingDot' },
-    { key: 'confirmed', label: 'Tasdiqlangan', dotClass: 'confirmedDot' },
-    { key: 'checked_in', label: 'Kelgan', dotClass: 'checkedInDot' },
-];
+
 
 export default function LiveFloor() {
     const { t } = useTranslation();
@@ -94,8 +87,6 @@ export default function LiveFloor() {
     const canBook = canCreateManualBooking();
     const assignedBranchId = user?.branchId ? String(user.branchId) : '';
 
-    // Owner uchun oldingi tanlangan brand/branch localStorage'dan tiklanadi.
-    // Birinchi marta kirganda hech narsa saqlanmagan bo'lgani uchun bo'sh turadi.
     const [brandId, setBrandId] = useState(() => readStoredValue(BRAND_STORAGE_KEY));
     const [branchId, setBranchId] = useState(() => assignedBranchId || readStoredValue(BRANCH_STORAGE_KEY));
     const [floors, setFloors] = useState([]);
@@ -121,10 +112,17 @@ export default function LiveFloor() {
     const [hoveredTableId, setHoveredTableId] = useState(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
+
+    const LEGEND_ITEMS = [
+        { key: 'available', label: t('status.available'), dotClass: 'availableDot' },
+        { key: 'pending', label: t('status.pending'), dotClass: 'pendingDot' },
+        { key: 'confirmed', label: t('status.confirmed'), dotClass: 'confirmedDot' },
+        { key: 'checked_in', label: t('status.checkedIn'), dotClass: 'checkedInDot' },
+    ];
+
     const tableByLayoutItem = useMemo(() => {
         const map = {};
         tables.forEach((t) => {
-            // Backendda alohida layout_item ID kelmasa, table.id o'zi layout item ID sifatida ishlaydi.
             const key = t.layoutItemId ?? t.id;
             if (key != null) map[String(key)] = t;
         });
@@ -307,10 +305,9 @@ export default function LiveFloor() {
                     setBranchId(assignedBranchId);
                     await loadLayout(assignedBranchId);
                 } else if (!isOwner) {
-                    setError('Branch biriktirilmagan.');
+                    setError(t('common.noBranchAssigned'));
                     setLoading(false);
                 } else if (isOwner && branchId) {
-                    // localStorage'dan tiklangan branch bo'lsa, avtomatik yuklaymiz
                     await loadLayout(branchId);
                 } else {
                     setLoading(false);
@@ -323,7 +320,6 @@ export default function LiveFloor() {
             }
         })();
         return () => { active = false; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -333,7 +329,7 @@ export default function LiveFloor() {
                 setRefreshing(true);
                 await loadOccupancy(branchId, floorId, tables, selectedTime);
             } catch {
-                // keep last good state
+                // ignore
             } finally {
                 setRefreshing(false);
             }
@@ -459,7 +455,7 @@ export default function LiveFloor() {
     return (
         <div className={styles.floorContainer}>
             <div className={styles.toolbar} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#fff' }}>Live Floor View</h2>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#fff' }}>{t('layout.liveFloorView')}</h2>
 
                 <div className={styles.legend}>
                     {LEGEND_ITEMS.map((li) => (
@@ -510,7 +506,7 @@ export default function LiveFloor() {
                         disabled={!branchId}
                         style={{ padding: '10px 16px', borderRadius: '8px' }}
                     >
-                        {refreshing ? t('common.refreshing') : 'Refresh'}
+                        {refreshing ? t('common.refreshing') : t('common.refresh')}
                     </button>
                 </div>
             </div>
