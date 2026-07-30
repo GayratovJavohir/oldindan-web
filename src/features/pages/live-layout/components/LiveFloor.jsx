@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../LiveLayout.module.css';
 import FloorCanvas from '../../layout/components/FloorCanvas';
@@ -23,8 +23,8 @@ import {
 import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
 import { canCreateManualBooking, getStoredUser } from '../../../../utils/authUser';
 
-const CANVAS_W = 960;
-const CANVAS_H = 640;
+const CANVAS_W = 900;
+const CANVAS_H = 560;
 const POLL_MS = 20000;
 
 const BRAND_STORAGE_KEY = 'kfc_partner_brand_id';
@@ -78,7 +78,9 @@ function statusKey(status) {
     return 'available';
 }
 
-
+function nameFloorKey(floorId, name) {
+    return `${floorId ?? ''}::${String(name || '').trim().toLowerCase()}`;
+}
 
 export default function LiveFloor() {
     const { t } = useTranslation();
@@ -109,9 +111,14 @@ export default function LiveFloor() {
     const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
 
-    const [hoveredTableId, setHoveredTableId] = useState(null);
+    // Track the whole hovered layout item (not just a resolved table id) so the
+    // tooltip still shows for tables whose backend link to a `tables` row is
+    // momentarily missing (e.g. just-created tables before a full refresh).
+    const [hoveredItem, setHoveredItem] = useState(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
+    const canvasWrapRef = useRef(null);
+    const [canvasScale, setCanvasScale] = useState(1);
 
     const LEGEND_ITEMS = [
         { key: 'available', label: t('status.available'), dotClass: 'availableDot' },
@@ -120,13 +127,34 @@ export default function LiveFloor() {
         { key: 'checked_in', label: t('status.checkedIn'), dotClass: 'checkedInDot' },
     ];
 
-    const tableByLayoutItem = useMemo(() => {
+    const currentFloor = useMemo(
+        () => floors.find((f) => String(f.id) === String(floorId)) || null,
+        [floors, floorId]
+    );
+    const zones = currentFloor?.zones || [];
+    const zoneById = useMemo(() => {
         const map = {};
-        tables.forEach((t) => {
-            const key = t.layoutItemId ?? t.id;
-            if (key != null) map[String(key)] = t;
-        });
+        zones.forEach((z) => { map[String(z.id)] = z; });
         return map;
+    }, [zones]);
+    const zoneColorById = useMemo(() => {
+        const map = {};
+        zones.forEach((z) => { map[z.id] = z.color || '#8c1919'; });
+        return map;
+    }, [zones]);
+
+    // Resolve layout-item -> table two ways: by the reliable layout_item link,
+    // and (as a fallback) by matching name within the same floor. Some tables
+    // created without a fully-propagated back-link would otherwise silently
+    // lose their tooltip/click behaviour once added to the floor.
+    const tableLookup = useMemo(() => {
+        const byLayoutItem = {};
+        const byNameFloor = {};
+        tables.forEach((tbl) => {
+            if (tbl.layoutItemId != null) byLayoutItem[String(tbl.layoutItemId)] = tbl;
+            if (tbl.name) byNameFloor[nameFloorKey(tbl.floorId, tbl.name)] = tbl;
+        });
+        return { byLayoutItem, byNameFloor };
     }, [tables]);
 
     const tableById = useMemo(() => {
@@ -136,7 +164,11 @@ export default function LiveFloor() {
     }, [tables]);
 
     const enrichedItems = useMemo(() => items.map((item) => {
-        const table = tableByLayoutItem[String(item.id)];
+        if (item.type !== 'table') return item;
+        let table = tableLookup.byLayoutItem[String(item.id)];
+        if (!table && item.name) {
+            table = tableLookup.byNameFloor[nameFloorKey(item.floorId, item.name)];
+        }
         if (!table) return item;
         return {
             ...item,
@@ -145,7 +177,7 @@ export default function LiveFloor() {
             meta: { ...item.meta, seats: table.seats, table_id: table.id },
             tableId: table.id,
         };
-    }), [items, tableByLayoutItem]);
+    }), [items, tableLookup]);
 
     const statusByLayoutItemId = useMemo(() => {
         const map = {};
@@ -155,7 +187,7 @@ export default function LiveFloor() {
                 return;
             }
             const tableId = item.tableId || item.meta?.table_id;
-            const occ = occupancy[String(tableId)];
+            const occ = tableId ? occupancy[String(tableId)] : null;
             if (!occ?.is_occupied) {
                 map[item.id] = 'available';
                 return;
@@ -166,9 +198,28 @@ export default function LiveFloor() {
     }, [enrichedItems, occupancy]);
 
     const selectedTable = selectedTableId ? tableById[String(selectedTableId)] : null;
+
+    const hoveredTableId = hoveredItem?.tableId || hoveredItem?.meta?.table_id || null;
     const hoveredTable = hoveredTableId ? tableById[String(hoveredTableId)] : null;
     const hoveredOcc = hoveredTableId ? occupancy[String(hoveredTableId)] : null;
     const hoveredBooking = hoveredTableId ? bookingByTableId[String(hoveredTableId)] : null;
+    const hoveredZoneName = hoveredItem?.zoneId
+        ? (zoneById[String(hoveredItem.zoneId)]?.name || hoveredTable?.zoneName)
+        : hoveredTable?.zoneName;
+
+    useEffect(() => {
+        const el = canvasWrapRef.current;
+        if (!el || typeof ResizeObserver === 'undefined') return undefined;
+        const recompute = () => {
+            const available = el.clientWidth;
+            if (!available) return;
+            setCanvasScale(Math.min(1, available / CANVAS_W));
+        };
+        recompute();
+        const observer = new ResizeObserver(recompute);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [floorId, loading, branchId]);
 
     const loadOccupancy = useCallback(async (nextBranchId, nextFloorId, tableList, timeVal = '') => {
         if (!nextBranchId) return;
@@ -360,6 +411,7 @@ export default function LiveFloor() {
         setFloorId(value);
         setSelectedTableId(null);
         setSelectedBooking(null);
+        setHoveredItem(null);
         try {
             const layoutItems = await getPartnerLayoutItems({ branch_id: branchId, floor_id: value });
             const tableList = await loadTablesForBranch(branchId, value);
@@ -386,8 +438,14 @@ export default function LiveFloor() {
             setSelectedBooking(null);
             return;
         }
-        const tableId = item.tableId || item.meta?.table_id || tableByLayoutItem[String(item.id)]?.id;
-        if (!tableId) return;
+        const tableId = item.tableId
+            || item.meta?.table_id
+            || tableLookup.byLayoutItem[String(item.id)]?.id
+            || tableLookup.byNameFloor[nameFloorKey(item.floorId, item.name)]?.id;
+        if (!tableId) {
+            setError(t('layout.tableLinkMissing', 'Bu stol uchun ma\u2018lumot topilmadi, sahifani yangilab ko\u2018ring.'));
+            return;
+        }
 
         setSelectedTableId(tableId);
         let booking = bookingByTableId[String(tableId)] || null;
@@ -454,8 +512,8 @@ export default function LiveFloor() {
 
     return (
         <div className={styles.floorContainer}>
-            <div className={styles.toolbar} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#fff' }}>{t('layout.liveFloorView')}</h2>
+            <div className={styles.toolbar}>
+                <h2 className={styles.toolbarTitle}>{t('layout.liveFloorView')}</h2>
 
                 <div className={styles.legend}>
                     {LEGEND_ITEMS.map((li) => (
@@ -466,8 +524,7 @@ export default function LiveFloor() {
                     ))}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-
+                <div className={styles.toolbarGroup}>
                     {isOwner && (
                         <BrandBranchSelect
                             brandId={brandId}
@@ -478,10 +535,10 @@ export default function LiveFloor() {
                     )}
 
                     <select
+                        className={styles.input}
                         value={floorId}
                         onChange={(e) => handleFloorChange(e.target.value)}
                         disabled={!branchId}
-                        style={{ padding: '10px 12px', borderRadius: '8px', background: '#1a1a1a', border: '1px solid #333', color: '#fff', outline: 'none' }}
                     >
                         <option value="">{t('common.selectFloor')}</option>
                         {floors.map((f) => (
@@ -489,14 +546,14 @@ export default function LiveFloor() {
                         ))}
                     </select>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#1a1a1a', padding: '8px 12px', borderRadius: '8px', border: '1px solid #333' }}>
+                    <div className={styles.timePicker}>
                         <input
                             type="time"
+                            className={styles.timeInput}
                             value={selectedTime}
                             onChange={handleTimeChange}
-                            style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '15px', outline: 'none', cursor: 'pointer' }}
                         />
-                        <span style={{ color: '#666' }}>🕒</span>
+                        <span className={styles.timeIcon}>&#128337;</span>
                     </div>
 
                     <button
@@ -504,7 +561,6 @@ export default function LiveFloor() {
                         className={styles.secondaryBtn}
                         onClick={() => loadOccupancy(branchId, floorId, tables, selectedTime)}
                         disabled={!branchId}
-                        style={{ padding: '10px 16px', borderRadius: '8px' }}
                     >
                         {refreshing ? t('common.refreshing') : t('common.refresh')}
                     </button>
@@ -523,56 +579,68 @@ export default function LiveFloor() {
                     ) : (
                         <div
                             className={styles.canvas}
+                            ref={canvasWrapRef}
                             onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-                            onMouseLeave={() => setHoveredTableId(null)}
+                            onMouseLeave={() => setHoveredItem(null)}
                         >
-                            <FloorCanvas
-                                width={CANVAS_W}
-                                height={CANVAS_H}
-                                items={enrichedItems}
-                                selectedId={
-                                    selectedTable
-                                        ? enrichedItems.find((i) => String(i.tableId || i.meta?.table_id) === String(selectedTable.id))?.id
-                                        : null
-                                }
-                                editable={false}
-                                statusByLayoutItemId={statusByLayoutItemId}
-                                zoneColorById={{}}
-                                onSelect={handleSelectItem}
-                                onHover={(item) => {
-                                    if (item?.type === 'table') {
-                                        const tid = item.tableId || item.meta?.table_id;
-                                        setHoveredTableId(tid);
-                                    } else {
-                                        setHoveredTableId(null);
-                                    }
-                                }}
-                                onBackgroundClick={() => {
-                                    setSelectedTableId(null);
-                                    setSelectedBooking(null);
-                                }}
-                            />
+                            <div
+                                className={styles.canvasScaler}
+                                style={{ width: CANVAS_W * canvasScale, height: CANVAS_H * canvasScale }}
+                            >
+                                <div
+                                    style={{
+                                        width: CANVAS_W,
+                                        height: CANVAS_H,
+                                        transform: `scale(${canvasScale})`,
+                                        transformOrigin: 'top left',
+                                    }}
+                                >
+                                    <FloorCanvas
+                                        width={CANVAS_W}
+                                        height={CANVAS_H}
+                                        items={enrichedItems}
+                                        selectedId={
+                                            selectedTable
+                                                ? enrichedItems.find((i) => String(i.tableId || i.meta?.table_id) === String(selectedTable.id))?.id
+                                                : null
+                                        }
+                                        editable={false}
+                                        statusByLayoutItemId={statusByLayoutItemId}
+                                        zoneColorById={zoneColorById}
+                                        onSelect={handleSelectItem}
+                                        onHover={(item) => setHoveredItem(item?.type === 'table' ? item : null)}
+                                        onBackgroundClick={() => {
+                                            setSelectedTableId(null);
+                                            setSelectedBooking(null);
+                                        }}
+                                    />
+                                </div>
+                            </div>
 
-                            {hoveredTable && (
+                            {hoveredItem && (
                                 <div
                                     className={styles.tooltipBox}
                                     style={{ position: 'fixed', left: mousePos.x + 15, top: mousePos.y + 15, zIndex: 9999 }}
                                 >
                                     <div className={styles.tooltipHeader}>
-                                        <span className={styles.tooltipTitle}>{hoveredTable.name}</span>
+                                        <span className={styles.tooltipTitle}>
+                                            {hoveredTable?.name || hoveredItem.name || t('layout.types.table')}
+                                        </span>
                                         <span className={hoveredOcc?.is_occupied ? styles.tooltipBadgeBusy : styles.tooltipBadgeFree}>
                                             {hoveredOcc?.is_occupied ? t('layout.busy') : t('layout.available')}
                                         </span>
                                     </div>
                                     <div className={styles.tooltipBody}>
-                                        <div>{hoveredTable.seats} {t('common.seats')} • {hoveredTable.zoneName || '—'}</div>
+                                        <div>
+                                            {hoveredTable?.seats || hoveredItem.meta?.seats || '—'} {t('common.seats')} &bull; {hoveredZoneName || t('common.noZone')}
+                                        </div>
                                         {hoveredOcc?.is_occupied && hoveredBooking && (
                                             <div className={styles.tooltipBookingInfo}>
                                                 <div className={styles.tooltipRow}>
-                                                    <span>👤</span> {hoveredBooking.guestName || t('bookings.guest')}
+                                                    <span>&#128100;</span> {hoveredBooking.guestName || t('bookings.guest')}
                                                 </div>
                                                 <div className={styles.tooltipRow}>
-                                                    <span>⏰</span> {hoveredBooking.time} {hoveredBooking.endTime ? `- ${hoveredBooking.endTime}` : ''}
+                                                    <span>&#9200;</span> {hoveredBooking.time} {hoveredBooking.endTime ? `- ${hoveredBooking.endTime}` : ''}
                                                 </div>
                                             </div>
                                         )}

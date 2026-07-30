@@ -1,7 +1,7 @@
 .liveLayoutContainer {
     background-color: #121212;
     color: #ffffff;
-    padding: 24px 28px;
+    padding: 18px 20px;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     margin-left: var(--sidebar-width);
@@ -10,43 +10,83 @@
 .floorContainer {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+}
+
+.floorContainer,
+.floorContainer * {
+    box-sizing: border-box;
 }
 
 .toolbar {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
     background: #151515;
     border: 1px solid #222;
-    border-radius: 12px;
-    padding: 14px 16px;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.toolbarTitle {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
 }
 
 .toolbarGroup {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    align-items: end;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
 }
 
 .field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    font-size: 12px;
+    gap: 4px;
+    font-size: 11.5px;
     color: #999;
+    min-width: 0;
 }
 
+.input,
 .field select,
 .toolbar select {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
     color: #fff;
-    border-radius: 8px;
-    padding: 9px 10px;
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: 12.5px;
+    min-width: 0;
+}
+
+.timePicker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 7px;
+    padding: 5px 10px;
+}
+
+.timeInput {
+    background: transparent;
+    border: none;
+    color: #fff;
     font-size: 13px;
+    outline: none;
+    cursor: pointer;
+}
+
+.timeIcon {
+    color: #666;
 }
 
 .stats {
@@ -77,7 +117,7 @@
 .workspace {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 14px;
+    gap: 12px;
     align-items: start;
 }
 
@@ -89,31 +129,32 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     background-color: #151515;
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
     border: 1px solid #222;
 }
 
 .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 }
 
 .legendItem {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     color: #a0a0a0;
-    font-size: 13px;
+    font-size: 11.5px;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
 }
 
@@ -136,29 +177,40 @@
     box-shadow: 0 0 8px rgba(164, 99, 242, 0.5);
 }
 
+/* canvas: fit-to-width so the board never overflows the container, and the
+   hovered-item tooltip is positioned relative to it */
 .canvas {
     position: relative;
     width: 100%;
+    display: flex;
+    justify-content: center;
     overflow: auto;
     background-color: #101010;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid #222;
+    padding: 10px;
+}
+
+.canvasScaler {
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
 }
 
 .detailPanel {
     background: #151515;
     border: 1px solid #222;
-    border-radius: 12px;
-    padding: 14px;
+    border-radius: 10px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    min-height: 640px;
+    gap: 10px;
+    min-height: 560px;
 }
 
 .detailPanel h3 {
     margin: 4px 0 0;
-    font-size: 13px;
+    font-size: 11px;
     letter-spacing: 0.4px;
     text-transform: uppercase;
     color: #888;
@@ -167,15 +219,15 @@
 .detailCard {
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
-    border-radius: 12px;
-    padding: 14px;
+    border-radius: 10px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .detailTitle {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
 }
 
@@ -183,7 +235,7 @@
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    font-size: 13px;
+    font-size: 12.5px;
     color: #aaa;
 }
 
@@ -201,7 +253,7 @@
 .note {
     margin: 0;
     color: #bbb;
-    font-size: 13px;
+    font-size: 12.5px;
     line-height: 1.4;
 }
 
@@ -211,7 +263,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .busyList button {
@@ -219,8 +271,8 @@
     text-align: left;
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 8px;
+    padding: 8px 10px;
     color: #ddd;
     cursor: pointer;
     display: flex;
@@ -229,16 +281,16 @@
 }
 
 .busyList button span {
-    font-size: 12px;
+    font-size: 11.5px;
     color: #888;
 }
 
 .primaryBtn,
 .secondaryBtn {
     border: none;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
 }
@@ -260,7 +312,7 @@
     place-items: center;
     color: #888;
     border: 1px dashed #333;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #141414;
 }
 
@@ -269,14 +321,14 @@
     background: #2b1a1a;
     border: 1px solid #5a2a2a;
     border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
 }
 
 .muted {
     color: #777;
-    font-size: 13px;
+    font-size: 12.5px;
 }
 
 .status_available {
@@ -384,11 +436,6 @@
 
 
 /* ==================== HOVER TOOLTIP ==================== */
-.canvas {
-    position: relative;
-    /* Boshqa existing propertylaringiz saqlanib qoladi */
-}
-
 .tooltipBox {
     position: absolute;
     background-color: #1a1a1a;

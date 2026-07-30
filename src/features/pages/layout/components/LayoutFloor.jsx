@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from '../Floor.module.css';
@@ -30,13 +30,25 @@ import {
 import { getApiError } from '../../../../utils/apiHelpers';
 import { getStoredUser } from '../../../../utils/authUser';
 
-const CANVAS_W = 960;
-const CANVAS_H = 640;
+const CANVAS_W = 900;
+const CANVAS_H = 560;
 const ALL_ZONES = 'all';
 const NO_ZONE = 'none';
 
 function nextTempId() {
     return `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * Tables scale with seat count so a 2-top and a 6-top look different,
+ * regardless of whether the shape is round or rect.
+ */
+function tableSizeForSeats(seats, shape) {
+    const s = Math.max(1, Number(seats) || 2);
+    const base = Math.round(64 + Math.min(80, (s - 2) * 8));
+    const width = shape === 'rect' ? Math.round(base * 1.3) : base;
+    const height = base;
+    return { width, height };
 }
 
 /**
@@ -128,12 +140,28 @@ export default function LayoutFloor() {
     const [showZoneForm, setShowZoneForm] = useState(false);
     const [showFloorForm, setShowFloorForm] = useState(false);
     const [modal, setModal] = useState(null);
+    const canvasWrapRef = useRef(null);
+    const [canvasScale, setCanvasScale] = useState(1);
 
     const [floorForm, setFloorForm] = useState({ name: '', sort_order: 0 });
     const [zoneForm, setZoneForm] = useState({ name: '', color: ZONE_COLORS[0] });
     const [tableDraft, setTableDraft] = useState({ name: '', seats: 4, shape: 'round' });
 
     const closeModal = () => setModal(null);
+
+    useEffect(() => {
+        const el = canvasWrapRef.current;
+        if (!el || typeof ResizeObserver === 'undefined') return undefined;
+        const recompute = () => {
+            const available = el.clientWidth;
+            if (!available) return;
+            setCanvasScale(Math.min(1, available / CANVAS_W));
+        };
+        recompute();
+        const observer = new ResizeObserver(recompute);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [floorId, loading]);
 
     const currentFloor = useMemo(
         () => floors.find((f) => String(f.id) === String(floorId)) || null,
@@ -454,6 +482,7 @@ export default function LayoutFloor() {
         const isTable = paletteType === 'table';
         const tempId = nextTempId();
         const activeZoneId = zoneFilter !== ALL_ZONES && zoneFilter !== NO_ZONE ? Number(zoneFilter) : null;
+        const tableSize = isTable ? tableSizeForSeats(tableDraft.seats, tableDraft.shape) : null;
         const item = {
             tempId,
             id: null,
@@ -463,8 +492,8 @@ export default function LayoutFloor() {
             name: isTable ? (tableDraft.name || `T${items.filter((i) => i.type === 'table').length + 1}`) : defaults.label,
             x: 80 + (items.length % 6) * 40,
             y: 80 + Math.floor(items.length / 6) * 40,
-            width: isTable && tableDraft.shape === 'rect' ? 140 : defaults.defaultWidth,
-            height: defaults.defaultHeight,
+            width: isTable ? tableSize.width : defaults.defaultWidth,
+            height: isTable ? tableSize.height : defaults.defaultHeight,
             rotation: 0,
             shape: isTable ? tableDraft.shape : defaults.defaultShape,
             zIndex: isTable ? 10 : 1,
@@ -614,7 +643,6 @@ export default function LayoutFloor() {
                         />
                     )}
                     <label className={styles.field}>
-                        <span>{t('common.floor')}</span>
                         <select value={floorId} onChange={(e) => handleFloorChange(e.target.value)} disabled={!branchId}>
                             <option value="">{t('common.selectFloor')}</option>
                             {floors.map((f) => (
@@ -821,19 +849,33 @@ export default function LayoutFloor() {
                     ) : !floorId ? (
                         <div className={styles.emptyState}>{t('layout.emptyFloor')}</div>
                     ) : (
-                        <div className={styles.canvas}>
-                            <FloorCanvas
-                                width={CANVAS_W}
-                                height={CANVAS_H}
-                                items={enrichedItems}
-                                selectedId={selectedId}
-                                editable
-                                zoneColorById={zoneColorById}
-                                focusZoneId={zoneFilter}
-                                onSelect={(item) => setSelectedId(item.id || item.tempId)}
-                                onBackgroundClick={() => setSelectedId(null)}
-                                onItemChange={handleItemChange}
-                            />
+                        <div className={styles.canvas} ref={canvasWrapRef}>
+                            <div
+                                className={styles.canvasScaler}
+                                style={{ width: CANVAS_W * canvasScale, height: CANVAS_H * canvasScale }}
+                            >
+                                <div
+                                    style={{
+                                        width: CANVAS_W,
+                                        height: CANVAS_H,
+                                        transform: `scale(${canvasScale})`,
+                                        transformOrigin: 'top left',
+                                    }}
+                                >
+                                    <FloorCanvas
+                                        width={CANVAS_W}
+                                        height={CANVAS_H}
+                                        items={enrichedItems}
+                                        selectedId={selectedId}
+                                        editable
+                                        zoneColorById={zoneColorById}
+                                        focusZoneId={zoneFilter}
+                                        onSelect={(item) => setSelectedId(item.id || item.tempId)}
+                                        onBackgroundClick={() => setSelectedId(null)}
+                                        onItemChange={handleItemChange}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -864,9 +906,15 @@ export default function LayoutFloor() {
                                         type="number"
                                         min="1"
                                         value={selectedItem.meta?.seats || 2}
-                                        onChange={(e) => updateSelectedLocal({
-                                            meta: { ...selectedItem.meta, seats: Number(e.target.value) || 2 },
-                                        })}
+                                        onChange={(e) => {
+                                            const seats = Number(e.target.value) || 2;
+                                            const size = tableSizeForSeats(seats, selectedItem.shape);
+                                            updateSelectedLocal({
+                                                meta: { ...selectedItem.meta, seats },
+                                                width: size.width,
+                                                height: size.height,
+                                            });
+                                        }}
                                     />
                                 </label>
                             )}
@@ -890,7 +938,15 @@ export default function LayoutFloor() {
                                 <select
                                     className={styles.input}
                                     value={selectedItem.shape || 'rect'}
-                                    onChange={(e) => updateSelectedLocal({ shape: e.target.value })}
+                                    onChange={(e) => {
+                                        const shape = e.target.value;
+                                        if (selectedItem.type === 'table') {
+                                            const size = tableSizeForSeats(selectedItem.meta?.seats, shape);
+                                            updateSelectedLocal({ shape, width: size.width, height: size.height });
+                                        } else {
+                                            updateSelectedLocal({ shape });
+                                        }
+                                    }}
                                 >
                                     <option value="round">round</option>
                                     <option value="rect">rect</option>
