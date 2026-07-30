@@ -32,9 +32,75 @@ import { getStoredUser } from '../../../../utils/authUser';
 
 const CANVAS_W = 960;
 const CANVAS_H = 640;
+const ALL_ZONES = 'all';
+const NO_ZONE = 'none';
 
 function nextTempId() {
     return `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * Small in-app modal that replaces window.prompt / window.confirm.
+ * kind: 'prompt' -> text input + submit
+ * kind: 'confirm' -> message + confirm/cancel
+ */
+function AppModal({ modal, onClose }) {
+    const { t } = useTranslation();
+    const [value, setValue] = useState(modal?.initialValue || '');
+
+    useEffect(() => {
+        setValue(modal?.initialValue || '');
+    }, [modal]);
+
+    if (!modal) return null;
+
+    const submitPrompt = (e) => {
+        e.preventDefault();
+        modal.onSubmit?.(value);
+    };
+
+    return (
+        <div className={styles.modalOverlay} onMouseDown={onClose}>
+            <div className={styles.modalCard} onMouseDown={(e) => e.stopPropagation()}>
+                <h4 className={styles.modalTitle}>{modal.title}</h4>
+                {modal.message && <p className={styles.modalMessage}>{modal.message}</p>}
+
+                {modal.kind === 'prompt' && (
+                    <form onSubmit={submitPrompt} className={styles.stack}>
+                        <input
+                            autoFocus
+                            className={styles.input}
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                        />
+                        <div className={styles.modalActions}>
+                            <button type="button" className={styles.secondaryBtn} onClick={onClose}>
+                                {t('common.cancel', 'Bekor qilish')}
+                            </button>
+                            <button type="submit" className={styles.primaryBtn}>
+                                {t('common.save', 'Saqlash')}
+                            </button>
+                        </div>
+                    </form>
+                )}
+
+                {modal.kind === 'confirm' && (
+                    <div className={styles.modalActions}>
+                        <button type="button" className={styles.secondaryBtn} onClick={onClose}>
+                            {t('common.cancel', 'Bekor qilish')}
+                        </button>
+                        <button
+                            type="button"
+                            className={styles.dangerBtn}
+                            onClick={() => modal.onConfirm?.()}
+                        >
+                            {modal.confirmLabel || t('common.delete', 'O\u2018chirish')}
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }
 
 export default function LayoutFloor() {
@@ -58,10 +124,16 @@ export default function LayoutFloor() {
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [paletteType, setPaletteType] = useState('table');
+    const [zoneFilter, setZoneFilter] = useState(ALL_ZONES);
+    const [showZoneForm, setShowZoneForm] = useState(false);
+    const [showFloorForm, setShowFloorForm] = useState(false);
+    const [modal, setModal] = useState(null);
 
     const [floorForm, setFloorForm] = useState({ name: '', sort_order: 0 });
     const [zoneForm, setZoneForm] = useState({ name: '', color: ZONE_COLORS[0] });
     const [tableDraft, setTableDraft] = useState({ name: '', seats: 4, shape: 'round' });
+
+    const closeModal = () => setModal(null);
 
     const currentFloor = useMemo(
         () => floors.find((f) => String(f.id) === String(floorId)) || null,
@@ -81,8 +153,8 @@ export default function LayoutFloor() {
 
     const tableByLayoutItem = useMemo(() => {
         const map = {};
-        tables.forEach((t) => {
-            if (t.layoutItemId) map[String(t.layoutItemId)] = t;
+        tables.forEach((t2) => {
+            if (t2.layoutItemId) map[String(t2.layoutItemId)] = t2;
         });
         return map;
     }, [tables]);
@@ -101,6 +173,23 @@ export default function LayoutFloor() {
             },
         };
     }), [items, tableByLayoutItem]);
+
+    const visibleItems = useMemo(() => {
+        if (zoneFilter === ALL_ZONES) return enrichedItems;
+        if (zoneFilter === NO_ZONE) return enrichedItems.filter((i) => !i.zoneId);
+        return enrichedItems.filter((i) => String(i.zoneId) === String(zoneFilter));
+    }, [enrichedItems, zoneFilter]);
+
+    // How many tables sit in each zone - shown as a small counter on the zone chip.
+    const tableCountByZone = useMemo(() => {
+        const map = {};
+        enrichedItems.forEach((item) => {
+            if (item.type !== 'table') return;
+            const key = item.zoneId ? String(item.zoneId) : NO_ZONE;
+            map[key] = (map[key] || 0) + 1;
+        });
+        return map;
+    }, [enrichedItems]);
 
     const loadBranchData = useCallback(async (nextBranchId, preferredFloorId = null) => {
         if (!nextBranchId) {
@@ -139,6 +228,7 @@ export default function LayoutFloor() {
                     : []
             );
             setSelectedId(null);
+            setZoneFilter(ALL_ZONES);
         } catch (err) {
             setError(getApiError(err));
         } finally {
@@ -152,7 +242,6 @@ export default function LayoutFloor() {
             try {
                 if (isOwner) {
                     if (queryBranchId) {
-                        // Resolve brand from branch for BrandBranchSelect
                         try {
                             const list = await getPartnerBranches();
                             const match = list.find((b) => String(b.id) === String(queryBranchId));
@@ -202,7 +291,7 @@ export default function LayoutFloor() {
         ]);
         setItems(layoutItems);
         setTables((prev) => {
-            const others = prev.filter((t) => String(t.floorId) !== String(nextFloorId));
+            const others = prev.filter((t2) => String(t2.floorId) !== String(nextFloorId));
             return [...others, ...tableList];
         });
     };
@@ -226,6 +315,7 @@ export default function LayoutFloor() {
     const handleFloorChange = async (value) => {
         setFloorId(value);
         setSelectedId(null);
+        setZoneFilter(ALL_ZONES);
         setMessage('');
         try {
             await reloadFloorItems(value);
@@ -249,6 +339,7 @@ export default function LayoutFloor() {
                 is_active: true,
             });
             setFloorForm({ name: '', sort_order: 0 });
+            setShowFloorForm(false);
             setMessage(t('layout.floorCreated'));
             await loadBranchData(branchId, floor.id);
         } catch (err) {
@@ -258,35 +349,51 @@ export default function LayoutFloor() {
         }
     };
 
-    const handleRenameFloor = async () => {
+    const handleRenameFloor = () => {
         if (!currentFloor) return;
-        const name = window.prompt(t('layout.renameFloorPrompt'), currentFloor.name);
-        if (!name?.trim()) return;
-        setSaving(true);
-        try {
-            await patchPartnerFloor(currentFloor.id, { name: name.trim() });
-            await loadBranchData(branchId, currentFloor.id);
-            setMessage(t('layout.floorUpdated'));
-        } catch (err) {
-            setError(getApiError(err));
-        } finally {
-            setSaving(false);
-        }
+        setModal({
+            kind: 'prompt',
+            title: t('layout.renameFloorPrompt'),
+            initialValue: currentFloor.name,
+            onSubmit: async (name) => {
+                if (!name?.trim()) return;
+                closeModal();
+                setSaving(true);
+                setError('');
+                try {
+                    await patchPartnerFloor(currentFloor.id, { name: name.trim() });
+                    await loadBranchData(branchId, currentFloor.id);
+                    setMessage(t('layout.floorUpdated'));
+                } catch (err) {
+                    setError(getApiError(err));
+                } finally {
+                    setSaving(false);
+                }
+            },
+        });
     };
 
-    const handleDeleteFloor = async () => {
+    const handleDeleteFloor = () => {
         if (!currentFloor) return;
-        if (!window.confirm(t('layout.confirmDeleteFloor', { name: currentFloor.name }))) return;
-        setSaving(true);
-        try {
-            await deletePartnerFloor(currentFloor.id);
-            setMessage(t('layout.floorDeleted'));
-            await loadBranchData(branchId);
-        } catch (err) {
-            setError(getApiError(err));
-        } finally {
-            setSaving(false);
-        }
+        setModal({
+            kind: 'confirm',
+            title: t('layout.confirmDeleteFloor', { name: currentFloor.name }),
+            confirmLabel: t('layout.deleteFloor'),
+            onConfirm: async () => {
+                closeModal();
+                setSaving(true);
+                setError('');
+                try {
+                    await deletePartnerFloor(currentFloor.id);
+                    setMessage(t('layout.floorDeleted'));
+                    await loadBranchData(branchId);
+                } catch (err) {
+                    setError(getApiError(err));
+                } finally {
+                    setSaving(false);
+                }
+            },
+        });
     };
 
     const handleCreateZone = async () => {
@@ -297,7 +404,7 @@ export default function LayoutFloor() {
         setSaving(true);
         setError('');
         try {
-            await createPartnerZone({
+            const zone = await createPartnerZone({
                 floor: Number(floorId),
                 name: zoneForm.name.trim(),
                 color: zoneForm.color,
@@ -305,7 +412,9 @@ export default function LayoutFloor() {
                 is_active: true,
             });
             setZoneForm({ name: '', color: ZONE_COLORS[(zones.length + 1) % ZONE_COLORS.length] });
+            setShowZoneForm(false);
             await loadBranchData(branchId, floorId);
+            setZoneFilter(String(zone.id));
             setMessage(t('layout.zoneCreated'));
         } catch (err) {
             setError(getApiError(err));
@@ -314,18 +423,26 @@ export default function LayoutFloor() {
         }
     };
 
-    const handleDeleteZone = async (zone) => {
-        if (!window.confirm(t('layout.confirmDeleteZone', { name: zone.name }))) return;
-        setSaving(true);
-        try {
-            await deletePartnerZone(zone.id);
-            await loadBranchData(branchId, floorId);
-            setMessage(t('layout.zoneDeleted'));
-        } catch (err) {
-            setError(getApiError(err));
-        } finally {
-            setSaving(false);
-        }
+    const handleDeleteZone = (zone) => {
+        setModal({
+            kind: 'confirm',
+            title: t('layout.confirmDeleteZone', { name: zone.name }),
+            onConfirm: async () => {
+                closeModal();
+                setSaving(true);
+                setError('');
+                try {
+                    await deletePartnerZone(zone.id);
+                    if (String(zoneFilter) === String(zone.id)) setZoneFilter(ALL_ZONES);
+                    await loadBranchData(branchId, floorId);
+                    setMessage(t('layout.zoneDeleted'));
+                } catch (err) {
+                    setError(getApiError(err));
+                } finally {
+                    setSaving(false);
+                }
+            },
+        });
     };
 
     const addItemFromPalette = () => {
@@ -336,11 +453,12 @@ export default function LayoutFloor() {
         const defaults = getTypeDefaults(paletteType);
         const isTable = paletteType === 'table';
         const tempId = nextTempId();
+        const activeZoneId = zoneFilter !== ALL_ZONES && zoneFilter !== NO_ZONE ? Number(zoneFilter) : null;
         const item = {
             tempId,
             id: null,
             floorId: Number(floorId),
-            zoneId: null,
+            zoneId: activeZoneId,
             type: paletteType,
             name: isTable ? (tableDraft.name || `T${items.filter((i) => i.type === 'table').length + 1}`) : defaults.label,
             x: 80 + (items.length % 6) * 40,
@@ -381,7 +499,7 @@ export default function LayoutFloor() {
         if (!floorId) return;
         const dirty = items.filter((item) => item.dirty || item.isNew);
         if (!dirty.length) {
-            setMessage('O\'zgarish yo\'q.');
+            setMessage(t('layout.noChanges', 'O\u2018zgarish yo\u2018q.'));
             return;
         }
 
@@ -441,41 +559,48 @@ export default function LayoutFloor() {
         }
     };
 
-    const handleDeleteSelected = async () => {
+    const handleDeleteSelected = () => {
         if (!selectedItem) return;
-        if (!window.confirm(t('layout.confirmDeleteItem'))) return;
-
-        setSaving(true);
-        setError('');
-        try {
-            if (selectedItem.id) {
-                const linked = tableByLayoutItem[String(selectedItem.id)];
-                if (linked) {
-                    try {
-                        await deletePartnerTable(linked.id);
-                    } catch {
-                        // table may cascade with layout item
+        setModal({
+            kind: 'confirm',
+            title: t('layout.confirmDeleteItem'),
+            onConfirm: async () => {
+                closeModal();
+                setSaving(true);
+                setError('');
+                try {
+                    if (selectedItem.id) {
+                        const linked = tableByLayoutItem[String(selectedItem.id)];
+                        if (linked) {
+                            try {
+                                await deletePartnerTable(linked.id);
+                            } catch {
+                                // table may cascade with layout item
+                            }
+                        }
+                        await deletePartnerLayoutItem(selectedItem.id);
                     }
+                    setItems((prev) => prev.filter((item) => {
+                        const key = item.id || item.tempId;
+                        const selectedKey = selectedItem.id || selectedItem.tempId;
+                        return String(key) !== String(selectedKey);
+                    }));
+                    setSelectedId(null);
+                    setMessage(t('layout.itemDeleted'));
+                    if (selectedItem.id) await reloadFloorItems(floorId);
+                } catch (err) {
+                    setError(getApiError(err));
+                } finally {
+                    setSaving(false);
                 }
-                await deletePartnerLayoutItem(selectedItem.id);
-            }
-            setItems((prev) => prev.filter((item) => {
-                const key = item.id || item.tempId;
-                const selectedKey = selectedItem.id || selectedItem.tempId;
-                return String(key) !== String(selectedKey);
-            }));
-            setSelectedId(null);
-            setMessage(t('layout.itemDeleted'));
-            if (selectedItem.id) await reloadFloorItems(floorId);
-        } catch (err) {
-            setError(getApiError(err));
-        } finally {
-            setSaving(false);
-        }
+            },
+        });
     };
 
     return (
         <div className={styles.floorContainer}>
+            <AppModal modal={modal} onClose={closeModal} />
+
             <div className={styles.toolbar}>
                 <div className={styles.toolbarGroup}>
                     {isOwner && (
@@ -497,20 +622,37 @@ export default function LayoutFloor() {
                             ))}
                         </select>
                     </label>
-                    <button type="button" className={styles.secondaryBtn} onClick={handleRenameFloor} disabled={!currentFloor || saving}>{t('layout.rename')}</button>
-                    <button type="button" className={styles.dangerBtn} onClick={handleDeleteFloor} disabled={!currentFloor || saving}>{t('layout.deleteFloor')}</button>
+                    <button type="button" className={styles.iconBtn} onClick={handleRenameFloor} disabled={!currentFloor || saving} title={t('layout.rename')}>
+                        &#9998;
+                    </button>
+                    <button type="button" className={styles.iconBtnDanger} onClick={handleDeleteFloor} disabled={!currentFloor || saving} title={t('layout.deleteFloor')}>
+                        &#128465;
+                    </button>
                 </div>
 
                 <div className={styles.toolbarGroup}>
-                    <input
-                        className={styles.input}
-                        placeholder={t('layout.newFloor')}
-                        value={floorForm.name}
-                        onChange={(e) => setFloorForm((p) => ({ ...p, name: e.target.value }))}
-                    />
-                    <button type="button" className={styles.primaryBtn} onClick={handleCreateFloor} disabled={!branchId || saving}>
-                        {t('layout.addFloor')}
-                    </button>
+                    {showFloorForm ? (
+                        <>
+                            <input
+                                autoFocus
+                                className={styles.input}
+                                placeholder={t('layout.newFloor')}
+                                value={floorForm.name}
+                                onChange={(e) => setFloorForm((p) => ({ ...p, name: e.target.value }))}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleCreateFloor(); }}
+                            />
+                            <button type="button" className={styles.primaryBtn} onClick={handleCreateFloor} disabled={!branchId || saving}>
+                                {t('layout.addFloor')}
+                            </button>
+                            <button type="button" className={styles.secondaryBtn} onClick={() => setShowFloorForm(false)}>
+                                {t('common.cancel', 'Bekor qilish')}
+                            </button>
+                        </>
+                    ) : (
+                        <button type="button" className={styles.secondaryBtn} onClick={() => setShowFloorForm(true)} disabled={!branchId}>
+                            {`+ ${t('layout.addFloor')}`}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -558,45 +700,24 @@ export default function LayoutFloor() {
                         </div>
                     )}
 
+                    {zoneFilter !== ALL_ZONES && (
+                        <div className={styles.activeZoneHint}>
+                            <span
+                                className={styles.zoneDot}
+                                style={{ background: zoneFilter === NO_ZONE ? '#555' : zoneColorById[zoneFilter] }}
+                            />
+                            {t('layout.addingInto', 'Qo\u2018shilmoqda:')}{' '}
+                            <strong>
+                                {zoneFilter === NO_ZONE
+                                    ? t('common.noZone')
+                                    : zones.find((z) => String(z.id) === String(zoneFilter))?.name}
+                            </strong>
+                        </div>
+                    )}
+
                     <button type="button" className={styles.primaryBtn} onClick={addItemFromPalette} disabled={!floorId || saving}>
                         {t('layout.addToFloor')}
                     </button>
-
-                    <h3>{t('layout.zones')}</h3>
-                    <div className={styles.stack}>
-                        <input
-                            className={styles.input}
-                            placeholder={t('layout.zoneName')}
-                            value={zoneForm.name}
-                            onChange={(e) => setZoneForm((p) => ({ ...p, name: e.target.value }))}
-                        />
-                        <div className={styles.colorRow}>
-                            {ZONE_COLORS.map((color) => (
-                                <button
-                                    key={color}
-                                    type="button"
-                                    className={`${styles.colorSwatch} ${zoneForm.color === color ? styles.colorSwatchActive : ''}`}
-                                    style={{ background: color }}
-                                    onClick={() => setZoneForm((p) => ({ ...p, color }))}
-                                    aria-label={color}
-                                />
-                            ))}
-                        </div>
-                        <button type="button" className={styles.secondaryBtn} onClick={handleCreateZone} disabled={!floorId || saving}>
-                            + Zone
-                        </button>
-                    </div>
-
-                    <ul className={styles.zoneList}>
-                        {zones.map((zone) => (
-                            <li key={zone.id}>
-                                <span className={styles.zoneDot} style={{ background: zone.color }} />
-                                <span>{zone.name}</span>
-                                <button type="button" onClick={() => handleDeleteZone(zone)}>×</button>
-                            </li>
-                        ))}
-                        {!zones.length && <li className={styles.muted}>{t('layout.noZones')}</li>}
-                    </ul>
 
                     <div className={styles.actionsSticky}>
                         <button type="button" className={styles.primaryBtn} onClick={saveSelectedOrAll} disabled={saving || !floorId}>
@@ -610,15 +731,87 @@ export default function LayoutFloor() {
 
                 <div className={styles.canvasWrap}>
                     <header className={styles.header}>
+                        <div className={styles.zoneTabs}>
+                            <button
+                                type="button"
+                                className={`${styles.zoneTab} ${zoneFilter === ALL_ZONES ? styles.zoneTabActive : ''}`}
+                                onClick={() => setZoneFilter(ALL_ZONES)}
+                            >
+                                {t('layout.allZones', 'Barchasi')}
+                                <span className={styles.zoneTabCount}>{enrichedItems.filter((i) => i.type === 'table').length}</span>
+                            </button>
+
+                            {zones.map((zone) => (
+                                <button
+                                    key={zone.id}
+                                    type="button"
+                                    className={`${styles.zoneTab} ${String(zoneFilter) === String(zone.id) ? styles.zoneTabActive : ''}`}
+                                    onClick={() => setZoneFilter(String(zone.id))}
+                                    onDoubleClick={() => handleDeleteZone(zone)}
+                                    title={t('layout.doubleClickToDelete', 'O\u2018chirish uchun ikki marta bosing')}
+                                >
+                                    <span className={styles.zoneDot} style={{ background: zone.color }} />
+                                    {zone.name}
+                                    <span className={styles.zoneTabCount}>{tableCountByZone[String(zone.id)] || 0}</span>
+                                </button>
+                            ))}
+
+                            <button
+                                type="button"
+                                className={`${styles.zoneTab} ${zoneFilter === NO_ZONE ? styles.zoneTabActive : ''}`}
+                                onClick={() => setZoneFilter(NO_ZONE)}
+                            >
+                                {t('common.noZone')}
+                                <span className={styles.zoneTabCount}>{tableCountByZone[NO_ZONE] || 0}</span>
+                            </button>
+
+                            {showZoneForm ? (
+                                <div className={styles.zoneInlineForm}>
+                                    <input
+                                        autoFocus
+                                        className={styles.input}
+                                        placeholder={t('layout.zoneName')}
+                                        value={zoneForm.name}
+                                        onChange={(e) => setZoneForm((p) => ({ ...p, name: e.target.value }))}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleCreateZone(); }}
+                                    />
+                                    <div className={styles.colorRow}>
+                                        {ZONE_COLORS.map((color) => (
+                                            <button
+                                                key={color}
+                                                type="button"
+                                                className={`${styles.colorSwatch} ${zoneForm.color === color ? styles.colorSwatchActive : ''}`}
+                                                style={{ background: color }}
+                                                onClick={() => setZoneForm((p) => ({ ...p, color }))}
+                                                aria-label={color}
+                                            />
+                                        ))}
+                                    </div>
+                                    <button type="button" className={styles.primaryBtn} onClick={handleCreateZone} disabled={saving}>
+                                        {t('common.save', 'Saqlash')}
+                                    </button>
+                                    <button type="button" className={styles.secondaryBtn} onClick={() => setShowZoneForm(false)}>
+                                        {t('common.cancel', 'Bekor qilish')}
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className={styles.zoneTabAdd}
+                                    onClick={() => setShowZoneForm(true)}
+                                    disabled={!floorId}
+                                >
+                                    {`+ ${t('layout.zones')}`}
+                                </button>
+                            )}
+                        </div>
+
                         <div className={styles.legend}>
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.availableDot}`} /> {t('layout.available')}</span>
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.pendingDot}`} /> {t('layout.pending')}</span>
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.confirmedDot}`} /> {t('layout.confirmed')}</span>
                             <span className={styles.legendItem}><div className={`${styles.dot} ${styles.checkedInDot}`} /> {t('layout.checkedIn')}</span>
                         </div>
-                        <span className={styles.muted}>
-                            {currentFloor ? `${currentFloor.name} · ${enrichedItems.length}` : t('common.selectFloor')}
-                        </span>
                     </header>
 
                     {error && <div className={styles.errorBanner}>{error}</div>}
@@ -636,6 +829,7 @@ export default function LayoutFloor() {
                                 selectedId={selectedId}
                                 editable
                                 zoneColorById={zoneColorById}
+                                focusZoneId={zoneFilter}
                                 onSelect={(item) => setSelectedId(item.id || item.tempId)}
                                 onBackgroundClick={() => setSelectedId(null)}
                                 onItemChange={handleItemChange}

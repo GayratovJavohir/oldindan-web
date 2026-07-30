@@ -1,7 +1,7 @@
 .layoutContainer {
     background-color: #121212;
     color: #ffffff;
-    padding: 24px 28px;
+    padding: 18px 20px;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     margin-left: var(--sidebar-width);
@@ -10,31 +10,31 @@
 .floorContainer {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .toolbar {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     background: #151515;
     border: 1px solid #222;
-    border-radius: 12px;
-    padding: 14px 16px;
+    border-radius: 10px;
+    padding: 10px 12px;
 }
 
 .toolbarGroup {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    align-items: end;
+    gap: 8px;
+    align-items: center;
 }
 
 .workspace {
     display: grid;
-    grid-template-columns: 240px minmax(0, 1fr) 260px;
-    gap: 14px;
+    grid-template-columns: 200px minmax(0, 1fr) 230px;
+    gap: 12px;
     align-items: start;
 }
 
@@ -42,18 +42,18 @@
 .inspector {
     background: #151515;
     border: 1px solid #222;
-    border-radius: 12px;
-    padding: 14px;
+    border-radius: 10px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    min-height: 640px;
+    gap: 10px;
+    min-height: 560px;
 }
 
 .sidebarPanel h3,
 .inspector h3 {
-    margin: 8px 0 0;
-    font-size: 13px;
+    margin: 4px 0 0;
+    font-size: 11px;
     letter-spacing: 0.4px;
     text-transform: uppercase;
     color: #888;
@@ -62,16 +62,16 @@
 .paletteGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
 }
 
 .paletteBtn {
     background: #1b1b1b;
     border: 1px solid #2f2f2f;
     color: #ddd;
-    border-radius: 8px;
-    padding: 8px 6px;
-    font-size: 12px;
+    border-radius: 7px;
+    padding: 7px 5px;
+    font-size: 11.5px;
     cursor: pointer;
 }
 
@@ -84,20 +84,20 @@
 .stack {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
 }
 
 .field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    font-size: 12px;
+    gap: 4px;
+    font-size: 11.5px;
     color: #999;
 }
 
@@ -109,20 +109,21 @@
     background: #1a1a1a;
     border: 1px solid #2a2a2a;
     color: #fff;
-    border-radius: 8px;
-    padding: 9px 10px;
-    font-size: 13px;
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: 12.5px;
 }
 
 .primaryBtn,
 .secondaryBtn,
 .dangerBtn {
     border: none;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .primaryBtn {
@@ -149,15 +150,44 @@
     cursor: not-allowed;
 }
 
+/* small icon-only buttons used in the toolbar (rename / delete floor) */
+.iconBtn,
+.iconBtnDanger {
+    border: 1px solid #333;
+    background: #222;
+    color: #ddd;
+    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconBtnDanger {
+    color: #ff6b6b;
+    border-color: #5a2a2a;
+    background: #2b1a1a;
+}
+
+.iconBtn:disabled,
+.iconBtnDanger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .colorRow {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
 }
 
 .colorSwatch {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
@@ -167,92 +197,167 @@
     border-color: #fff;
 }
 
-.zoneList {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.zoneDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-.zoneList li {
+.activeZoneHint {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: #ccc;
-}
-
-.zoneList button {
-    margin-left: auto;
-    background: transparent;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.zoneDot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    gap: 6px;
+    font-size: 11.5px;
+    color: #bbb;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 7px;
+    padding: 6px 8px;
 }
 
 .actionsSticky {
     margin-top: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .canvasWrap {
     min-width: 0;
 }
 
+/* --- zone tabs: the main way to browse/organize tables per zone --- */
+.zoneTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+}
+
+.zoneTab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #1b1b1b;
+    border: 1px solid #2a2a2a;
+    color: #ccc;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.zoneTabActive {
+    background: #2a1515;
+    border-color: #8c1919;
+    color: #fff;
+}
+
+.zoneTabCount {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 10.5px;
+    color: #999;
+}
+
+.zoneTabActive .zoneTabCount {
+    color: #f0b0b0;
+}
+
+.zoneTabAdd {
+    background: transparent;
+    border: 1px dashed #3a3a3a;
+    color: #999;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.zoneTabAdd:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.zoneInlineForm {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
+.zoneInlineForm .input {
+    padding: 5px 8px;
+    font-size: 12px;
+    width: 130px;
+}
+
 .header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 10px;
     background-color: #151515;
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
     border: 1px solid #222;
 }
 
 .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 }
 
 .legendItem {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     color: #a0a0a0;
-    font-size: 13px;
+    font-size: 11.5px;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
 }
 
-.availableDot { background-color: #3f3f46; }
-.pendingDot { background-color: #f5a623; box-shadow: 0 0 8px rgba(245, 166, 35, 0.5); }
-.confirmedDot { background-color: #4c8bf5; box-shadow: 0 0 8px rgba(76, 139, 245, 0.5); }
-.checkedInDot { background-color: #a463f2; box-shadow: 0 0 8px rgba(164, 99, 242, 0.5); }
+.availableDot {
+    background-color: #3f3f46;
+}
+
+.pendingDot {
+    background-color: #f5a623;
+    box-shadow: 0 0 8px rgba(245, 166, 35, 0.5);
+}
+
+.confirmedDot {
+    background-color: #4c8bf5;
+    box-shadow: 0 0 8px rgba(76, 139, 245, 0.5);
+}
+
+.checkedInDot {
+    background-color: #a463f2;
+    box-shadow: 0 0 8px rgba(164, 99, 242, 0.5);
+}
 
 .canvas {
     position: relative;
     width: 100%;
     overflow: auto;
     background-color: #101010;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid #222;
 }
 
@@ -262,7 +367,7 @@
     place-items: center;
     color: #888;
     border: 1px dashed #333;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #141414;
 }
 
@@ -271,9 +376,9 @@
     background: #2b1a1a;
     border: 1px solid #5a2a2a;
     border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
 }
 
 .successBanner {
@@ -281,25 +386,64 @@
     background: #14201a;
     border: 1px solid #2f5a40;
     border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
 }
 
 .muted {
     color: #777;
-    font-size: 13px;
+    font-size: 12.5px;
 }
 
 .dirtyBadge {
     display: inline-flex;
     align-items: center;
-    padding: 6px 10px;
+    padding: 5px 9px;
     border-radius: 999px;
     background: #3a2a10;
     color: #f5a623;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
+}
+
+/* --- modal (replaces window.prompt / window.confirm) --- */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalCard {
+    background: #181818;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 18px;
+    width: min(360px, 92vw);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modalTitle {
+    margin: 0 0 8px;
+    font-size: 15px;
+    color: #fff;
+}
+
+.modalMessage {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
 }
 
 @media (max-width: 1200px) {
@@ -319,15 +463,18 @@
     .statsGrid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
+
     .mainContentGrid {
         grid-template-columns: 1fr !important;
     }
+
     .workspace {
         grid-template-columns: 1fr !important;
     }
 }
 
 @media (max-width: 900px) {
+
     .dashboardContainer,
     .bookingsContainer,
     .layoutContainer,
@@ -346,31 +493,38 @@
     .statsGrid {
         grid-template-columns: 1fr !important;
     }
+
     .header {
         flex-direction: column;
         align-items: stretch !important;
         gap: 10px;
     }
+
     .headerActions {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
+
     .tableWrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+
     .modalContent,
     .modalContentWide {
         max-width: calc(100vw - 24px) !important;
         margin: 12px;
     }
+
     .formRow {
         grid-template-columns: 1fr !important;
     }
+
     .hoursRow {
         grid-template-columns: 1fr 1fr !important;
     }
+
     .hoursDay {
         grid-column: 1 / -1;
     }

@@ -31,7 +31,7 @@ function labelForType(type) {
         kids_area: 'KIDS',
         wall: '',
         divider: '',
-        decor: '•',
+        decor: '\u2022',
     };
     return map[type] ?? (type?.slice(0, 3)?.toUpperCase() || '');
 }
@@ -42,6 +42,7 @@ function ItemShape({
     editable,
     status,
     zoneColor,
+    dimmed,
     onSelect,
     onHoverIn,
     onHoverOut,
@@ -131,7 +132,7 @@ function ItemShape({
 
     return (
         <>
-            <Group>
+            <Group opacity={dimmed ? 0.28 : 1}>
                 {isRound ? (
                     <Circle
                         {...commonProps}
@@ -216,12 +217,19 @@ export default function FloorCanvas({
     editable = false,
     statusByLayoutItemId = {},
     zoneColorById = {},
+    focusZoneId = 'all',
     onSelect,
     onHover,
     onBackgroundClick,
     onItemChange,
 }) {
     const sorted = [...items].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+    const isDimmed = (item) => {
+        if (!focusZoneId || focusZoneId === 'all') return false;
+        if (focusZoneId === 'none') return !!item.zoneId;
+        return String(item.zoneId) !== String(focusZoneId);
+    };
 
     return (
         <Stage
@@ -267,6 +275,7 @@ export default function FloorCanvas({
                         editable={editable}
                         status={statusByLayoutItemId[item.id] || statusByLayoutItemId[item.tempId]}
                         zoneColor={item.zoneId ? zoneColorById[item.zoneId] : null}
+                        dimmed={isDimmed(item)}
                         onSelect={onSelect}
                         onHoverIn={(hoveredItem) => onHover?.(hoveredItem)}
                         onHoverOut={() => onHover?.(null)}
