@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styles from '../Staff.module.css';
 import { getPartnerBranches } from '../../../../services/restaurants.services';
-import { getStaffList, registerStaff } from '../../../../services/staff.services';
+import { getStaffList, registerStaff, updateStaff } from '../../../../services/staff.services';
 import { getApiError } from '../../../../utils/apiHelpers';
 import { canManageStaff } from '../../../../utils/authUser';
 
@@ -115,12 +115,98 @@ function StaffModal({ branches, onClose, onSave }) {
     );
 }
 
+/**
+ * Deliberately narrow: staff identity (name/email/password) isn't editable
+ * here — only role, branch, and active/inactive status can change.
+ */
+function EditStaffModal({ member, branches, onClose, onSave }) {
+    const [form, setForm] = useState({
+        role: member.roleKey || 'manager',
+        branch_id: member.branchId || branches[0]?.id || '',
+        status: member.status || 'active',
+    });
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+
+    const submit = async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        setError('');
+        try {
+            await onSave(member.id, form);
+            onClose();
+        } catch (err) {
+            setError(getApiError(err));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className={styles.modalContent}>
+                <div className={styles.modalHeader}>
+                    <h3 className={styles.modalTitle}>Edit Staff — {member.name}</h3>
+                    <button type="button" className={styles.closeBtn} onClick={onClose}>&times;</button>
+                </div>
+                <form onSubmit={submit}>
+                    <div className={styles.modalBody}>
+                        {error && <div className={styles.errorText}>{error}</div>}
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>Role *</label>
+                                <select
+                                    value={form.role}
+                                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                                >
+                                    <option value="manager">Manager</option>
+                                    <option value="receptionist">Receptionist</option>
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Branch *</label>
+                                <select
+                                    value={form.branch_id}
+                                    onChange={(e) => setForm({ ...form, branch_id: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select branch</option>
+                                    {branches.map((branch) => (
+                                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label>Status *</label>
+                            <select
+                                value={form.status}
+                                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className={styles.modalFooter}>
+                        <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+                        <button type="submit" className={styles.submitBtn} disabled={busy}>
+                            {busy ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 export default function STableCard() {
     const [staff, setStaff] = useState([]);
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showModal, setShowModal] = useState(false);
+    const [editingStaff, setEditingStaff] = useState(null);
     const canAdd = canManageStaff();
 
     const loadData = useCallback(async () => {
@@ -153,6 +239,11 @@ export default function STableCard() {
         await loadData();
     };
 
+    const handleUpdate = async (id, form) => {
+        await updateStaff(id, form, branches);
+        await loadData();
+    };
+
     const openCreateModal = () => {
         if (!branches.length) {
             setError('Create at least one branch before adding staff.');
@@ -160,6 +251,11 @@ export default function STableCard() {
         }
         setError('');
         setShowModal(true);
+    };
+
+    const openEditModal = (member) => {
+        setError('');
+        setEditingStaff(member);
     };
 
     return (
@@ -186,13 +282,14 @@ export default function STableCard() {
                                 <th>ROLE</th>
                                 <th>BRANCH</th>
                                 <th>STATUS</th>
+                                {canAdd && <th>ACTIONS</th>}
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={6}>Loading...</td></tr>
+                                <tr><td colSpan={canAdd ? 7 : 6}>Loading...</td></tr>
                             ) : staff.length === 0 ? (
-                                <tr><td colSpan={6}>No staff yet. Register your first staff member.</td></tr>
+                                <tr><td colSpan={canAdd ? 7 : 6}>No staff yet. Register your first staff member.</td></tr>
                             ) : (
                                 staff.map((member) => (
                                     <tr key={member.id}>
@@ -202,6 +299,17 @@ export default function STableCard() {
                                         <td className={styles.role}>{member.role}</td>
                                         <td>{member.branch}</td>
                                         <td className={styles.status}>{member.status}</td>
+                                        {canAdd && (
+                                            <td>
+                                                <button
+                                                    type="button"
+                                                    className={styles.editBtn}
+                                                    onClick={() => openEditModal(member)}
+                                                >
+                                                    Edit
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}
@@ -215,6 +323,15 @@ export default function STableCard() {
                     branches={branches}
                     onClose={() => setShowModal(false)}
                     onSave={handleCreate}
+                />
+            )}
+
+            {editingStaff && (
+                <EditStaffModal
+                    member={editingStaff}
+                    branches={branches}
+                    onClose={() => setEditingStaff(null)}
+                    onSave={handleUpdate}
                 />
             )}
         </div>

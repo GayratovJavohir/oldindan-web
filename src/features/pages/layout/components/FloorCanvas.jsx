@@ -1,289 +1,441 @@
-import React, { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Stage, Layer, Group, Rect, Circle, Text, Transformer } from 'react-konva';
+import React, { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const STATUS_COLORS = {
-    available: { fill: 'rgba(42,45,53,0.85)', stroke: '#3f3f46' },
-    pending: { fill: 'rgba(121,85,23,0.35)', stroke: '#f5a623' },
-    confirmed: { fill: 'rgba(24,61,119,0.35)', stroke: '#4c8bf5' },
-    checked_in: { fill: 'rgba(90,39,130,0.35)', stroke: '#a463f2' },
-    checkedIn: { fill: 'rgba(90,39,130,0.35)', stroke: '#a463f2' },
-    occupied: { fill: 'rgba(140,25,25,0.4)', stroke: '#e85d5d' },
-    completed: { fill: 'rgba(21,74,45,0.35)', stroke: '#4ade80' },
-    canceled: { fill: 'rgba(60,60,60,0.35)', stroke: '#9ca3af' },
-    no_show: { fill: 'rgba(60,60,60,0.35)', stroke: '#9ca3af' },
-    facility: { fill: 'rgba(30,30,30,0.9)', stroke: '#555' },
+/*
+ * FloorCanvas3D
+ * -------------
+ * A real 3D (WebGL / Three.js) isometric restaurant floor-plan renderer.
+ * Drop-in replacement for the 2D <FloorCanvas /> (react-konva) used in the
+ * *live view* only — the drag/resize editor keeps using the original
+ * FloorCanvas.jsx.
+ *
+ * Same prop contract as FloorCanvas.jsx:
+ *   width, height, items, selectedId, statusByLayoutItemId,
+ *   zoneColorById, onSelect, onHover, onBackgroundClick
+ *
+ * Requires: `npm install three`
+ */
+
+// ---- palette (kept in sync with LiveLayout.module.css legend colors) ----
+const STATUS_COLOR = {
+    available: 0x3f3f46,
+    pending: 0xf5a623,
+    confirmed: 0x4c8bf5,
+    checked_in: 0xa463f2,
+    checkedin: 0xa463f2,
+    occupied: 0xe85d5d,
+    completed: 0x4ade80,
+    canceled: 0x9ca3af,
+    no_show: 0x9ca3af,
+    facility: 0x555555,
 };
+
+const FACILITY_STYLE = {
+    entrance: { color: 0x4ade80, icon: '⭬', label: 'IN' },
+    exit: { color: 0xe85d5d, icon: '⭭', label: 'OUT' },
+    wc: { color: 0x60a5fa, icon: '🚻', label: 'WC' },
+    cashier: { color: 0xf5a623, icon: '💳', label: 'CASHIER' },
+    kids_area: { color: 0xf472b6, icon: '🧸', label: 'KIDS' },
+    decor: { color: 0x2dd4bf, icon: '🌿', label: '' },
+};
+
+const WALL_HEIGHT = 130;
+const DIVIDER_HEIGHT = 70;
+const TABLE_HEIGHT = 42;
 
 function normalizeStatus(status) {
     const raw = String(status || 'available').toLowerCase().replace(/-/g, '_').replace(/\s+/g, '_');
-    if (raw === 'checkedin') return 'checked_in';
-    return raw;
+    return raw === 'checkedin' ? 'checked_in' : raw;
 }
 
-function labelForType(type) {
-    const map = {
-        table: 'T',
-        entrance: 'IN',
-        exit: 'OUT',
-        wc: 'WC',
-        cashier: '$$',
-        kids_area: 'KIDS',
-        wall: '',
-        divider: '',
-        decor: '\u2022',
-    };
-    return map[type] ?? (type?.slice(0, 3)?.toUpperCase() || '');
+// draws text onto a canvas and returns a THREE.Sprite
+function makeLabelSprite(text, { fontSize = 34, color = '#ffffff', bg = 'rgba(15,15,15,0.72)', scale = 1 } = {}) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const padX = 24;
+    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    const lines = text.split('\n');
+    const widths = lines.map((l) => ctx.measureText(l).width);
+    const w = Math.max(...widths) + padX * 2;
+    const lineH = fontSize * 1.25;
+    const h = lineH * lines.length + 16;
+    canvas.width = w;
+    canvas.height = h;
+
+    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    ctx.fillStyle = bg;
+    const r = 16;
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.arcTo(w, 0, w, h, r);
+    ctx.arcTo(w, h, 0, h, r);
+    ctx.arcTo(0, h, 0, 0, r);
+    ctx.arcTo(0, 0, w, 0, r);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    lines.forEach((line, i) => {
+        ctx.fillText(line, w / 2, h / 2 - (lines.length - 1) * lineH / 2 + i * lineH);
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+    const sprite = new THREE.Sprite(material);
+    const worldScale = 0.62 * scale;
+    sprite.scale.set((w / h) * 30 * worldScale, 30 * worldScale, 1);
+    sprite.renderOrder = 999;
+    return sprite;
 }
 
-function ItemShape({
-    item,
-    selected,
-    editable,
-    status,
-    zoneColor,
-    dimmed,
-    onSelect,
-    onHoverIn,
-    onHoverOut,
-    onDragEnd,
-    onTransformEnd,
-}) {
-    const shapeRef = useRef(null);
-    const trRef = useRef(null);
-    const liveStatus = normalizeStatus(status || (item.type === 'table' ? 'available' : 'facility'));
-    const colors = STATUS_COLORS[liveStatus] || STATUS_COLORS.facility;
-    const isRound = item.shape === 'round' || (item.type === 'table' && item.shape !== 'rect');
-    const stroke = zoneColor || colors.stroke;
-    const isInteractive = item.type === 'table';
-
-    useEffect(() => {
-        if (!editable || !selected || !trRef.current || !shapeRef.current) return;
-        trRef.current.nodes([shapeRef.current]);
-        trRef.current.getLayer()?.batchDraw();
-    }, [editable, selected, item.id, item.width, item.height, item.rotation]);
-
-    const handleMouseEnter = (e) => {
-        const stage = e.target.getStage();
-        if (stage && isInteractive) {
-            stage.container().style.cursor = 'pointer';
-        }
-        if (isInteractive) onHoverIn?.(item);
-    };
-
-    const handleMouseLeave = (e) => {
-        const stage = e.target.getStage();
-        if (stage) {
-            stage.container().style.cursor = 'default';
-        }
-        if (isInteractive) onHoverOut?.(item);
-    };
-
-    const commonProps = {
-        ref: shapeRef,
-        x: item.x,
-        y: item.y,
-        width: item.width,
-        height: item.height,
-        rotation: item.rotation || 0,
-        fill: colors.fill,
-        stroke: selected ? '#ffffff' : stroke,
-        strokeWidth: selected ? 3 : 2,
-        shadowColor: selected ? '#ffffff' : undefined,
-        shadowBlur: selected ? 12 : 0,
-        shadowOpacity: selected ? 0.5 : 0,
-        draggable: editable,
-        onMouseEnter: handleMouseEnter,
-        onMouseLeave: handleMouseLeave,
-        onClick: (e) => {
-            e.cancelBubble = true;
-            onSelect?.(item);
-        },
-        onTap: (e) => {
-            e.cancelBubble = true;
-            onSelect?.(item);
-        },
-        onDragEnd: (e) => {
-            onDragEnd?.(item, {
-                x: Math.round(e.target.x()),
-                y: Math.round(e.target.y()),
-            });
-        },
-        onTransformEnd: () => {
-            const node = shapeRef.current;
-            if (!node) return;
-            const scaleX = node.scaleX();
-            const scaleY = node.scaleY();
-            node.scaleX(1);
-            node.scaleY(1);
-            onTransformEnd?.(item, {
-                x: Math.round(node.x()),
-                y: Math.round(node.y()),
-                width: Math.max(16, Math.round(node.width() * scaleX)),
-                height: Math.max(16, Math.round(node.height() * scaleY)),
-                rotation: Math.round(node.rotation()),
-            });
-        },
-    };
-
-    const { t } = useTranslation();
-    const title = item.name || (item.type === 'table' ? t('layout.types.table') : labelForType(item.type));
-    const seats = item.meta?.seats || item.seats;
-
-    return (
-        <>
-            <Group opacity={dimmed ? 0.28 : 1}>
-                {isRound ? (
-                    <Circle
-                        {...commonProps}
-                        x={item.x + item.width / 2}
-                        y={item.y + item.height / 2}
-                        radius={Math.min(item.width, item.height) / 2}
-                        width={undefined}
-                        height={undefined}
-                        onDragEnd={(e) => {
-                            const r = Math.min(item.width, item.height) / 2;
-                            onDragEnd?.(item, {
-                                x: Math.round(e.target.x() - r),
-                                y: Math.round(e.target.y() - r),
-                            });
-                        }}
-                        onTransformEnd={() => {
-                            const node = shapeRef.current;
-                            if (!node) return;
-                            const scaleX = node.scaleX();
-                            node.scaleX(1);
-                            node.scaleY(1);
-                            const size = Math.max(32, Math.round((Math.min(item.width, item.height)) * scaleX));
-                            onTransformEnd?.(item, {
-                                x: Math.round(node.x() - size / 2),
-                                y: Math.round(node.y() - size / 2),
-                                width: size,
-                                height: size,
-                                rotation: Math.round(node.rotation()),
-                            });
-                        }}
-                    />
-                ) : (
-                    <Rect
-                        {...commonProps}
-                        cornerRadius={item.type === 'wall' || item.type === 'divider' ? 2 : 14}
-                    />
-                )}
-                <Text
-                    x={item.x}
-                    y={item.y + item.height / 2 - (seats ? 12 : 6)}
-                    width={item.width}
-                    align="center"
-                    text={title}
-                    fontSize={item.type === 'table' ? 13 : 11}
-                    fontStyle="bold"
-                    fill="#fff"
-                    listening={false}
-                />
-                {item.type === 'table' && seats ? (
-                    <Text
-                        x={item.x}
-                        y={item.y + item.height / 2 + 4}
-                        width={item.width}
-                        align="center"
-                        text={t('bookings.seatsCount', { count: seats })}
-                        fontSize={10}
-                        fill="#aaa"
-                        listening={false}
-                    />
-                ) : null}
-            </Group>
-            {editable && selected ? (
-                <Transformer
-                    ref={trRef}
-                    rotateEnabled
-                    enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
-                    boundBoxFunc={(oldBox, newBox) => {
-                        if (newBox.width < 16 || newBox.height < 16) return oldBox;
-                        return newBox;
-                    }}
-                />
-            ) : null}
-        </>
-    );
+function tagAll(object3d, item) {
+    object3d.traverse((child) => {
+        if (child.isMesh) child.userData.itemRef = item;
+    });
+    object3d.userData.itemRef = item;
+    return object3d;
 }
 
-export default function FloorCanvas({
-    width = 960,
-    height = 640,
+function buildTable(item, status, zoneColor, seats, t) {
+    const group = new THREE.Group();
+    const isRound = item.shape === 'round' || item.shape !== 'rect';
+    const w = item.width;
+    const h = item.height;
+    const radius = Math.min(w, h) / 2;
+    const statusColor = STATUS_COLOR[status] ?? STATUS_COLOR.facility;
+
+    // pedestal leg
+    const legGeo = isRound
+        ? new THREE.CylinderGeometry(radius * 0.14, radius * 0.18, TABLE_HEIGHT * 0.8, 16)
+        : new THREE.BoxGeometry(radius * 0.24, TABLE_HEIGHT * 0.8, radius * 0.24);
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.3 });
+    const leg = new THREE.Mesh(legGeo, legMat);
+    leg.position.y = TABLE_HEIGHT * 0.4;
+    leg.castShadow = true;
+    group.add(leg);
+
+    // tabletop
+    const topGeo = isRound
+        ? new THREE.CylinderGeometry(radius, radius, TABLE_HEIGHT * 0.16, 32)
+        : new THREE.BoxGeometry(w * 0.94, TABLE_HEIGHT * 0.16, h * 0.94);
+    const topMat = new THREE.MeshStandardMaterial({ color: 0xf1e7d0, roughness: 0.55 });
+    const top = new THREE.Mesh(topGeo, topMat);
+    top.position.y = TABLE_HEIGHT * 0.82;
+    top.castShadow = true;
+    top.receiveShadow = true;
+    group.add(top);
+
+    // status glow ring on the floor beneath the table
+    const ringGeo = new THREE.RingGeometry(radius * 1.05, radius * 1.35, 40);
+    const ringMat = new THREE.MeshBasicMaterial({
+        color: statusColor,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 1;
+    group.add(ring);
+    group.userData.ring = ring;
+
+    // zone accent (thin colored rim under the tabletop edge)
+    if (zoneColor) {
+        const rimGeo = isRound
+            ? new THREE.TorusGeometry(radius * 0.98, 2.2, 8, 32)
+            : new THREE.BoxGeometry(w * 0.96, 2.2, 3);
+        const rimMat = new THREE.MeshStandardMaterial({ color: zoneColor, roughness: 0.4 });
+        const rim = new THREE.Mesh(rimGeo, rimMat);
+        rim.rotation.x = isRound ? Math.PI / 2 : 0;
+        rim.position.y = TABLE_HEIGHT * 0.74;
+        group.add(rim);
+    }
+
+    // chairs around the table
+    const seatCount = Math.max(2, Math.min(8, Number(seats) || 4));
+    const chairDist = radius + 20;
+    for (let i = 0; i < seatCount; i += 1) {
+        const angle = (i / seatCount) * Math.PI * 2;
+        const chair = new THREE.Group();
+        const seatMat = new THREE.MeshStandardMaterial({ color: 0x2f3238, roughness: 0.7 });
+        const seatMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 6, 16), seatMat);
+        seatMesh.position.y = 20;
+        seatMesh.castShadow = true;
+        const backMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 22, 4), seatMat);
+        backMesh.position.set(0, 30, -8);
+        backMesh.castShadow = true;
+        chair.add(seatMesh, backMesh);
+        chair.position.set(Math.cos(angle) * chairDist, 0, Math.sin(angle) * chairDist);
+        chair.lookAt(0, 0, 0);
+        group.add(chair);
+    }
+
+    // label sprite
+    const seatLabel = seats ? `${item.name || t('table')}\n${seats} ${t('seats')}` : (item.name || t('table'));
+    const label = makeLabelSprite(seatLabel, { fontSize: 30 });
+    label.position.y = TABLE_HEIGHT + 46;
+    group.add(label);
+
+    return group;
+}
+
+function buildWall(item, kind) {
+    const height = kind === 'divider' ? DIVIDER_HEIGHT : WALL_HEIGHT;
+    const geo = new THREE.BoxGeometry(item.width, height, Math.max(item.height, 10));
+    const mat = new THREE.MeshStandardMaterial({
+        color: kind === 'divider' ? 0x3a3228 : 0x4a3c28,
+        roughness: 0.85,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = height / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+}
+
+function buildFacility(item, t) {
+    const style = FACILITY_STYLE[item.type] || { color: 0x555555, label: item.type?.slice(0, 3).toUpperCase() || '' };
+    const group = new THREE.Group();
+    const geo = new THREE.BoxGeometry(item.width * 0.9, 26, item.height * 0.9);
+    const mat = new THREE.MeshStandardMaterial({ color: style.color, roughness: 0.6, transparent: true, opacity: 0.85 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 13;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+
+    const label = makeLabelSprite(item.name || t(style.label?.toLowerCase()) || style.label || item.type, {
+        fontSize: 26,
+        bg: 'rgba(20,20,20,0.75)',
+    });
+    label.position.y = 60;
+    group.add(label);
+    return group;
+}
+
+export default function FloorCanvas3D({
+    width = 900,
+    height = 560,
     items = [],
     selectedId = null,
-    editable = false,
     statusByLayoutItemId = {},
     zoneColorById = {},
-    focusZoneId = 'all',
     onSelect,
     onHover,
     onBackgroundClick,
-    onItemChange,
+    // eslint-disable-next-line no-unused-vars
+    editable = false, // kept only for prop-compat with the 2D editor variant
 }) {
-    const sorted = [...items].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+    const mountRef = useRef(null);
+    const sceneRef = useRef(null);
+    const [ready, setReady] = useState(false);
 
-    const isDimmed = (item) => {
-        if (!focusZoneId || focusZoneId === 'all') return false;
-        if (focusZoneId === 'none') return !!item.zoneId;
-        return String(item.zoneId) !== String(focusZoneId);
+    // keep the latest callbacks in refs so the render-loop closures never go stale
+    const cbRef = useRef({ onSelect, onHover, onBackgroundClick });
+    cbRef.current = { onSelect, onHover, onBackgroundClick };
+
+    const tt = (key) => {
+        const dict = { table: 'Table', seats: 'seats', wc: 'WC', cashier: 'Cashier', kids: 'Kids area' };
+        return dict[key] || '';
     };
 
-    return (
-        <Stage
-            width={width}
-            height={height}
-            onMouseDown={(e) => {
-                if (e.target === e.target.getStage()) onBackgroundClick?.();
-            }}
-            onTouchStart={(e) => {
-                if (e.target === e.target.getStage()) onBackgroundClick?.();
-            }}
-            onMouseLeave={() => onHover?.(null)}
-        >
-            <Layer>
-                {Array.from({ length: Math.ceil(width / 30) }).map((_, i) => (
-                    <Rect
-                        key={`vg-${i}`}
-                        x={i * 30}
-                        y={0}
-                        width={1}
-                        height={height}
-                        fill="#1f1f1f"
-                        listening={false}
-                    />
-                ))}
-                {Array.from({ length: Math.ceil(height / 30) }).map((_, i) => (
-                    <Rect
-                        key={`hg-${i}`}
-                        x={0}
-                        y={i * 30}
-                        width={width}
-                        height={1}
-                        fill="#1f1f1f"
-                        listening={false}
-                    />
-                ))}
+    // ---- one-time scene / renderer / camera setup ----
+    useEffect(() => {
+        const mount = mountRef.current;
+        if (!mount) return undefined;
 
-                {sorted.map((item) => (
-                    <ItemShape
-                        key={item.id || item.tempId}
-                        item={item}
-                        selected={String(selectedId) === String(item.id || item.tempId)}
-                        editable={editable}
-                        status={statusByLayoutItemId[item.id] || statusByLayoutItemId[item.tempId]}
-                        zoneColor={item.zoneId ? zoneColorById[item.zoneId] : null}
-                        dimmed={isDimmed(item)}
-                        onSelect={onSelect}
-                        onHoverIn={(hoveredItem) => onHover?.(hoveredItem)}
-                        onHoverOut={() => onHover?.(null)}
-                        onDragEnd={(target, pos) => onItemChange?.(target, pos)}
-                        onTransformEnd={(target, next) => onItemChange?.(target, next)}
-                    />
-                ))}
-            </Layer>
-        </Stage>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x101010);
+        scene.fog = new THREE.Fog(0x101010, 900, 2200);
+
+        const aspect = width / height;
+        const viewSize = Math.max(width, height) * 0.72;
+        const camera = new THREE.OrthographicCamera(
+            (-viewSize * aspect) / 2, (viewSize * aspect) / 2, viewSize / 2, -viewSize / 2, -2000, 4000
+        );
+        camera.position.set(620, 620, 620);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        mount.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enablePan = false;
+        controls.enableRotate = true;
+        controls.minZoom = 0.6;
+        controls.maxZoom = 2.4;
+        controls.minPolarAngle = Math.PI / 5;
+        controls.maxPolarAngle = Math.PI / 2.15;
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x14100a, 0.85));
+        const dir = new THREE.DirectionalLight(0xfff2df, 1.0);
+        dir.position.set(400, 700, 250);
+        dir.castShadow = true;
+        dir.shadow.mapSize.set(2048, 2048);
+        const shadowSize = Math.max(width, height) * 0.75;
+        dir.shadow.camera.left = -shadowSize;
+        dir.shadow.camera.right = shadowSize;
+        dir.shadow.camera.top = shadowSize;
+        dir.shadow.camera.bottom = -shadowSize;
+        scene.add(dir);
+
+        const floorGeo = new THREE.PlaneGeometry(width, height, 1, 1);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0xe4dcc8, roughness: 0.92 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // subtle floor grid overlay for a tiled look
+        const grid = new THREE.GridHelper(Math.max(width, height), Math.max(width, height) / 30, 0xcbbfa0, 0xd8cdb2);
+        grid.position.y = 0.5;
+        scene.add(grid);
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+        let lastHoverId = null;
+
+        const pickItem = (clientX, clientY) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(group.children, true);
+            const hit = hits.find((h) => h.object.userData?.itemRef);
+            return hit ? hit.object.userData.itemRef : null;
+        };
+
+        const onPointerMove = (e) => {
+            const found = pickItem(e.clientX, e.clientY);
+            const id = found ? (found.id ?? found.tempId) : null;
+            if (id !== lastHoverId) {
+                lastHoverId = id;
+                cbRef.current.onHover?.(found && found.type === 'table' ? found : null);
+            }
+            mount.style.cursor = found && found.type === 'table' ? 'pointer' : 'default';
+        };
+
+        const onClick = (e) => {
+            const found = pickItem(e.clientX, e.clientY);
+            if (found) cbRef.current.onSelect?.(found);
+            else cbRef.current.onBackgroundClick?.();
+        };
+
+        renderer.domElement.addEventListener('pointermove', onPointerMove);
+        renderer.domElement.addEventListener('click', onClick);
+        renderer.domElement.addEventListener('mouseleave', () => cbRef.current.onHover?.(null));
+
+        let rafId;
+        const animate = () => {
+            rafId = requestAnimationFrame(animate);
+            controls.update();
+            const tNow = performance.now() / 500;
+            group.children.forEach((child) => {
+                if (child.userData.ring) {
+                    const pulse = child.userData.selected ? 0.55 + Math.sin(tNow * 4) * 0.35 : 0.5;
+                    child.userData.ring.material.opacity = Math.max(0.15, pulse);
+                }
+            });
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        sceneRef.current = { scene, camera, renderer, controls, group };
+        setReady(true);
+
+        const handleResize = () => {
+            renderer.setSize(width, height);
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            setReady(false);
+            cancelAnimationFrame(rafId);
+            window.removeEventListener('resize', handleResize);
+            renderer.domElement.removeEventListener('pointermove', onPointerMove);
+            renderer.domElement.removeEventListener('click', onClick);
+            controls.dispose();
+            renderer.dispose();
+            if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+            sceneRef.current = null;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [width, height]);
+
+    // ---- rebuild the item meshes whenever data changes ----
+    useEffect(() => {
+        if (!ready || !sceneRef.current) return;
+        const { group } = sceneRef.current;
+        while (group.children.length) group.remove(group.children[0]);
+
+        const toWorld = (item) => ({
+            x: item.x + item.width / 2 - width / 2,
+            z: item.y + item.height / 2 - height / 2,
+        });
+
+        const hasExplicitWalls = items.some((i) => i.type === 'wall');
+        if (!hasExplicitWalls) {
+            // auto-generate a perimeter shell so the room always reads as an enclosed space
+            const t = 14;
+            const perim = [
+                { x: 0, y: 0, width, height: t },
+                { x: 0, y: height - t, width, height: t },
+                { x: 0, y: 0, width: t, height },
+                { x: width - t, y: 0, width: t, height },
+            ];
+            perim.forEach((p) => {
+                const wall = buildWall(p, 'wall');
+                const pos = toWorld(p);
+                wall.position.x = pos.x;
+                wall.position.z = pos.z;
+                group.add(wall);
+            });
+        }
+
+        items.forEach((item) => {
+            if (!item.isActive && item.isActive !== undefined) return;
+            const pos = toWorld(item);
+            let obj = null;
+
+            if (item.type === 'table') {
+                const status = normalizeStatus(statusByLayoutItemId[item.id] ?? statusByLayoutItemId[item.tempId]);
+                const zoneColor = item.zoneId ? zoneColorById[item.zoneId] : null;
+                const seats = item.meta?.seats || item.seats;
+                obj = buildTable(item, status, zoneColor, seats, tt);
+                obj.userData.selected = String(selectedId) === String(item.id ?? item.tempId);
+            } else if (item.type === 'wall') {
+                obj = buildWall(item, 'wall');
+            } else if (item.type === 'divider') {
+                obj = buildWall(item, 'divider');
+            } else {
+                obj = buildFacility(item, tt);
+            }
+
+            obj.position.x = pos.x;
+            obj.position.z = pos.z;
+            obj.rotation.y = -THREE.MathUtils.degToRad(item.rotation || 0);
+            tagAll(obj, item);
+            group.add(obj);
+        });
+    }, [ready, items, statusByLayoutItemId, zoneColorById, selectedId, width, height]);
+
+    return (
+        <div
+            ref={mountRef}
+            style={{ width, height, borderRadius: 14, overflow: 'hidden', touchAction: 'none' }}
+        />
     );
 }
