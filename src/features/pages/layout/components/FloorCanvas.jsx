@@ -92,6 +92,36 @@ function makeLabelSprite(text, { fontSize = 34, color = '#ffffff', bg = 'rgba(15
     return sprite;
 }
 
+// bakes a subtle tile pattern into a texture sized exactly to the floor plane
+// so it can never visually spill past the walls (unlike a separate grid mesh)
+function makeFloorTexture(width, height, tile = 42) {
+    const canvas = document.createElement('canvas');
+    const scale = 2; // crisper tiles
+    canvas.width = Math.max(2, Math.round(width * scale));
+    canvas.height = Math.max(2, Math.round(height * scale));
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#e7ddc7';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(150,135,100,0.35)';
+    ctx.lineWidth = 1;
+    const step = tile * scale;
+    for (let x = 0; x <= canvas.width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y <= canvas.height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.anisotropy = 4;
+    return texture;
+}
+
 function tagAll(object3d, item) {
     object3d.traverse((child) => {
         if (child.isMesh) child.userData.itemRef = item;
@@ -183,16 +213,19 @@ function buildTable(item, status, zoneColor, seats, t) {
     return group;
 }
 
-function buildWall(item, kind) {
+function buildWall(item, kind, opacity = 1) {
     const height = kind === 'divider' ? DIVIDER_HEIGHT : WALL_HEIGHT;
     const geo = new THREE.BoxGeometry(item.width, height, Math.max(item.height, 10));
     const mat = new THREE.MeshStandardMaterial({
         color: kind === 'divider' ? 0x3a3228 : 0x4a3c28,
         roughness: 0.85,
+        transparent: opacity < 1,
+        opacity,
+        depthWrite: opacity >= 1,
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.y = height / 2;
-    mesh.castShadow = true;
+    mesh.castShadow = opacity >= 1;
     mesh.receiveShadow = true;
     return mesh;
 }
@@ -257,14 +290,16 @@ export default function FloorCanvas3D({
         const camera = new THREE.OrthographicCamera(
             (-viewSize * aspect) / 2, (viewSize * aspect) / 2, viewSize / 2, -viewSize / 2, -2000, 4000
         );
-        camera.position.set(620, 620, 620);
+        // flatter, closer-to-overhead angle (~32° from vertical) so the floor
+        // reads as a level rectangle instead of a strongly skewed diamond
+        camera.position.set(366, 763, 307);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
         mount.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -272,8 +307,8 @@ export default function FloorCanvas3D({
         controls.enableRotate = true;
         controls.minZoom = 0.6;
         controls.maxZoom = 2.4;
-        controls.minPolarAngle = Math.PI / 5;
-        controls.maxPolarAngle = Math.PI / 2.15;
+        controls.minPolarAngle = Math.PI / 6;
+        controls.maxPolarAngle = Math.PI / 2.6;
         controls.target.set(0, 0, 0);
         controls.update();
 
@@ -290,16 +325,14 @@ export default function FloorCanvas3D({
         scene.add(dir);
 
         const floorGeo = new THREE.PlaneGeometry(width, height, 1, 1);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0xe4dcc8, roughness: 0.92 });
+        const floorMat = new THREE.MeshStandardMaterial({
+            map: makeFloorTexture(width, height),
+            roughness: 0.92,
+        });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
         scene.add(floor);
-
-        // subtle floor grid overlay for a tiled look
-        const grid = new THREE.GridHelper(Math.max(width, height), Math.max(width, height) / 30, 0xcbbfa0, 0xd8cdb2);
-        grid.position.y = 0.5;
-        scene.add(grid);
 
         const group = new THREE.Group();
         scene.add(group);
@@ -388,16 +421,19 @@ export default function FloorCanvas3D({
 
         const hasExplicitWalls = items.some((i) => i.type === 'wall');
         if (!hasExplicitWalls) {
-            // auto-generate a perimeter shell so the room always reads as an enclosed space
+            // All 4 perimeter walls. The two facing the camera are kept
+            // semi-transparent so they read as "there" without blocking the
+            // view into the room (a fully-opaque box would hide everything
+            // behind the near walls from this angle).
             const t = 14;
             const perim = [
-                { x: 0, y: 0, width, height: t },
-                { x: 0, y: height - t, width, height: t },
-                { x: 0, y: 0, width: t, height },
-                { x: width - t, y: 0, width: t, height },
+                { x: 0, y: 0, width, height: t, opacity: 1 }, // back wall
+                { x: 0, y: 0, width: t, height, opacity: 1 }, // left wall
+                { x: 0, y: height - t, width, height: t, opacity: 0.22 }, // front wall (near camera)
+                { x: width - t, y: 0, width: t, height, opacity: 0.22 }, // right wall (near camera)
             ];
             perim.forEach((p) => {
-                const wall = buildWall(p, 'wall');
+                const wall = buildWall(p, 'wall', p.opacity);
                 const pos = toWorld(p);
                 wall.position.x = pos.x;
                 wall.position.z = pos.z;

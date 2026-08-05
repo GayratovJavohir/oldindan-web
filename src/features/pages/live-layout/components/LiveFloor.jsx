@@ -150,11 +150,21 @@ export default function LiveFloor() {
     const tableLookup = useMemo(() => {
         const byLayoutItem = {};
         const byNameFloor = {};
+        const duplicateNames = new Set();
         tables.forEach((tbl) => {
             if (tbl.layoutItemId != null) byLayoutItem[String(tbl.layoutItemId)] = tbl;
-            if (tbl.name) byNameFloor[nameFloorKey(tbl.floorId, tbl.name)] = tbl;
+            if (tbl.name) {
+                const key = nameFloorKey(tbl.floorId, tbl.name);
+                if (byNameFloor[key] && String(byNameFloor[key].id) !== String(tbl.id)) {
+                    duplicateNames.add(key);
+                }
+                byNameFloor[key] = tbl;
+            }
         });
-        return { byLayoutItem, byNameFloor };
+        if (duplicateNames.size) {
+            console.warn('[LiveFloor] Bir necha stol bir xil nomda (shu qavatda), nom bo\u2018yicha moslashtirish ishonchsiz:', [...duplicateNames]);
+        }
+        return { byLayoutItem, byNameFloor, duplicateNames };
     }, [tables]);
 
     const tableById = useMemo(() => {
@@ -166,10 +176,19 @@ export default function LiveFloor() {
     const enrichedItems = useMemo(() => items.map((item) => {
         if (item.type !== 'table') return item;
         let table = tableLookup.byLayoutItem[String(item.id)];
-        if (!table && item.name) {
-            table = tableLookup.byNameFloor[nameFloorKey(item.floorId, item.name)];
+        if (!table && item.meta?.table_id) {
+            table = tableById[String(item.meta.table_id)];
         }
-        if (!table) return item;
+        if (!table && item.name) {
+            const key = nameFloorKey(item.floorId, item.name);
+            if (!tableLookup.duplicateNames.has(key)) {
+                table = tableLookup.byNameFloor[key];
+            }
+        }
+        if (!table) {
+            console.warn('[LiveFloor] Layout element uchun stol topilmadi:', item.id, item.name);
+            return item;
+        }
         return {
             ...item,
             name: table.name || item.name,
@@ -177,7 +196,7 @@ export default function LiveFloor() {
             meta: { ...item.meta, seats: table.seats, table_id: table.id },
             tableId: table.id,
         };
-    }), [items, tableLookup]);
+    }), [items, tableLookup, tableById]);
 
     const statusByLayoutItemId = useMemo(() => {
         const map = {};
@@ -462,6 +481,7 @@ export default function LiveFloor() {
         }
 
         setSelectedBooking(booking);
+        setError(''); // eski xato xabarini tozalash
 
         if (occ?.is_occupied) {
             setShowBookingDetailsModal(true);
@@ -472,6 +492,9 @@ export default function LiveFloor() {
                 table: String(tableId),
             });
             setShowBookModal(true);
+        } else {
+            // Bron qilish huquqi yo'q, lekin baribir ma'lumotni ko'rsatamiz
+            setShowBookingDetailsModal(true);
         }
     };
 
