@@ -17,6 +17,31 @@ export const ZONE_COLORS = [
     '#8c1919', '#c45c26', '#2d6a4f', '#1d4e89', '#6a4c93', '#b08968', '#40916c', '#9a031e',
 ];
 
+// Item types that carry a real seat count on the backend (see backend
+// `LayoutItem.SEAT_TYPES` — table/booth/sofa). Every other type is always
+// persisted with `seats = 0` (the backend model enforces this in `clean()`).
+export const SEAT_ITEM_TYPES = ['table', 'booth', 'sofa'];
+
+// The backend stores `shape` as a 0-100 "border radius" percentage
+// (0 = square/rect corners, 50 = fully round) — it is a
+// `PositiveSmallIntegerField`, NOT the 'rect' / 'round' / 'icon' strings the
+// UI uses internally. Sending a string here is what caused the 400 error
+// ("A valid integer is required" / shape range validation). These two
+// helpers are the ONLY place that should translate between the two, so the
+// rest of the app (FloorCanvas, LayoutFloor inspector, palette defaults)
+// keeps using the readable string values without ever touching numbers.
+const SHAPE_API_RECT = 0;
+const SHAPE_API_ROUND = 50;
+
+function shapeToApiValue(shape) {
+    return shape === 'rect' ? SHAPE_API_RECT : SHAPE_API_ROUND;
+}
+
+function shapeFromApiValue(value) {
+    const n = Number(value);
+    return Number.isFinite(n) && n <= 25 ? 'rect' : 'round';
+}
+
 export function mapZoneFromApi(zone) {
     if (!zone) return null;
     return {
@@ -48,22 +73,29 @@ export function mapLayoutItemFromApi(item) {
     const floorId = item.floor_id ?? item.floor?.id ?? item.floor ?? null;
     const zoneId = item.zone_id ?? item.zone?.id ?? item.zone ?? null;
     const meta = item.meta && typeof item.meta === 'object' ? item.meta : {};
+    const type = item.type || 'decor';
     return {
         id: item.id,
         floorId,
         zoneId,
         zoneName: item.zone_name || item.zone?.name || '',
-        type: item.type || 'decor',
+        type,
         name: item.name || '',
         x: Number(item.x) || 0,
         y: Number(item.y) || 0,
         width: Number(item.width) || 80,
         height: Number(item.height) || 80,
         rotation: Number(item.rotation) || 0,
-        shape: item.shape || 'rect',
+        shape: shapeFromApiValue(item.shape),
         zIndex: item.z_index ?? 0,
+        // `seats` is a real column on the backend LayoutItem model (used for
+        // booking-capacity validation) — it must always come from
+        // `item.seats`, never only from the free-form `meta` blob.
+        seats: Number(item.seats) || 0,
+        hasSeats: item.has_seats !== undefined ? Boolean(item.has_seats) : SEAT_ITEM_TYPES.includes(type),
         meta,
         isActive: item.is_active !== false,
+        is_active: item.is_active !== false,
         raw: item,
     };
 }
@@ -135,17 +167,27 @@ export async function deletePartnerLayoutItem(id) {
 }
 
 export function buildLayoutItemPayload(item) {
+    const type = item.type;
+    const isSeatType = SEAT_ITEM_TYPES.includes(type);
+    // Backend requires seats >= 1 for table/booth/sofa and seats === 0 for
+    // everything else. Accept the seat count from either the top-level
+    // `seats` field (authoritative, comes from the API) or `meta.seats`
+    // (used by the floor-editor's local draft state before it is saved).
+    const rawSeats = item.seats ?? item.meta?.seats;
+    const seats = isSeatType ? Math.max(1, Math.round(Number(rawSeats) || 1)) : 0;
+
     const payload = {
         floor: Number(item.floorId ?? item.floor),
-        type: item.type,
+        type,
         name: item.name || '',
         x: Math.round(Number(item.x) || 0),
         y: Math.round(Number(item.y) || 0),
         width: Math.max(8, Math.round(Number(item.width) || 80)),
         height: Math.max(8, Math.round(Number(item.height) || 80)),
         rotation: Math.round(Number(item.rotation) || 0),
-        shape: item.shape || 'rect',
+        shape: shapeToApiValue(item.shape),
         z_index: Number(item.zIndex ?? item.z_index ?? 0),
+        seats,
         meta: item.meta || {},
         is_active: item.isActive !== false && item.is_active !== false,
     };

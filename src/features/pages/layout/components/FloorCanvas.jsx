@@ -219,13 +219,13 @@ function buildWall(item, kind, opacity = 1) {
     const mat = new THREE.MeshStandardMaterial({
         color: kind === 'divider' ? 0x3a3228 : 0x4a3c28,
         roughness: 0.85,
-        transparent: opacity < 1,
+        transparent: true,
         opacity,
         depthWrite: opacity >= 1,
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.y = height / 2;
-    mesh.castShadow = opacity >= 1;
+    mesh.castShadow = true;
     mesh.receiveShadow = true;
     return mesh;
 }
@@ -290,9 +290,8 @@ export default function FloorCanvas3D({
         const camera = new THREE.OrthographicCamera(
             (-viewSize * aspect) / 2, (viewSize * aspect) / 2, viewSize / 2, -viewSize / 2, -2000, 4000
         );
-        // flatter, closer-to-overhead angle (~32° from vertical) so the floor
-        // reads as a level rectangle instead of a strongly skewed diamond
-        camera.position.set(366, 763, 307);
+        // flatter, closer-to-overhead angle (~26° from vertical)
+        camera.position.set(302, 809, 254);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -307,8 +306,8 @@ export default function FloorCanvas3D({
         controls.enableRotate = true;
         controls.minZoom = 0.6;
         controls.maxZoom = 2.4;
-        controls.minPolarAngle = Math.PI / 6;
-        controls.maxPolarAngle = Math.PI / 2.6;
+        controls.minPolarAngle = Math.PI / 7;
+        controls.maxPolarAngle = Math.PI / 2.7;
         controls.target.set(0, 0, 0);
         controls.update();
 
@@ -372,14 +371,28 @@ export default function FloorCanvas3D({
         renderer.domElement.addEventListener('mouseleave', () => cbRef.current.onHover?.(null));
 
         let rafId;
+        const NEAR_OPACITY = 0.2;
         const animate = () => {
             rafId = requestAnimationFrame(animate);
             controls.update();
             const tNow = performance.now() / 500;
+
+            // which side is "near" the camera right now (updates as the user rotates)
+            const nearXSide = camera.position.x >= 0 ? 'right' : 'left';
+            const nearZSide = camera.position.z >= 0 ? 'front' : 'back';
+
             group.children.forEach((child) => {
                 if (child.userData.ring) {
                     const pulse = child.userData.selected ? 0.55 + Math.sin(tNow * 4) * 0.35 : 0.5;
                     child.userData.ring.material.opacity = Math.max(0.15, pulse);
+                }
+                if (child.userData.autoWallSide) {
+                    const isNear = child.userData.autoWallSide === nearXSide || child.userData.autoWallSide === nearZSide;
+                    const targetOpacity = isNear ? NEAR_OPACITY : 1;
+                    // smooth fade instead of an abrupt pop when rotating past the threshold
+                    child.material.opacity += (targetOpacity - child.material.opacity) * 0.12;
+                    child.material.depthWrite = child.material.opacity > 0.9;
+                    child.castShadow = child.material.opacity > 0.9;
                 }
             });
             renderer.render(scene, camera);
@@ -421,19 +434,20 @@ export default function FloorCanvas3D({
 
         const hasExplicitWalls = items.some((i) => i.type === 'wall');
         if (!hasExplicitWalls) {
-            // All 4 perimeter walls. The two facing the camera are kept
-            // semi-transparent so they read as "there" without blocking the
-            // view into the room (a fully-opaque box would hide everything
-            // behind the near walls from this angle).
+            // All 4 perimeter walls always exist. Which two are transparent is
+            // decided every frame based on the camera's current direction (see
+            // the animate() loop), so rotating the view keeps the near walls
+            // see-through no matter which side the camera ends up facing.
             const t = 14;
             const perim = [
-                { x: 0, y: 0, width, height: t, opacity: 1 }, // back wall
-                { x: 0, y: 0, width: t, height, opacity: 1 }, // left wall
-                { x: 0, y: height - t, width, height: t, opacity: 0.22 }, // front wall (near camera)
-                { x: width - t, y: 0, width: t, height, opacity: 0.22 }, // right wall (near camera)
+                { x: 0, y: 0, width, height: t, side: 'back' },
+                { x: 0, y: 0, width: t, height, side: 'left' },
+                { x: 0, y: height - t, width, height: t, side: 'front' },
+                { x: width - t, y: 0, width: t, height, side: 'right' },
             ];
             perim.forEach((p) => {
-                const wall = buildWall(p, 'wall', p.opacity);
+                const wall = buildWall(p, 'wall', 1);
+                wall.userData.autoWallSide = p.side;
                 const pos = toWorld(p);
                 wall.position.x = pos.x;
                 wall.position.z = pos.z;

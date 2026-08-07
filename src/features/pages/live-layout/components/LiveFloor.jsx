@@ -152,7 +152,11 @@ export default function LiveFloor() {
         const byNameFloor = {};
         const duplicateNames = new Set();
         tables.forEach((tbl) => {
-            if (tbl.layoutItemId != null) byLayoutItem[String(tbl.layoutItemId)] = tbl;
+            if (tbl.layoutItemId != null) {
+                // floorId bilan birga — boshqa qavatdagi bir xil ID hech qachon ustidan yozib yubormaydi
+                const compositeKey = `${tbl.floorId ?? ''}::${tbl.layoutItemId}`;
+                byLayoutItem[compositeKey] = tbl;
+            }
             if (tbl.name) {
                 const key = nameFloorKey(tbl.floorId, tbl.name);
                 if (byNameFloor[key] && String(byNameFloor[key].id) !== String(tbl.id)) {
@@ -162,7 +166,7 @@ export default function LiveFloor() {
             }
         });
         if (duplicateNames.size) {
-            console.warn('[LiveFloor] Bir necha stol bir xil nomda (shu qavatda), nom bo\u2018yicha moslashtirish ishonchsiz:', [...duplicateNames]);
+            console.warn('[LiveFloor] Bir necha stol bir xil nomda (shu qavatda):', [...duplicateNames]);
         }
         return { byLayoutItem, byNameFloor, duplicateNames };
     }, [tables]);
@@ -175,7 +179,8 @@ export default function LiveFloor() {
 
     const enrichedItems = useMemo(() => items.map((item) => {
         if (item.type !== 'table') return item;
-        let table = tableLookup.byLayoutItem[String(item.id)];
+        const compositeKey = `${item.floorId ?? ''}::${item.id}`;
+        let table = tableLookup.byLayoutItem[compositeKey];
         if (!table && item.meta?.table_id) {
             table = tableById[String(item.meta.table_id)];
         }

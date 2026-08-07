@@ -21,12 +21,6 @@ import {
     patchPartnerFloor,
     patchPartnerLayoutItem,
 } from '../../../../services/layouts.services';
-import {
-    createPartnerTable,
-    deletePartnerTable,
-    loadTablesForBranch,
-    patchPartnerTable,
-} from '../../../../services/tables.services';
 import { getApiError } from '../../../../utils/apiHelpers';
 import { getStoredUser } from '../../../../utils/authUser';
 
@@ -129,7 +123,6 @@ export default function LayoutFloor() {
     const [floors, setFloors] = useState([]);
     const [floorId, setFloorId] = useState('');
     const [items, setItems] = useState([]);
-    const [tables, setTables] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -179,28 +172,19 @@ export default function LayoutFloor() {
         [items, selectedId]
     );
 
-    const tableByLayoutItem = useMemo(() => {
-        const map = {};
-        tables.forEach((t2) => {
-            if (t2.layoutItemId) map[String(t2.layoutItemId)] = t2;
-        });
-        return map;
-    }, [tables]);
-
+    // `seats` lives directly on the LayoutItem now (a real backend field),
+    // so tables no longer need to be looked up against a separate list —
+    // this just makes sure the editor's `meta.seats` (used by the inspector
+    // input) always mirrors the authoritative value coming from the API.
     const enrichedItems = useMemo(() => items.map((item) => {
         if (item.type !== 'table') return item;
-        const table = tableByLayoutItem[String(item.id)];
+        const seats = item.meta?.seats ?? item.seats ?? 4;
         return {
             ...item,
-            name: item.name || table?.name || '',
-            seats: table?.seats ?? item.meta?.seats,
-            meta: {
-                ...item.meta,
-                seats: table?.seats ?? item.meta?.seats,
-                table_id: table?.id ?? item.meta?.table_id,
-            },
+            seats,
+            meta: { ...item.meta, seats },
         };
-    }), [items, tableByLayoutItem]);
+    }), [items]);
 
     const visibleItems = useMemo(() => {
         if (zoneFilter === ALL_ZONES) return enrichedItems;
@@ -224,17 +208,15 @@ export default function LayoutFloor() {
             setFloors([]);
             setFloorId('');
             setItems([]);
-            setTables([]);
             return;
         }
 
         setLoading(true);
         setError('');
         try {
-            const [floorList, layoutItems, tableList] = await Promise.all([
+            const [floorList, layoutItems] = await Promise.all([
                 getPartnerFloors(),
                 getPartnerLayoutItems({ branch_id: nextBranchId }),
-                loadTablesForBranch(nextBranchId),
             ]);
 
             const branchFloors = floorList
@@ -242,7 +224,6 @@ export default function LayoutFloor() {
                 .sort((a, b) => a.sortOrder - b.sortOrder);
 
             setFloors(branchFloors);
-            setTables(tableList);
 
             const nextFloorId = preferredFloorId
                 && branchFloors.some((f) => String(f.id) === String(preferredFloorId))
@@ -313,15 +294,8 @@ export default function LayoutFloor() {
             setItems([]);
             return;
         }
-        const [layoutItems, tableList] = await Promise.all([
-            getPartnerLayoutItems({ branch_id: branchId, floor_id: nextFloorId }),
-            loadTablesForBranch(branchId, nextFloorId),
-        ]);
+        const layoutItems = await getPartnerLayoutItems({ branch_id: branchId, floor_id: nextFloorId });
         setItems(layoutItems);
-        setTables((prev) => {
-            const others = prev.filter((t2) => String(t2.floorId) !== String(nextFloorId));
-            return [...others, ...tableList];
-        });
     };
 
     const handleBranchChange = async (value) => {
@@ -497,6 +471,7 @@ export default function LayoutFloor() {
             rotation: 0,
             shape: isTable ? tableDraft.shape : defaults.defaultShape,
             zIndex: isTable ? 10 : 1,
+            seats: isTable ? (Number(tableDraft.seats) || 4) : 0,
             meta: isTable ? { seats: Number(tableDraft.seats) || 4 } : {},
             isActive: true,
             dirty: true,
@@ -524,6 +499,13 @@ export default function LayoutFloor() {
         }));
     };
 
+    /**
+     * Saves every dirty/new item as a plain LayoutItem. `seats` (for tables)
+     * travels as a real top-level field via `buildLayoutItemPayload` — there
+     * is no separate "table" record to create/patch/delete on the backend
+     * (it doesn't exist), so this is now a single API call per item instead
+     * of two.
+     */
     const saveSelectedOrAll = async () => {
         if (!floorId) return;
         const dirty = items.filter((item) => item.dirty || item.isNew);
@@ -542,33 +524,9 @@ export default function LayoutFloor() {
                 });
 
                 if (item.isNew || !item.id) {
-                    const created = await createPartnerLayoutItem(payload);
-                    if (created.type === 'table') {
-                        const seats = Number(item.meta?.seats || tableDraft.seats || 4);
-                        const tableName = item.name?.trim() || `Table ${created.id}`;
-                        const tablePayload = {
-                            branch: Number(branchId),
-                            floor: Number(floorId),
-                            layout_item: created.id,
-                            name: tableName,
-                            seats,
-                            is_active: true,
-                        };
-                        if (item.zoneId) tablePayload.zone = Number(item.zoneId);
-                        await createPartnerTable(tablePayload);
-                    }
+                    await createPartnerLayoutItem(payload);
                 } else {
                     await patchPartnerLayoutItem(item.id, payload);
-                    const linked = tableByLayoutItem[String(item.id)];
-                    if (item.type === 'table' && linked) {
-                        const tablePatch = {
-                            name: item.name?.trim() || linked.name,
-                            seats: Number(item.meta?.seats || linked.seats || 2),
-                        };
-                        if (item.zoneId) tablePatch.zone = Number(item.zoneId);
-                        else tablePatch.zone = null;
-                        await patchPartnerTable(linked.id, tablePatch);
-                    }
                 }
             }
 
@@ -599,14 +557,6 @@ export default function LayoutFloor() {
                 setError('');
                 try {
                     if (selectedItem.id) {
-                        const linked = tableByLayoutItem[String(selectedItem.id)];
-                        if (linked) {
-                            try {
-                                await deletePartnerTable(linked.id);
-                            } catch {
-                                // table may cascade with layout item
-                            }
-                        }
                         await deletePartnerLayoutItem(selectedItem.id);
                     }
                     setItems((prev) => prev.filter((item) => {
@@ -910,6 +860,7 @@ export default function LayoutFloor() {
                                             const seats = Number(e.target.value) || 2;
                                             const size = tableSizeForSeats(seats, selectedItem.shape);
                                             updateSelectedLocal({
+                                                seats,
                                                 meta: { ...selectedItem.meta, seats },
                                                 width: size.width,
                                                 height: size.height,
