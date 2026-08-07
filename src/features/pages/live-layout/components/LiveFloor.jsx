@@ -78,9 +78,7 @@ function statusKey(status) {
     return 'available';
 }
 
-function nameFloorKey(floorId, name) {
-    return `${floorId ?? ''}::${String(name || '').trim().toLowerCase()}`;
-}
+
 
 export default function LiveFloor() {
     const { t } = useTranslation();
@@ -143,33 +141,7 @@ export default function LiveFloor() {
         return map;
     }, [zones]);
 
-    // Resolve layout-item -> table two ways: by the reliable layout_item link,
-    // and (as a fallback) by matching name within the same floor. Some tables
-    // created without a fully-propagated back-link would otherwise silently
-    // lose their tooltip/click behaviour once added to the floor.
-    const tableLookup = useMemo(() => {
-        const byLayoutItem = {};
-        const byNameFloor = {};
-        const duplicateNames = new Set();
-        tables.forEach((tbl) => {
-            if (tbl.layoutItemId != null) {
-                // floorId bilan birga — boshqa qavatdagi bir xil ID hech qachon ustidan yozib yubormaydi
-                const compositeKey = `${tbl.floorId ?? ''}::${tbl.layoutItemId}`;
-                byLayoutItem[compositeKey] = tbl;
-            }
-            if (tbl.name) {
-                const key = nameFloorKey(tbl.floorId, tbl.name);
-                if (byNameFloor[key] && String(byNameFloor[key].id) !== String(tbl.id)) {
-                    duplicateNames.add(key);
-                }
-                byNameFloor[key] = tbl;
-            }
-        });
-        if (duplicateNames.size) {
-            console.warn('[LiveFloor] Bir necha stol bir xil nomda (shu qavatda):', [...duplicateNames]);
-        }
-        return { byLayoutItem, byNameFloor, duplicateNames };
-    }, [tables]);
+
 
     const tableById = useMemo(() => {
         const map = {};
@@ -179,29 +151,16 @@ export default function LiveFloor() {
 
     const enrichedItems = useMemo(() => items.map((item) => {
         if (item.type !== 'table') return item;
-        const compositeKey = `${item.floorId ?? ''}::${item.id}`;
-        let table = tableLookup.byLayoutItem[compositeKey];
-        if (!table && item.meta?.table_id) {
-            table = tableById[String(item.meta.table_id)];
-        }
-        if (!table && item.name) {
-            const key = nameFloorKey(item.floorId, item.name);
-            if (!tableLookup.duplicateNames.has(key)) {
-                table = tableLookup.byNameFloor[key];
-            }
-        }
-        if (!table) {
-            console.warn('[LiveFloor] Layout element uchun stol topilmadi:', item.id, item.name);
-            return item;
-        }
+        const table = tableById[String(item.id)] || null;
+        const seats = item.seats || table?.seats || item.meta?.seats || 0;
         return {
             ...item,
-            name: table.name || item.name,
-            seats: table.seats,
-            meta: { ...item.meta, seats: table.seats, table_id: table.id },
-            tableId: table.id,
+            name: item.name || table?.name || '',
+            seats,
+            meta: { ...item.meta, seats, table_id: item.id },
+            tableId: item.id,
         };
-    }), [items, tableLookup, tableById]);
+    }), [items, tableById]);
 
     const statusByLayoutItemId = useMemo(() => {
         const map = {};
@@ -210,8 +169,7 @@ export default function LiveFloor() {
                 map[item.id] = 'facility';
                 return;
             }
-            const tableId = item.tableId || item.meta?.table_id;
-            const occ = tableId ? occupancy[String(tableId)] : null;
+            const occ = occupancy[String(item.id)];
             if (!occ?.is_occupied) {
                 map[item.id] = 'available';
                 return;
@@ -462,15 +420,7 @@ export default function LiveFloor() {
             setSelectedBooking(null);
             return;
         }
-        const tableId = item.tableId
-            || item.meta?.table_id
-            || tableLookup.byLayoutItem[String(item.id)]?.id
-            || tableLookup.byNameFloor[nameFloorKey(item.floorId, item.name)]?.id;
-        if (!tableId) {
-            setError(t('layout.tableLinkMissing', 'Bu stol uchun ma\u2018lumot topilmadi, sahifani yangilab ko\u2018ring.'));
-            return;
-        }
-
+        const tableId = item.tableId || item.id; // stol = layout element
         setSelectedTableId(tableId);
         let booking = bookingByTableId[String(tableId)] || null;
 
@@ -486,7 +436,7 @@ export default function LiveFloor() {
         }
 
         setSelectedBooking(booking);
-        setError(''); // eski xato xabarini tozalash
+        setError('');
 
         if (occ?.is_occupied) {
             setShowBookingDetailsModal(true);
@@ -498,7 +448,6 @@ export default function LiveFloor() {
             });
             setShowBookModal(true);
         } else {
-            // Bron qilish huquqi yo'q, lekin baribir ma'lumotni ko'rsatamiz
             setShowBookingDetailsModal(true);
         }
     };
@@ -698,6 +647,15 @@ export default function LiveFloor() {
                     loading={actionLoading}
                     onClose={() => setShowBookingDetailsModal(false)}
                     onAction={handleBookingAction}
+                    onCreateBooking={() => {
+                        setShowBookingDetailsModal(false);
+                        setBookDefaults({
+                            floor: String(floorId),
+                            zone: selectedTable?.zoneId ? String(selectedTable.zoneId) : '',
+                            table: String(selectedTableId),
+                        });
+                        setShowBookModal(true);
+                    }}
                 />
             )}
         </div>
