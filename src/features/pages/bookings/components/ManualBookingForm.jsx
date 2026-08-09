@@ -235,25 +235,28 @@ export default function ManualBookingForm({ onClose, onSuccess, submitLabel, ini
         setSaving(true);
         setErrorMessage('');
         try {
+            const guestLabel = `${form.first_name.trim()} ${form.last_name.trim()}`.trim();
+            // Backendda mehmon ismi/telefoni uchun alohida maydon yo'q (Booking.user
+            // doim ro'yxatdan o'tgan foydalanuvchiga bog'lanadi) — vaqtincha special_request
+            // ichiga yozib qo'yamiz, shunda xodim ko'ra oladi. To'g'ri yechim uchun
+            // backendga Booking.guest_name / guest_phone maydonlarini qo'shish kerak.
+            const guestNote = `Guest: ${guestLabel} (${form.phone.trim()})`;
+            const combinedRequest = form.special_request
+                ? `${guestNote}\n${form.special_request}`
+                : guestNote;
+
             const payload = {
                 branch: Number(form.branch),
-                branch_id: Number(form.branch),
                 floor: Number(form.floor),
-                floor_id: Number(form.floor),
-                table: Number(form.table),
-                table_id: Number(form.table),
-                first_name: form.first_name.trim(),
-                last_name: form.last_name.trim(),
-                phone: form.phone.trim(),
+                layout_item: Number(form.table), // backend "table" emas, "layout_item" kutadi
                 guest_count: Number(form.guest_count),
                 children_count: Number(form.children_count || 0),
                 booking_start: toApiDateTime(form.booking_start),
                 booking_end: toApiDateTime(form.booking_end),
-                special_request: form.special_request || '',
+                special_request: combinedRequest,
             };
             if (form.zone) {
                 payload.zone = Number(form.zone);
-                payload.zone_id = Number(form.zone);
             }
 
             await createManualBooking(payload);

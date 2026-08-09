@@ -3,16 +3,17 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 /*
- * FloorCanvas3D
- * -------------
- * A real 3D (WebGL / Three.js) isometric restaurant floor-plan renderer.
- * Drop-in replacement for the 2D <FloorCanvas /> (react-konva) used in the
- * *live view* only — the drag/resize editor keeps using the original
- * FloorCanvas.jsx.
+ * FloorCanvas (3D / Three.js)
+ * ---------------------------
+ * Used in TWO places:
+ *   - LiveFloor.jsx   -> editable=false: click a table to select/hover it.
+ *   - LayoutFloor.jsx -> editable=true : click+drag any item to reposition it
+ *                        (calls onItemChange(item, {x, y}) on release, same
+ *                        contract the old Konva editor used).
  *
- * Same prop contract as FloorCanvas.jsx:
- *   width, height, items, selectedId, statusByLayoutItemId,
- *   zoneColorById, onSelect, onHover, onBackgroundClick
+ * Props: width, height, scale, items, selectedId, editable,
+ *        statusByLayoutItemId, zoneColorById, onSelect, onHover,
+ *        onBackgroundClick, onItemChange
  *
  * Requires: `npm install three`
  */
@@ -32,12 +33,12 @@ const STATUS_COLOR = {
 };
 
 const FACILITY_STYLE = {
-    entrance: { color: 0x4ade80, icon: '⭬', label: 'IN' },
-    exit: { color: 0xe85d5d, icon: '⭭', label: 'OUT' },
-    wc: { color: 0x60a5fa, icon: '🚻', label: 'WC' },
-    cashier: { color: 0xf5a623, icon: '💳', label: 'CASHIER' },
-    kids_area: { color: 0xf472b6, icon: '🧸', label: 'KIDS' },
-    decor: { color: 0x2dd4bf, icon: '🌿', label: '' },
+    entrance: { color: 0x4ade80, label: 'IN' },
+    exit: { color: 0xe85d5d, label: 'OUT' },
+    wc: { color: 0x60a5fa, label: 'WC' },
+    cashier: { color: 0xf5a623, label: 'CASHIER' },
+    kids_area: { color: 0xf472b6, label: 'KIDS' },
+    decor: { color: 0x2dd4bf, label: '' },
 };
 
 const WALL_HEIGHT = 130;
@@ -47,6 +48,10 @@ const TABLE_HEIGHT = 42;
 function normalizeStatus(status) {
     const raw = String(status || 'available').toLowerCase().replace(/-/g, '_').replace(/\s+/g, '_');
     return raw === 'checkedin' ? 'checked_in' : raw;
+}
+
+function itemKey(item) {
+    return String(item?.id ?? item?.tempId ?? '');
 }
 
 // draws text onto a canvas and returns a THREE.Sprite
@@ -93,10 +98,9 @@ function makeLabelSprite(text, { fontSize = 34, color = '#ffffff', bg = 'rgba(15
 }
 
 // bakes a subtle tile pattern into a texture sized exactly to the floor plane
-// so it can never visually spill past the walls (unlike a separate grid mesh)
 function makeFloorTexture(width, height, tile = 42) {
     const canvas = document.createElement('canvas');
-    const scale = 2; // crisper tiles
+    const scale = 2;
     canvas.width = Math.max(2, Math.round(width * scale));
     canvas.height = Math.max(2, Math.round(height * scale));
     const ctx = canvas.getContext('2d');
@@ -130,7 +134,7 @@ function tagAll(object3d, item) {
     return object3d;
 }
 
-function buildTable(item, status, zoneColor, seats, t) {
+function buildTable(item, status, zoneColor, seats, t, selected) {
     const group = new THREE.Group();
     const isRound = item.shape === 'round' || item.shape !== 'rect';
     const w = item.width;
@@ -138,7 +142,6 @@ function buildTable(item, status, zoneColor, seats, t) {
     const radius = Math.min(w, h) / 2;
     const statusColor = STATUS_COLOR[status] ?? STATUS_COLOR.facility;
 
-    // pedestal leg
     const legGeo = isRound
         ? new THREE.CylinderGeometry(radius * 0.14, radius * 0.18, TABLE_HEIGHT * 0.8, 16)
         : new THREE.BoxGeometry(radius * 0.24, TABLE_HEIGHT * 0.8, radius * 0.24);
@@ -148,7 +151,6 @@ function buildTable(item, status, zoneColor, seats, t) {
     leg.castShadow = true;
     group.add(leg);
 
-    // tabletop
     const topGeo = isRound
         ? new THREE.CylinderGeometry(radius, radius, TABLE_HEIGHT * 0.16, 32)
         : new THREE.BoxGeometry(w * 0.94, TABLE_HEIGHT * 0.16, h * 0.94);
@@ -159,10 +161,9 @@ function buildTable(item, status, zoneColor, seats, t) {
     top.receiveShadow = true;
     group.add(top);
 
-    // status glow ring on the floor beneath the table
     const ringGeo = new THREE.RingGeometry(radius * 1.05, radius * 1.35, 40);
     const ringMat = new THREE.MeshBasicMaterial({
-        color: statusColor,
+        color: selected ? 0xffffff : statusColor,
         transparent: true,
         opacity: 0.55,
         side: THREE.DoubleSide,
@@ -173,7 +174,6 @@ function buildTable(item, status, zoneColor, seats, t) {
     group.add(ring);
     group.userData.ring = ring;
 
-    // zone accent (thin colored rim under the tabletop edge)
     if (zoneColor) {
         const rimGeo = isRound
             ? new THREE.TorusGeometry(radius * 0.98, 2.2, 8, 32)
@@ -185,7 +185,6 @@ function buildTable(item, status, zoneColor, seats, t) {
         group.add(rim);
     }
 
-    // chairs around the table
     const seatCount = Math.max(2, Math.min(8, Number(seats) || 4));
     const chairDist = radius + 20;
     for (let i = 0; i < seatCount; i += 1) {
@@ -204,7 +203,6 @@ function buildTable(item, status, zoneColor, seats, t) {
         group.add(chair);
     }
 
-    // label sprite
     const seatLabel = seats ? `${item.name || t('table')}\n${seats} ${t('seats')}` : (item.name || t('table'));
     const label = makeLabelSprite(seatLabel, { fontSize: 30 });
     label.position.y = TABLE_HEIGHT + 46;
@@ -213,11 +211,11 @@ function buildTable(item, status, zoneColor, seats, t) {
     return group;
 }
 
-function buildWall(item, kind, opacity = 1) {
+function buildWall(item, kind, opacity = 1, selected = false) {
     const height = kind === 'divider' ? DIVIDER_HEIGHT : WALL_HEIGHT;
     const geo = new THREE.BoxGeometry(item.width, height, Math.max(item.height, 10));
     const mat = new THREE.MeshStandardMaterial({
-        color: kind === 'divider' ? 0x3a3228 : 0x4a3c28,
+        color: selected ? 0x8c5a2a : (kind === 'divider' ? 0x3a3228 : 0x4a3c28),
         roughness: 0.85,
         transparent: true,
         opacity,
@@ -230,11 +228,16 @@ function buildWall(item, kind, opacity = 1) {
     return mesh;
 }
 
-function buildFacility(item, t) {
+function buildFacility(item, t, selected) {
     const style = FACILITY_STYLE[item.type] || { color: 0x555555, label: item.type?.slice(0, 3).toUpperCase() || '' };
     const group = new THREE.Group();
     const geo = new THREE.BoxGeometry(item.width * 0.9, 26, item.height * 0.9);
-    const mat = new THREE.MeshStandardMaterial({ color: style.color, roughness: 0.6, transparent: true, opacity: 0.85 });
+    const mat = new THREE.MeshStandardMaterial({
+        color: selected ? 0xffffff : style.color,
+        roughness: 0.6,
+        transparent: true,
+        opacity: 0.85,
+    });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.y = 13;
     mesh.castShadow = true;
@@ -250,26 +253,29 @@ function buildFacility(item, t) {
     return group;
 }
 
-export default function FloorCanvas3D({
+export default function FloorCanvas({
     width = 900,
     height = 560,
+    scale = 1,
     items = [],
     selectedId = null,
+    editable = false,
     statusByLayoutItemId = {},
     zoneColorById = {},
     onSelect,
     onHover,
     onBackgroundClick,
-    // eslint-disable-next-line no-unused-vars
-    editable = false, // kept only for prop-compat with the 2D editor variant
+    onItemChange,
 }) {
     const mountRef = useRef(null);
     const sceneRef = useRef(null);
     const [ready, setReady] = useState(false);
 
-    // keep the latest callbacks in refs so the render-loop closures never go stale
-    const cbRef = useRef({ onSelect, onHover, onBackgroundClick });
-    cbRef.current = { onSelect, onHover, onBackgroundClick };
+    // refs so the render-loop / event closures never see stale props
+    const cbRef = useRef({ onSelect, onHover, onBackgroundClick, onItemChange });
+    cbRef.current = { onSelect, onHover, onBackgroundClick, onItemChange };
+    const editableRef = useRef(editable);
+    editableRef.current = editable;
 
     const tt = (key) => {
         const dict = { table: 'Table', seats: 'seats', wc: 'WC', cashier: 'Cashier', kids: 'Kids area' };
@@ -290,12 +296,14 @@ export default function FloorCanvas3D({
         const camera = new THREE.OrthographicCamera(
             (-viewSize * aspect) / 2, (viewSize * aspect) / 2, viewSize / 2, -viewSize / 2, -2000, 4000
         );
-        // flatter, closer-to-overhead angle (~26° from vertical)
         camera.position.set(302, 809, 254);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
+        // `scale` changes the OUTPUT resolution only — the orthographic frustum
+        // above is computed from the unscaled width/height, so the same world
+        // stays in view, just rendered bigger/smaller to match the container.
+        renderer.setSize(width * scale, height * scale);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -338,37 +346,128 @@ export default function FloorCanvas3D({
 
         const raycaster = new THREE.Raycaster();
         const pointer = new THREE.Vector2();
+        const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         let lastHoverId = null;
 
-        const pickItem = (clientX, clientY) => {
+        const setPointerFromEvent = (clientX, clientY) => {
             const rect = renderer.domElement.getBoundingClientRect();
             pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
             pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+        };
+
+        const pickItem = (clientX, clientY) => {
+            setPointerFromEvent(clientX, clientY);
             raycaster.setFromCamera(pointer, camera);
             const hits = raycaster.intersectObjects(group.children, true);
             const hit = hits.find((h) => h.object.userData?.itemRef);
             return hit ? hit.object.userData.itemRef : null;
         };
 
-        const onPointerMove = (e) => {
+        const floorHit = (clientX, clientY) => {
+            setPointerFromEvent(clientX, clientY);
+            raycaster.setFromCamera(pointer, camera);
+            const out = new THREE.Vector3();
+            const hit = raycaster.ray.intersectPlane(floorPlane, out);
+            return hit ? out : null;
+        };
+
+        // ---------------- drag-to-move (editable mode only) ----------------
+        const drag = {
+            active: false,
+            moved: false,
+            item: null,
+            mesh: null,
+            offsetX: 0,
+            offsetZ: 0,
+            startClientX: 0,
+            startClientY: 0,
+        };
+
+        const findMeshFor = (item) => group.children.find(
+            (c) => c.userData.itemRef && itemKey(c.userData.itemRef) === itemKey(item)
+        );
+
+        const onPointerDown = (e) => {
             const found = pickItem(e.clientX, e.clientY);
-            const id = found ? (found.id ?? found.tempId) : null;
+            if (!found) return; // background — handled on click
+            controls.enabled = false;
+            cbRef.current.onSelect?.(found);
+
+            if (!editableRef.current) {
+                controls.enabled = true;
+                return;
+            }
+            const mesh = findMeshFor(found);
+            if (!mesh) {
+                controls.enabled = true;
+                return;
+            }
+            const hit = floorHit(e.clientX, e.clientY);
+            drag.active = true;
+            drag.moved = false;
+            drag.item = found;
+            drag.mesh = mesh;
+            drag.offsetX = hit ? mesh.position.x - hit.x : 0;
+            drag.offsetZ = hit ? mesh.position.z - hit.z : 0;
+            drag.startClientX = e.clientX;
+            drag.startClientY = e.clientY;
+        };
+
+        const onPointerMove = (e) => {
+            if (drag.active) {
+                const hit = floorHit(e.clientX, e.clientY);
+                if (hit) {
+                    if (
+                        Math.abs(e.clientX - drag.startClientX) > 2
+                        || Math.abs(e.clientY - drag.startClientY) > 2
+                    ) {
+                        drag.moved = true;
+                    }
+                    drag.mesh.position.x = hit.x + drag.offsetX;
+                    drag.mesh.position.z = hit.z + drag.offsetZ;
+                }
+                return;
+            }
+
+            const found = pickItem(e.clientX, e.clientY);
+            const id = found ? itemKey(found) : null;
             if (id !== lastHoverId) {
                 lastHoverId = id;
                 cbRef.current.onHover?.(found && found.type === 'table' ? found : null);
             }
-            mount.style.cursor = found && found.type === 'table' ? 'pointer' : 'default';
+            mount.style.cursor = found ? (editableRef.current ? 'grab' : (found.type === 'table' ? 'pointer' : 'default')) : 'default';
+        };
+
+        const onPointerUp = () => {
+            controls.enabled = true;
+            if (drag.active) {
+                if (drag.moved && drag.item && drag.mesh) {
+                    const newX = Math.round(drag.mesh.position.x - drag.item.width / 2 + width / 2);
+                    const newY = Math.round(drag.mesh.position.z - drag.item.height / 2 + height / 2);
+                    cbRef.current.onItemChange?.(drag.item, { x: newX, y: newY });
+                }
+                drag.active = false;
+                drag.item = null;
+                drag.mesh = null;
+                // NOTE: drag.moved stays as-is until the following click event
+                // reads it (see onClick) — reset there.
+            }
         };
 
         const onClick = (e) => {
+            if (drag.moved) {
+                drag.moved = false; // consume the flag so background-click logic isn't tricked next time
+                return;
+            }
             const found = pickItem(e.clientX, e.clientY);
-            if (found) cbRef.current.onSelect?.(found);
-            else cbRef.current.onBackgroundClick?.();
+            if (!found) cbRef.current.onBackgroundClick?.();
         };
 
-        renderer.domElement.addEventListener('pointermove', onPointerMove);
+        renderer.domElement.addEventListener('pointerdown', onPointerDown);
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
         renderer.domElement.addEventListener('click', onClick);
-        renderer.domElement.addEventListener('mouseleave', () => cbRef.current.onHover?.(null));
+        renderer.domElement.addEventListener('mouseleave', () => { if (!drag.active) cbRef.current.onHover?.(null); });
 
         let rafId;
         const NEAR_OPACITY = 0.2;
@@ -377,9 +476,14 @@ export default function FloorCanvas3D({
             controls.update();
             const tNow = performance.now() / 500;
 
-            // which side is "near" the camera right now (updates as the user rotates)
-            const nearXSide = camera.position.x >= 0 ? 'right' : 'left';
-            const nearZSide = camera.position.z >= 0 ? 'front' : 'back';
+            const camLen = Math.hypot(camera.position.x, camera.position.z) || 1;
+            const dirX = camera.position.x / camLen;
+            const dirZ = camera.position.z / camLen;
+            const sideScores = { back: -dirZ, front: dirZ, left: -dirX, right: dirX };
+            const nearestSide = Object.keys(sideScores).reduce(
+                (best, side) => (sideScores[side] > sideScores[best] ? side : best),
+                'back'
+            );
 
             group.children.forEach((child) => {
                 if (child.userData.ring) {
@@ -387,9 +491,7 @@ export default function FloorCanvas3D({
                     child.userData.ring.material.opacity = Math.max(0.15, pulse);
                 }
                 if (child.userData.autoWallSide) {
-                    const isNear = child.userData.autoWallSide === nearXSide || child.userData.autoWallSide === nearZSide;
-                    const targetOpacity = isNear ? NEAR_OPACITY : 1;
-                    // smooth fade instead of an abrupt pop when rotating past the threshold
+                    const targetOpacity = child.userData.autoWallSide === nearestSide ? NEAR_OPACITY : 1;
                     child.material.opacity += (targetOpacity - child.material.opacity) * 0.12;
                     child.material.depthWrite = child.material.opacity > 0.9;
                     child.castShadow = child.material.opacity > 0.9;
@@ -402,16 +504,12 @@ export default function FloorCanvas3D({
         sceneRef.current = { scene, camera, renderer, controls, group };
         setReady(true);
 
-        const handleResize = () => {
-            renderer.setSize(width, height);
-        };
-        window.addEventListener('resize', handleResize);
-
         return () => {
             setReady(false);
             cancelAnimationFrame(rafId);
-            window.removeEventListener('resize', handleResize);
-            renderer.domElement.removeEventListener('pointermove', onPointerMove);
+            renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', onPointerUp);
             renderer.domElement.removeEventListener('click', onClick);
             controls.dispose();
             renderer.dispose();
@@ -419,7 +517,7 @@ export default function FloorCanvas3D({
             sceneRef.current = null;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [width, height]);
+    }, [width, height, scale]);
 
     // ---- rebuild the item meshes whenever data changes ----
     useEffect(() => {
@@ -434,10 +532,6 @@ export default function FloorCanvas3D({
 
         const hasExplicitWalls = items.some((i) => i.type === 'wall');
         if (!hasExplicitWalls) {
-            // All 4 perimeter walls always exist. Which two are transparent is
-            // decided every frame based on the camera's current direction (see
-            // the animate() loop), so rotating the view keeps the near walls
-            // see-through no matter which side the camera ends up facing.
             const t = 14;
             const perim = [
                 { x: 0, y: 0, width, height: t, side: 'back' },
@@ -458,20 +552,21 @@ export default function FloorCanvas3D({
         items.forEach((item) => {
             if (!item.isActive && item.isActive !== undefined) return;
             const pos = toWorld(item);
+            const selected = itemKey(item) === String(selectedId);
             let obj = null;
 
             if (item.type === 'table') {
                 const status = normalizeStatus(statusByLayoutItemId[item.id] ?? statusByLayoutItemId[item.tempId]);
                 const zoneColor = item.zoneId ? zoneColorById[item.zoneId] : null;
                 const seats = item.meta?.seats || item.seats;
-                obj = buildTable(item, status, zoneColor, seats, tt);
-                obj.userData.selected = String(selectedId) === String(item.id ?? item.tempId);
+                obj = buildTable(item, status, zoneColor, seats, tt, selected);
+                obj.userData.selected = selected;
             } else if (item.type === 'wall') {
-                obj = buildWall(item, 'wall');
+                obj = buildWall(item, 'wall', 1, selected);
             } else if (item.type === 'divider') {
-                obj = buildWall(item, 'divider');
+                obj = buildWall(item, 'divider', 1, selected);
             } else {
-                obj = buildFacility(item, tt);
+                obj = buildFacility(item, tt, selected);
             }
 
             obj.position.x = pos.x;
@@ -485,7 +580,7 @@ export default function FloorCanvas3D({
     return (
         <div
             ref={mountRef}
-            style={{ width, height, borderRadius: 14, overflow: 'hidden', touchAction: 'none' }}
+            style={{ width: width * scale, height: height * scale, borderRadius: 14, overflow: 'hidden', touchAction: 'none' }}
         />
     );
 }

@@ -23,8 +23,8 @@ import {
 import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
 import { canCreateManualBooking, getStoredUser } from '../../../../utils/authUser';
 
-const CANVAS_W = 900;
-const CANVAS_H = 560;
+const CANVAS_W = 1100;
+const CANVAS_H = 700;
 const POLL_MS = 20000;
 
 const BRAND_STORAGE_KEY = 'kfc_partner_brand_id';

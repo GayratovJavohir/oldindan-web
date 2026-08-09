@@ -24,8 +24,8 @@ import {
 import { getApiError } from '../../../../utils/apiHelpers';
 import { getStoredUser } from '../../../../utils/authUser';
 
-const CANVAS_W = 900;
-const CANVAS_H = 560;
+const CANVAS_W = 1100;
+const CANVAS_H = 700;
 const ALL_ZONES = 'all';
 const NO_ZONE = 'none';
 
@@ -804,27 +804,19 @@ export default function LayoutFloor() {
                                 className={styles.canvasScaler}
                                 style={{ width: CANVAS_W * canvasScale, height: CANVAS_H * canvasScale }}
                             >
-                                <div
-                                    style={{
-                                        width: CANVAS_W,
-                                        height: CANVAS_H,
-                                        transform: `scale(${canvasScale})`,
-                                        transformOrigin: 'top left',
-                                    }}
-                                >
-                                    <FloorCanvas
-                                        width={CANVAS_W}
-                                        height={CANVAS_H}
-                                        items={enrichedItems}
-                                        selectedId={selectedId}
-                                        editable
-                                        zoneColorById={zoneColorById}
-                                        focusZoneId={zoneFilter}
-                                        onSelect={(item) => setSelectedId(item.id || item.tempId)}
-                                        onBackgroundClick={() => setSelectedId(null)}
-                                        onItemChange={handleItemChange}
-                                    />
-                                </div>
+                                <FloorCanvas
+                                    width={CANVAS_W}
+                                    height={CANVAS_H}
+                                    scale={canvasScale}
+                                    items={enrichedItems}
+                                    selectedId={selectedId}
+                                    editable
+                                    zoneColorById={zoneColorById}
+                                    focusZoneId={zoneFilter}
+                                    onSelect={(item) => setSelectedId(item.id || item.tempId)}
+                                    onBackgroundClick={() => setSelectedId(null)}
+                                    onItemChange={handleItemChange}
+                                />
                             </div>
                         </div>
                     )}
