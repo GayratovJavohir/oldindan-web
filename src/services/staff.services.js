@@ -126,7 +126,7 @@ export function buildStaffUpdatePayload(form) {
  */
 export async function updateStaff(id, form, branches = []) {
     const payload = buildStaffUpdatePayload(form);
-    const response = await $api.patch(`/accounts/staff/${id}/`, payload);
+    const response = await $api.patch(`/accounts/staff/${id}/update/`, payload);
     const selectedBranch = branches.find((b) => Number(b.id) === payload.branch_id);
     const member = mapStaffFromApi(response.data?.user || response.data, selectedBranch?.name || '');
     upsertStaffCache(member);
