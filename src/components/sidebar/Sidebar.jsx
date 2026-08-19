@@ -41,6 +41,7 @@ const navItems = {
   account: [
     { labelKey: 'nav.notifications', icon: <IoNotificationsOutline />, badgeKey: 'total', path: '/notifications', roles: ['owner', 'manager', 'receptionist'] },
     { labelKey: 'nav.profile', icon: <IoPersonCircleOutline />, path: '/profile', roles: ['owner', 'manager', 'receptionist'] },
+    { labelKey: 'nav.settings', icon: <IoPersonCircleOutline />, path: '/settings', roles: ['owner', 'manager', 'receptionist'] },
   ],
 };
 

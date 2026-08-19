@@ -15,6 +15,7 @@ import ProfilePage from '../pages/ProfilePage';
 import LiveLayoutPage from '../pages/LiveLayoutPage';
 import ProtectedLayout from '../components/ProtectedLayout';
 import { getDefaultRouteForRole, getStoredUser } from '../utils/authUser';
+import SettingsPage from '../pages/SettingsPage';
 
 const PageLoader = () => <div className="loader">Loading...</div>;
 
@@ -41,6 +42,7 @@ export default function AppRoutes() {
                     <Route path="branches" element={<BranchPage />} />
                     <Route path="notifications" element={<NotificationPage />} />
                     <Route path="profile" element={<ProfilePage />} />
+                    <Route path="settings" element={<SettingsPage />} />
                 </Route>
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
