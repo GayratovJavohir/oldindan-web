@@ -19,9 +19,7 @@ export default function Profile() {
         <>
             <PageHeader title={t('pages.profile')} />
             <div className={styles.profileContainer}>
-                <p className={styles.sectionSub} style={{ marginTop: 0 }}>
-                    {subtitleForRole(user?.role)}
-                </p>
+
                 <ProfileCard />
             </div>
         </>

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import styles from '../LiveLayout.module.css';
 import FloorCanvas from '../../layout/components/FloorCanvas';
+import { useTheme } from '../../../../context/ThemeContext';
 import ManualBookingModal from '../../bookings/components/ManualBookingModal';
 import BrandBranchSelect from '../../../../components/BrandBranchSelect';
 import BookingDetailsModal from './BookingTableModal';
@@ -109,9 +110,7 @@ export default function LiveFloor() {
     const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
 
-    // Track the whole hovered layout item (not just a resolved table id) so the
-    // tooltip still shows for tables whose backend link to a `tables` row is
-    // momentarily missing (e.g. just-created tables before a full refresh).
+    const { theme } = useTheme();
     const [hoveredItem, setHoveredItem] = useState(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 

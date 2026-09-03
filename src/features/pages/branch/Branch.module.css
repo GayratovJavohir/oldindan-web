@@ -1,6 +1,6 @@
 .branchContainer {
-    background-color: #121212;
-    color: #ffffff;
+    background-color: var(--bg);
+    color: var(--text);
     padding: 24px 28px;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -12,8 +12,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #1a1a1a;
-    border-bottom: 1px solid #2a2a2a;
+    background-color: var(--card-alt);
+    border-bottom: 1px solid var(--border);
     height: 52px;
     padding: 0 28px;
     margin-left: var(--sidebar-width);
@@ -46,7 +46,7 @@
 .branchContainer {
     margin-left: var(--sidebar-width);
     padding: 28px;
-    background-color: #0b0b0b;
+    background-color: var(--bg);
     min-height: calc(100vh - 52px);
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -54,8 +54,8 @@
 }
 
 .card {
-    background-color: #131313;
-    border: 1px solid #222222;
+    background-color: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
     padding: 24px;
     display: flex;
@@ -73,7 +73,7 @@
 .cardTitle {
     font-size: 18px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text);
     margin: 0;
 }
 
@@ -160,7 +160,7 @@
 .actionBtn {
     background-color: transparent;
     border: 1px solid #2c2c2e;
-    color: #ffffff;
+    color: var(--text);
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 14px;
@@ -174,7 +174,7 @@
 }
 
 .actionBtn:hover {
-    background-color: #1c1c1e;
+    background-color: var(--hover-bg);
     border-color: #444446;
 }
 
@@ -190,7 +190,7 @@
 
 .emptyState {
     grid-column: 1 / -1;
-    color: #888;
+    color: var(--muted);
     padding: 24px;
 }
 
@@ -203,7 +203,7 @@
 .backBtn {
     background: transparent;
     border: 1px solid #3a3a3a;
-    color: #fff;
+    color: var(--text);
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 13px;
@@ -212,13 +212,13 @@
 }
 
 .backBtn:hover {
-    background: #222;
+    background: var(--border-soft);
 }
 
 .brandPickerContainer {
     margin-left: var(--sidebar-width);
     padding: 28px;
-    background-color: #0b0b0b;
+    background-color: var(--bg);
     min-height: calc(100vh - 52px);
 }
 
@@ -235,19 +235,19 @@
 }
 
 .brandPickerCard {
-    background: #131313;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
     padding: 22px;
     text-align: left;
     cursor: pointer;
-    color: #fff;
+    color: var(--text);
     transition: border-color 0.15s, background 0.15s;
 }
 
 .brandPickerCard:hover {
     border-color: #8b1515;
-    background: #181818;
+    background: var(--hover-bg);
 }
 
 .brandPickerIcon {
@@ -270,13 +270,13 @@
 
 .brandPickerCard p {
     margin: 0 0 10px;
-    color: #888;
+    color: var(--muted);
     font-size: 13px;
 }
 
 .brandPickerMeta {
     font-size: 12px;
-    color: #aaa;
+    color: var(--text-secondary);
     background: #1c1c1e;
     border: 1px solid #2c2c2e;
     padding: 4px 10px;
@@ -298,7 +298,7 @@
 .modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -308,8 +308,8 @@
 .modalContent {
     width: 100%;
     max-width: 560px;
-    background: #151515;
-    border: 1px solid #2a2a2a;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
 }
 
@@ -317,8 +317,8 @@
     width: 100%;
     max-width: 720px;
     max-height: 90vh;
-    background: #151515;
-    border: 1px solid #2a2a2a;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -330,20 +330,20 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
 }
 
 .modalTitle {
     margin: 0;
     font-size: 16px;
-    color: #fff;
+    color: var(--text);
 }
 
 .closeBtn {
     background: none;
-    border: 1px solid #333;
-    color: #aaa;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
     width: 32px;
     height: 32px;
     border-radius: 6px;
@@ -380,14 +380,14 @@
 
 .formGroup label {
     font-size: 13px;
-    color: #aaa;
+    color: var(--text-secondary);
 }
 
 .formGroup input,
 .formGroup select {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #fff;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 10px 12px;
     border-radius: 6px;
 }
@@ -412,13 +412,13 @@
 .hoursTitle {
     margin: 0;
     font-size: 14px;
-    color: #fff;
+    color: var(--text);
 }
 
 .hoursHint {
     margin: 4px 0 0;
     font-size: 12px;
-    color: #777;
+    color: var(--muted);
     line-height: 1.4;
 }
 
@@ -430,8 +430,8 @@
 
 .hoursMiniBtn {
     background: #1f1f1f;
-    border: 1px solid #333;
-    color: #ddd;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 12px;
@@ -460,13 +460,13 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #ccc;
+    color: var(--text-secondary);
 }
 
 .hoursRow input[type="time"] {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #fff;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 8px 10px;
     border-radius: 6px;
     width: 100%;
@@ -481,7 +481,7 @@
     display: flex;
     gap: 10px;
     padding: 16px 20px;
-    border-top: 1px solid #2a2a2a;
+    border-top: 1px solid var(--border);
     flex-shrink: 0;
 }
 
@@ -495,9 +495,9 @@
 }
 
 .cancelBtn {
-    background: #222;
-    color: #fff;
-    border: 1px solid #333;
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
 }
 
 .submitBtn {
@@ -512,15 +512,18 @@
     .statsGrid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
+
     .mainContentGrid {
         grid-template-columns: 1fr !important;
     }
+
     .workspace {
         grid-template-columns: 1fr !important;
     }
 }
 
 @media (max-width: 900px) {
+
     .dashboardContainer,
     .bookingsContainer,
     .layoutContainer,
@@ -539,31 +542,38 @@
     .statsGrid {
         grid-template-columns: 1fr !important;
     }
+
     .header {
         flex-direction: column;
         align-items: stretch !important;
         gap: 10px;
     }
+
     .headerActions {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
+
     .tableWrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+
     .modalContent,
     .modalContentWide {
         max-width: calc(100vw - 24px) !important;
         margin: 12px;
     }
+
     .formRow {
         grid-template-columns: 1fr !important;
     }
+
     .hoursRow {
         grid-template-columns: 1fr 1fr !important;
     }
+
     .hoursDay {
         grid-column: 1 / -1;
     }

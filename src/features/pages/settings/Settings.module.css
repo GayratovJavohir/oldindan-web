@@ -1,6 +1,6 @@
 .container {
-    background-color: #121212;
-    color: #ffffff;
+    background-color: var(--bg);
+    color: var(--text);
     min-height: 100vh;
     padding: 18px 20px 60px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -24,7 +24,7 @@
 
 .subtitle {
     margin: 0;
-    color: #999;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
@@ -37,8 +37,8 @@
 
 /* ---- left nav ---- */
 .nav {
-    background: #151515;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
     padding: 8px;
     display: flex;
@@ -52,7 +52,7 @@
     text-align: left;
     background: transparent;
     border: none;
-    color: #aaa;
+    color: var(--text-secondary);
     padding: 10px 12px;
     border-radius: 8px;
     font-size: 13.5px;
@@ -61,14 +61,14 @@
 }
 
 .navItem:hover {
-    background: #1c1c1c;
-    color: #ddd;
+    background: var(--hover-bg);
+    color: var(--text-secondary);
 }
 
 .navItemActive {
-    background: #2a1515;
-    color: #fff;
-    box-shadow: inset 2px 0 0 #8c1919;
+    background: var(--accent-soft);
+    color: var(--text);
+    box-shadow: inset 2px 0 0 var(--accent);
 }
 
 /* ---- content / cards ---- */
@@ -80,8 +80,8 @@
 }
 
 .card {
-    background: #151515;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
     padding: 18px;
 }
@@ -102,14 +102,14 @@
 
 .cardDescription {
     margin: 0;
-    color: #999;
+    color: var(--text-secondary);
     font-size: 12.5px;
 }
 
 .badge {
     flex-shrink: 0;
-    background: #3a2a10;
-    color: #f5a623;
+    background: var(--warning-bg);
+    color: var(--warning-text);
     font-size: 11px;
     font-weight: 700;
     padding: 4px 9px;
@@ -124,7 +124,7 @@
 }
 
 .divider {
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--border-soft);
     margin: 12px 0;
 }
 
@@ -135,7 +135,7 @@
     align-items: center;
     gap: 16px;
     padding: 10px 0;
-    border-bottom: 1px solid #1e1e1e;
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .row:last-child {
@@ -151,13 +151,13 @@
 
 .rowLabel {
     font-size: 13.5px;
-    color: #eee;
+    color: var(--text);
     font-weight: 500;
 }
 
 .rowHint {
     font-size: 11.5px;
-    color: #888;
+    color: var(--muted);
 }
 
 .rowControl {
@@ -167,18 +167,18 @@
 }
 
 .staticValue {
-    color: #ccc;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
 .mutedLabel {
-    color: #888;
+    color: var(--muted);
     font-size: 12px;
 }
 
 .note {
     margin: 10px 0 0;
-    color: #777;
+    color: var(--muted);
     font-size: 11.5px;
     line-height: 1.5;
 }
@@ -194,7 +194,7 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8c1919, #c45c26);
+    background: linear-gradient(135deg, var(--accent), #c45c26);
     display: grid;
     place-items: center;
     font-size: 18px;
@@ -211,8 +211,8 @@
 .profileRole {
     margin-top: 2px;
     font-size: 12px;
-    color: #f0b0b0;
-    background: #2a1515;
+    color: var(--accent-soft-text);
+    background: var(--accent-soft);
     display: inline-block;
     padding: 2px 8px;
     border-radius: 999px;
@@ -222,9 +222,9 @@
 .select,
 .input,
 .inputSmall {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #fff;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     border-radius: 7px;
     padding: 8px 10px;
     font-size: 13px;
@@ -244,7 +244,7 @@
     flex-direction: column;
     gap: 5px;
     font-size: 12px;
-    color: #999;
+    color: var(--text-secondary);
 }
 
 .formStack {
@@ -283,24 +283,24 @@
 }
 
 .secondaryBtn {
-    background: #222;
-    color: #fff;
-    border: 1px solid #333;
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
 }
 
 .errorBanner {
-    color: #ff6b6b;
-    background: #2b1a1a;
-    border: 1px solid #5a2a2a;
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
     border-radius: 8px;
     padding: 8px 10px;
     font-size: 12.5px;
 }
 
 .successBanner {
-    color: #7dcea0;
-    background: #14201a;
-    border: 1px solid #2f5a40;
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
     border-radius: 8px;
     padding: 8px 10px;
     font-size: 12.5px;
@@ -311,8 +311,8 @@
     width: 42px;
     height: 24px;
     border-radius: 999px;
-    background: #2a2a2a;
-    border: 1px solid #333;
+    background: var(--border);
+    border: 1px solid var(--border-strong);
     position: relative;
     cursor: pointer;
     padding: 0;
@@ -321,7 +321,7 @@
 
 .toggleOn {
     background: #8c1919;
-    border-color: #8c1919;
+    border-color: var(--accent);
 }
 
 .toggleDisabled {
@@ -336,7 +336,7 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--text);
     transition: transform 0.15s ease;
 }
 
@@ -361,8 +361,8 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px 14px;
     text-decoration: none;
@@ -370,18 +370,18 @@
 }
 
 .linkCard:hover {
-    border-color: #8c1919;
-    background: #201414;
+    border-color: var(--accent);
+    background: var(--accent-soft);
 }
 
 .linkCardTitle {
-    color: #fff;
+    color: var(--text);
     font-size: 13.5px;
     font-weight: 600;
 }
 
 .linkCardHint {
-    color: #888;
+    color: var(--muted);
     font-size: 11.5px;
 }
 
@@ -404,7 +404,7 @@
     }
 
     .navItemActive {
-        box-shadow: inset 0 -2px 0 #8c1919;
+        box-shadow: inset 0 -2px 0 var(--accent);
     }
 
     .linkGrid {

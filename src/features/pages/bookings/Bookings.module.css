@@ -1,33 +1,15 @@
 .bookingsContainer {
-    background-color: #121212;
-    color: #ffffff;
-    padding: 24px 28px;
+    background-color: var(--bg);
+    color: var(--text);
+    padding: var(--page-pad);
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     margin-left: var(--sidebar-width);
 }
 
-.bookingsHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #1a1a1a;
-    border-bottom: 1px solid #2a2a2a;
-    height: 52px;
-    padding: 0 28px;
-    margin-left: var(--sidebar-width);
-}
-
-.bookingsTitle {
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-}
-
 .container {
-    background-color: #111111;
-    color: #e0e0e0;
-    padding: 24px;
+    background-color: var(--bg);
+    color: var(--text-secondary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -36,17 +18,26 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .title {
     font-size: 20px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text);
     margin: 0;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 .manualBtn {
-    background-color: #b30006;
+    background-color: var(--accent-strong);
     color: #ffffff;
     border: none;
     padding: 8px 16px;
@@ -54,22 +45,25 @@
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: filter 0.2s;
 }
 
 .manualBtn:hover {
-    background-color: #900005;
+    filter: brightness(0.88);
 }
 
 .mainCard {
-    background-color: #151515;
-    border: 1px solid #222222;
+    background-color: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 8px;
     padding: 20px;
 }
 
+/* ── Filters ──────────────────────────────────────────────────── */
+
 .filters {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 20px;
     align-items: center;
@@ -77,9 +71,10 @@
 
 .searchInput {
     flex: 1;
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
+    min-width: 160px;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 8px 14px;
     border-radius: 6px;
     font-size: 14px;
@@ -87,9 +82,9 @@
 
 .selectInput,
 .dateInput {
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 8px 12px;
     border-radius: 6px;
     font-size: 14px;
@@ -97,9 +92,9 @@
 }
 
 .applyBtn {
-    background-color: #2a2a2a;
-    color: #ffffff;
-    border: 1px solid #3a3a3a;
+    background-color: var(--border);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 14px;
@@ -107,12 +102,15 @@
 }
 
 .applyBtn:hover {
-    background-color: #333333;
+    background-color: var(--border-strong);
 }
+
+/* ── Table ────────────────────────────────────────────────────── */
 
 .tableWrapper {
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -123,29 +121,30 @@
 }
 
 .table th {
-    color: #777777;
+    color: var(--muted);
     font-size: 12px;
     font-weight: 600;
     padding: 16px 8px;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-soft);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .table td {
     padding: 16px 8px;
-    border-bottom: 1px solid #222222;
+    border-bottom: 1px solid var(--border-soft);
     vertical-align: middle;
 }
 
 .idCol {
-    color: #555555;
+    color: var(--muted);
 }
 
 .guestName,
 .branchName,
 .dateText {
-    color: #ffffff;
+    color: var(--text);
     font-weight: 600;
     margin-bottom: 2px;
 }
@@ -153,20 +152,16 @@
 .guestPhone,
 .tableName,
 .timeText {
-    color: #777777;
+    color: var(--muted);
     font-size: 12px;
 }
 
-.headerActions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
 .guestsCount {
-    color: #ffffff;
+    color: var(--text);
     font-weight: 500;
 }
+
+/* ── Status / source badges (table row) ──────────────────────── */
 
 .statusBadge {
     display: inline-flex;
@@ -187,70 +182,74 @@
 }
 
 .statusConfirmed {
-    background-color: rgba(24, 61, 119, 0.3);
-    color: #4c8bf5;
+    background-color: rgba(76, 139, 245, 0.16);
+    color: #3f7de0;
 }
 
 .statusConfirmed::before {
-    background-color: #4c8bf5;
+    background-color: #3f7de0;
 }
 
 .statusPending {
-    background-color: rgba(121, 85, 23, 0.3);
-    color: #f5a623;
+    background-color: rgba(245, 166, 35, 0.16);
+    color: #c47f0e;
 }
 
 .statusPending::before {
-    background-color: #f5a623;
+    background-color: #c47f0e;
 }
 
 .statusCheckedIn {
-    background-color: rgba(90, 39, 130, 0.3);
-    color: #a463f2;
+    background-color: rgba(164, 99, 242, 0.16);
+    color: #8a3fe0;
 }
 
 .statusCheckedIn::before {
-    background-color: #a463f2;
+    background-color: #8a3fe0;
 }
 
 .statusCompleted {
-    background-color: rgba(20, 78, 41, 0.3);
-    color: #2da44e;
+    background-color: rgba(45, 164, 78, 0.16);
+    color: #1f8a3d;
 }
 
 .statusCompleted::before {
-    background-color: #2da44e;
+    background-color: #1f8a3d;
 }
 
 .statusCanceled {
-    background-color: rgba(117, 26, 26, 0.3);
-    color: #cf222e;
+    background-color: rgba(207, 34, 46, 0.16);
+    color: #b3202f;
 }
 
 .statusCanceled::before {
-    background-color: #cf222e;
+    background-color: #b3202f;
 }
 
 .statusNoShow {
-    background-color: rgba(50, 50, 50, 0.5);
-    color: #888888;
+    background-color: var(--border-soft);
+    color: var(--muted);
 }
 
 .statusNoShow::before {
-    background-color: #888888;
+    background-color: var(--muted);
 }
 
 .sourceBadge {
-    background-color: #1e1e1e;
-    border: 1px solid #2d2d2d;
-    color: #aaaaaa;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
+    white-space: nowrap;
 }
+
+/* ── Row actions ──────────────────────────────────────────────── */
 
 .actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
@@ -264,6 +263,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s;
+    white-space: nowrap;
 }
 
 .viewBtn:hover,
@@ -273,31 +273,35 @@
 }
 
 .viewBtn {
-    background-color: #222222;
-    color: #ffffff;
-    border: 1px solid #333333;
+    background-color: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
 }
 
 .confirmBtn {
-    background-color: #b30006;
+    background-color: var(--accent-strong);
     color: #ffffff;
 }
 
 .cancelBtn {
-    background-color: rgba(179, 0, 6, 0.1);
-    color: #b30006;
-    border: 1px solid rgba(179, 0, 6, 0.2);
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
 }
+
+/* ── Pagination ───────────────────────────────────────────────── */
 
 .pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .resultsCount {
-    color: #777777;
+    color: var(--muted);
     font-size: 14px;
 }
 
@@ -307,9 +311,9 @@
 }
 
 .pageBtn {
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 13px;
@@ -318,8 +322,15 @@
 }
 
 .pageBtn:hover {
-    background-color: #252525;
+    background-color: var(--hover-bg);
 }
+
+.pageBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Manual-booking modal ────────────────────────────────────── */
 
 .modalOverlay {
     position: fixed;
@@ -327,7 +338,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: var(--overlay);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -335,8 +346,8 @@
 }
 
 .modalContent {
-    background-color: #151515;
-    border: 1px solid #2a2a2a;
+    background-color: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
     width: 100%;
     max-width: 600px;
@@ -349,20 +360,20 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .modalTitle {
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text);
     margin: 0;
 }
 
 .closeBtn {
     background: none;
-    border: 1px solid #2a2a2a;
-    color: #aaaaaa;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     font-size: 20px;
     cursor: pointer;
     border-radius: 6px;
@@ -375,8 +386,8 @@
 }
 
 .closeBtn:hover {
-    color: #ffffff;
-    background-color: #222222;
+    color: var(--text);
+    background-color: var(--border-soft);
 }
 
 .modalBody {
@@ -400,16 +411,16 @@
 
 .formGroup label {
     font-size: 13px;
-    color: #aaaaaa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 .formGroup input,
 .formGroup select,
 .formGroup textarea {
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #ffffff;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 10px 14px;
     border-radius: 6px;
     font-size: 14px;
@@ -421,7 +432,7 @@
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
-    border-color: #4a4a4a;
+    border-color: var(--border-strong);
 }
 
 .formGroup textarea {
@@ -430,15 +441,15 @@
 
 .modalFooter {
     padding: 20px 24px;
-    border-top: 1px solid #2a2a2a;
+    border-top: 1px solid var(--border);
     display: flex;
     gap: 12px;
 }
 
 .modalCancelBtn {
-    background-color: #222222;
-    color: #ffffff;
-    border: 1px solid #333333;
+    background-color: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
     padding: 10px 24px;
     border-radius: 6px;
     font-weight: 600;
@@ -448,12 +459,12 @@
 }
 
 .modalCancelBtn:hover {
-    background-color: #2a2a2a;
+    background-color: var(--border);
 }
 
 .modalSubmitBtn {
     flex: 1;
-    background-color: #b30006;
+    background-color: var(--accent-strong);
     color: #ffffff;
     border: none;
     padding: 10px 24px;
@@ -461,86 +472,12 @@
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: filter 0.2s;
 }
 
 .modalSubmitBtn:hover {
-    background-color: #900005;
+    filter: brightness(0.88);
 }
-
-/* responsive-i18n */
-
-@media (max-width: 1100px) {
-    .statsGrid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    .mainContentGrid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .workspace {
-        grid-template-columns: 1fr !important;
-    }
-}
-
-@media (max-width: 900px) {
-
-    .dashboardContainer,
-    .bookingsContainer,
-    .layoutContainer,
-    .liveLayoutContainer,
-    .tablesContainer,
-    .branchContainer,
-    .brandPickerContainer,
-    .manualContainer,
-    .container {
-        margin-left: 0 !important;
-        padding: var(--page-pad) !important;
-    }
-}
-
-@media (max-width: 640px) {
-    .statsGrid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .header {
-        flex-direction: column;
-        align-items: stretch !important;
-        gap: 10px;
-    }
-
-    .headerActions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .tableWrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .modalContent,
-    .modalContentWide {
-        max-width: calc(100vw - 24px) !important;
-        margin: 12px;
-    }
-
-    .formRow {
-        grid-template-columns: 1fr !important;
-    }
-
-    .hoursRow {
-        grid-template-columns: 1fr 1fr !important;
-    }
-
-    .hoursDay {
-        grid-column: 1 / -1;
-    }
-}
-
 
 /* ==================== VIEW DETAILS MODAL ==================== */
 
@@ -550,7 +487,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.75);
+    background-color: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -559,15 +496,15 @@
 }
 
 .viewModalBox {
-    background-color: #141414;
-    border: 1px solid #262626;
+    background-color: var(--card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     width: 100%;
     max-width: 620px;
     padding: 24px;
-    color: #ffffff;
+    color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35);
 }
 
 .viewModalHeader {
@@ -587,13 +524,13 @@
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text);
 }
 
 .viewModalStatusBadge {
-    background-color: rgba(30, 64, 175, 0.3);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    background-color: var(--border-soft);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
     font-size: 13px;
     font-weight: 600;
     padding: 3px 10px;
@@ -603,9 +540,9 @@
 }
 
 .viewModalCloseBtn {
-    background: #1f1f1f;
-    border: 1px solid #2a2a2a;
-    color: #a1a1aa;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--muted);
     font-size: 14px;
     width: 32px;
     height: 32px;
@@ -618,8 +555,8 @@
 }
 
 .viewModalCloseBtn:hover {
-    background: #2a2a2a;
-    color: #ffffff;
+    background-color: var(--border);
+    color: var(--text);
 }
 
 .viewModalBody {
@@ -643,7 +580,7 @@
 .viewModalLabel {
     font-size: 11px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--muted);
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -651,23 +588,23 @@
 .viewModalPrimaryText {
     font-size: 16px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text);
 }
 
 .viewModalSecondaryText {
     font-size: 13px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .viewModalRequestText {
     font-size: 14px;
-    color: #e4e4e7;
+    color: var(--text);
     margin-top: 2px;
 }
 
 .viewModalDivider {
     border: 0;
-    border-top: 1px solid #242424;
+    border-top: 1px solid var(--border-soft);
     margin: 4px 0;
 }
 
@@ -675,9 +612,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background-color: #1f1f1f;
-    border: 1px solid #2a2a2a;
-    color: #d4d4d8;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     font-size: 13px;
     padding: 6px 12px;
     border-radius: 8px;
@@ -685,23 +622,25 @@
 }
 
 .viewModalNoteInput {
-    background-color: #1a1a1a;
-    border: 1px solid #2e2e2e;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px 14px;
-    color: #ffffff;
+    color: var(--text);
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s ease;
     margin-top: 4px;
+    font-family: inherit;
+    resize: vertical;
 }
 
 .viewModalNoteInput::placeholder {
-    color: #52525b;
+    color: var(--muted);
 }
 
 .viewModalNoteInput:focus {
-    border-color: #404040;
+    border-color: var(--border-strong);
 }
 
 .viewModalFooter {
@@ -722,34 +661,74 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    border: none;
 }
 
 .viewModalBtnCancel {
-    background-color: rgba(127, 29, 29, 0.2);
-    border: 1px solid #7f1d1d;
-    color: #f87171;
+    background-color: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
 }
 
 .viewModalBtnCancel:hover {
-    background-color: rgba(127, 29, 29, 0.4);
+    filter: brightness(0.92);
 }
 
 .viewModalBtnSecondary {
-    background-color: #1f1f1f;
-    border: 1px solid #2e2e2e;
-    color: #ffffff;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
 }
 
 .viewModalBtnSecondary:hover {
-    background-color: #2a2a2a;
+    background-color: var(--hover-bg);
 }
 
 .viewModalBtnPrimary {
-    background-color: #991b1b;
-    border: 1px solid #b91c1c;
+    background-color: var(--accent-strong);
+    border: 1px solid var(--accent-strong);
     color: #ffffff;
 }
 
 .viewModalBtnPrimary:hover {
-    background-color: #b91c1c;
+    filter: brightness(0.88);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .bookingsContainer {
+        margin-left: 0;
+        padding: var(--page-pad);
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .headerActions {
+        flex-wrap: wrap;
+    }
+
+    .modalContent,
+    .viewModalBox {
+        max-width: calc(100vw - 24px);
+        margin: 12px;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+
+    .viewModalGridRow {
+        grid-template-columns: 1fr;
+    }
+
+    .viewModalFooter {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

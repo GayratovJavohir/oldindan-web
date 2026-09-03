@@ -1,8 +1,8 @@
 .sidebar {
     width: 210px;
     min-width: 210px;
-    background-color: #1a1a1a;
-    border-right: 1px solid #2a2a2a;
+    background-color: var(--card-alt);
+    border-right: 1px solid var(--border);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -40,15 +40,15 @@
 .brandName {
     font-size: 14px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text);
     letter-spacing: 0.04em;
     flex: 1;
 }
 
 .closeMobile {
-    background: #222;
-    border: 1px solid #333;
-    color: #fff;
+    background: var(--border-soft);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
     width: 32px;
     height: 32px;
     border-radius: 8px;
@@ -60,8 +60,8 @@
 .activeBranch {
     margin: 0 12px 20px;
     padding: 10px 12px;
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 10px;
 }
 
@@ -78,7 +78,7 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text);
 }
 
 .nav {
@@ -97,7 +97,7 @@
     display: block;
     font-size: 10px;
     font-weight: 600;
-    color: #555;
+    color: var(--muted);
     letter-spacing: 0.08em;
     padding: 6px 8px 4px;
 }
@@ -109,7 +109,7 @@
     padding: 8px 10px;
     border-radius: 8px;
     text-decoration: none;
-    color: #999;
+    color: var(--text-secondary);
     font-size: 13px;
     font-weight: 500;
     transition: background 0.15s, color 0.15s;
@@ -117,13 +117,13 @@
 }
 
 .navItem:hover {
-    background-color: #1c1c1c;
-    color: #ffffff;
+    background-color: var(--hover-bg);
+    color: var(--text);
 }
 
 .navItemActive {
-    background-color: #1e1e1e;
-    color: #ffffff;
+    background-color: var(--border-soft);
+    color: var(--text);
 }
 
 .navIcon {
@@ -160,7 +160,7 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background-color: #2c7a4b;
+    background: linear-gradient(135deg, #e8192c, #8b1515);
     color: #fff;
     font-size: 12px;
     font-weight: 700;
@@ -178,18 +178,18 @@
 .userName {
     font-size: 13px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text);
 }
 
 .userRole {
     font-size: 11px;
-    color: #666;
+    color: var(--muted);
 }
 
 .signOut {
     background: none;
     border: none;
-    color: #666;
+    color: var(--muted);
     font-size: 13px;
     cursor: pointer;
     padding: 4px 16px 8px;
@@ -204,7 +204,7 @@
 .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--bg);
     border: none;
     z-index: 1090;
     cursor: pointer;

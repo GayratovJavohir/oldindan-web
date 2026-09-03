@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from '../Floor.module.css';
 import FloorCanvas from './FloorCanvas';
+import { useTheme } from '../../../../context/ThemeContext';
 import BrandBranchSelect from '../../../../components/BrandBranchSelect';
 import { getPartnerBranches } from '../../../../services/restaurants.services';
 import {
@@ -139,6 +140,8 @@ export default function LayoutFloor() {
     const [floorForm, setFloorForm] = useState({ name: '', sort_order: 0 });
     const [zoneForm, setZoneForm] = useState({ name: '', color: ZONE_COLORS[0] });
     const [tableDraft, setTableDraft] = useState({ name: '', seats: 4, shape: 'round' });
+
+    const { theme } = useTheme();
 
     const closeModal = () => setModal(null);
 

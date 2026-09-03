@@ -138,21 +138,25 @@ export default function Dashboard() {
     return (
         <>
             <PageHeader
-                title={t('pages.dashboard')}
-                actions={isOwner ? (
-                    <BrandBranchSelect
-                        brandId={brandId}
-                        branchId={branchId}
-                        onBrandChange={(id) => {
-                            setBrandId(id);
-                            writeStoredValue(BRAND_STORAGE_KEY, id);
-                        }}
-                        onBranchChange={(id) => {
-                            setBranchId(id);
-                            writeStoredValue(BRANCH_STORAGE_KEY, id);
-                        }}
-                    />
-                ) : null}
+                title={t("pages.dashboard")}
+                actions={
+                    isOwner ? (
+                        <div className={styles.brandBranchSelect}>
+                            <BrandBranchSelect
+                                brandId={brandId}
+                                branchId={branchId}
+                                onBrandChange={(id) => {
+                                    setBrandId(id);
+                                    writeStoredValue(BRAND_STORAGE_KEY, id);
+                                }}
+                                onBranchChange={(id) => {
+                                    setBranchId(id);
+                                    writeStoredValue(BRANCH_STORAGE_KEY, id);
+                                }}
+                            />
+                        </div>
+                    ) : null
+                }
             />
 
             {error && <p className={styles.loadingText} style={{ color: '#ff6b6b' }}>{error}</p>}

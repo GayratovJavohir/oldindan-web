@@ -57,7 +57,7 @@
 .langTop select {
     background: #1f2430;
     border: 1px solid #2c3344;
-    color: #fff;
+    color: var(--text);
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 12px;
@@ -214,7 +214,7 @@
 .accountTabActive {
     background: rgba(232, 25, 44, 0.12);
     border-color: #e8192c;
-    color: #fff;
+    color: var(--text);
 }
 
 .errorBanner {

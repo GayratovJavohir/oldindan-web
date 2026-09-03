@@ -8,11 +8,76 @@
     --sidebar-width: 210px;
     --header-height: 52px;
     --page-pad: 24px 28px;
+
+    /* surfaces */
     --bg: #0e0e0e;
     --card: #151515;
+    --card-alt: #1a1a1a;
+    --overlay: rgba(0, 0, 0, 0.7);
+    /* two border weights, matching what the app already used inconsistently
+       (#222 for outer/card borders, #2a2a2a for inputs/inner borders) */
+    --border-soft: #222222;
     --border: #2a2a2a;
+    --border-strong: #333333;
+
+    /* text */
     --text: #ffffff;
+    --text-secondary: #cfcfcf;
     --muted: #888888;
+
+    /* brand accent - intentionally the same in both themes */
+    --accent: #8c1919;
+    --accent-strong: #b30006;
+    --accent-soft: #2a1515;
+    --accent-soft-text: #f0b0b0;
+    --on-accent: #ffffff;
+
+    /* interactive surfaces */
+    --hover-bg: #1c1c1c;
+
+    /* status */
+    --danger-text: #ff6b6b;
+    --danger-bg: #2b1a1a;
+    --danger-border: #5a2a2a;
+    --success-text: #7dcea0;
+    --success-bg: #14201a;
+    --success-border: #2f5a40;
+    --warning-text: #f5a623;
+    --warning-bg: #3a2a10;
+
+    color-scheme: dark;
+}
+
+/* Light theme — toggled by setting data-theme="light" on <html> (see
+   ThemeContext). Only the neutral surface/text tokens flip; the brand accent
+   and status colors stay put so buttons/badges/legends keep meaning. */
+[data-theme='light'] {
+    --bg: #f4f3f1;
+    --card: #ffffff;
+    --card-alt: #f0efec;
+    --overlay: rgba(255, 255, 255, 0.75);
+    --border-soft: #e6e3dd;
+    --border: #dcd8d0;
+    --border-strong: #c7c2b8;
+
+    --text: #171614;
+    --text-secondary: #4a4844;
+    --muted: #79766f;
+
+    --accent-soft: #fbe3e1;
+    --accent-soft-text: #9c2b23;
+    --hover-bg: #ece9e4;
+
+    --danger-text: #b3261e;
+    --danger-bg: #fdecea;
+    --danger-border: #f3c6c2;
+    --success-text: #1f7a4d;
+    --success-bg: #e8f6ee;
+    --success-border: #bfe3cd;
+    --warning-text: #8a5a00;
+    --warning-bg: #fdf1dc;
+
+    color-scheme: light;
 }
 
 html {
@@ -26,6 +91,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.4;
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 img,

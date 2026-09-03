@@ -9,25 +9,7 @@ const LANGUAGES = [
     { code: 'en', label: 'English' },
 ];
 
-const THEME_KEY = 'kfc_theme_preference';
-
-function readTheme() {
-    if (typeof window === 'undefined') return 'dark';
-    try {
-        return localStorage.getItem(THEME_KEY) || 'dark';
-    } catch {
-        return 'dark';
-    }
-}
-
-function writeTheme(value) {
-    if (typeof window === 'undefined') return;
-    try {
-        localStorage.setItem(THEME_KEY, value);
-    } catch {
-        // ignore
-    }
-}
+import { useTheme } from '../../../context/ThemeContext';
 
 function initials(name) {
     if (!name) return '?';
@@ -111,7 +93,7 @@ export default function Settings() {
     const [activeTab, setActiveTab] = useState('profile');
 
     // --- appearance state ---
-    const [theme, setTheme] = useState(readTheme);
+    const { theme, setTheme } = useTheme();
     const currentLangCode = (i18n.language || 'uz').split('-')[0];
 
     const handleLanguageChange = (code) => {
@@ -120,10 +102,6 @@ export default function Settings() {
 
     const handleThemeChange = (value) => {
         setTheme(value);
-        writeTheme(value);
-        // NOTE: this only stores the preference for now — it is not yet wired
-        // to actually restyle the app. Hook this up once there's a global
-        // theme provider / CSS variables for light mode.
     };
 
     // --- notification toggles (local-only placeholder state for now) ---
@@ -261,18 +239,20 @@ export default function Settings() {
                                 )}
                             />
 
+                            {/* MAVZU UCHUN YANGILANGAN QISM */}
                             <Row
-                                label={t('settings.themeLight', 'Yorug\u2018 rejim')}
-                                hint={t('settings.themeHint', "Hozircha faqat tanlov saqlanadi — butun ilovaga ta'sir qilmaydi.")}
+                                label={t('settings.theme', 'Mavzu (Dizayn)')}
+                                hint={t('settings.themeHint', "Ilova qanday ko'rinishini tanlang.")}
                                 control={(
-                                    <div className={styles.themeSwitchRow}>
-                                        <span className={styles.mutedLabel}>{t('settings.themeDark', "Tun")}</span>
-                                        <Toggle
-                                            checked={theme === 'light'}
-                                            onChange={(v) => handleThemeChange(v ? 'light' : 'dark')}
-                                        />
-                                        <span className={styles.mutedLabel}>{t('settings.themeLightShort', "Kun")}</span>
-                                    </div>
+                                    <select
+                                        className={styles.select}
+                                        value={theme || 'system'}
+                                        onChange={(e) => handleThemeChange(e.target.value)}
+                                    >
+                                        <option value="light">{t('settings.themeLight', 'Yorug\u2018 rejim')}</option>
+                                        <option value="dark">{t('settings.themeDark', 'Tungi rejim')}</option>
+                                        <option value="system">{t('settings.themeSystem', 'Tizim (Avtomatik)')}</option>
+                                    </select>
                                 )}
                             />
                         </SectionCard>

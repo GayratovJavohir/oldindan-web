@@ -1,6 +1,6 @@
 .layoutContainer {
-    background-color: #121212;
-    color: #ffffff;
+    background-color: var(--bg);
+    color: var(--text);
     padding: 18px 20px;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -24,8 +24,8 @@
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    background: #151515;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 10px;
     padding: 10px 12px;
 }
@@ -47,8 +47,8 @@
 
 .sidebarPanel,
 .inspector {
-    background: #151515;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 10px;
     padding: 12px;
     display: flex;
@@ -63,7 +63,7 @@
     font-size: 11px;
     letter-spacing: 0.4px;
     text-transform: uppercase;
-    color: #888;
+    color: var(--muted);
 }
 
 .paletteGrid {
@@ -74,9 +74,9 @@
 }
 
 .paletteBtn {
-    background: #1b1b1b;
-    border: 1px solid #2f2f2f;
-    color: #ddd;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     border-radius: 7px;
     padding: 7px 5px;
     font-size: 11.5px;
@@ -84,9 +84,9 @@
 }
 
 .paletteBtnActive {
-    border-color: #8c1919;
-    background: #2a1515;
-    color: #fff;
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
 }
 
 .stack {
@@ -111,7 +111,7 @@
     flex-direction: column;
     gap: 4px;
     font-size: 11.5px;
-    color: #999;
+    color: var(--text-secondary);
     min-width: 0;
 }
 
@@ -120,9 +120,9 @@
 .field input,
 .toolbar select,
 .toolbar input {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #fff;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     border-radius: 7px;
     padding: 7px 9px;
     font-size: 12.5px;
@@ -144,20 +144,20 @@
 }
 
 .primaryBtn {
-    background: #8c1919;
+    background: var(--accent);
     color: #fff;
 }
 
 .secondaryBtn {
-    background: #222;
-    color: #fff;
-    border: 1px solid #333;
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
 }
 
 .dangerBtn {
-    background: #2b1a1a;
-    color: #ff6b6b;
-    border: 1px solid #5a2a2a;
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
 }
 
 .primaryBtn:disabled,
@@ -170,9 +170,9 @@
 /* small icon-only buttons used in the toolbar (rename / delete floor) */
 .iconBtn,
 .iconBtnDanger {
-    border: 1px solid #333;
-    background: #222;
-    color: #ddd;
+    border: 1px solid var(--border-strong);
+    background: var(--border-soft);
+    color: var(--text-secondary);
     border-radius: 7px;
     width: 32px;
     height: 32px;
@@ -185,9 +185,9 @@
 }
 
 .iconBtnDanger {
-    color: #ff6b6b;
-    border-color: #5a2a2a;
-    background: #2b1a1a;
+    color: var(--danger-text);
+    border-color: var(--danger-border);
+    background: var(--danger-bg);
 }
 
 .iconBtn:disabled,
@@ -211,7 +211,7 @@
 }
 
 .colorSwatchActive {
-    border-color: #fff;
+    border-color: var(--text);
 }
 
 .zoneDot {
@@ -226,9 +226,9 @@
     align-items: center;
     gap: 6px;
     font-size: 11.5px;
-    color: #bbb;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    color: var(--text-secondary);
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 7px;
     padding: 6px 8px;
 }
@@ -257,9 +257,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #1b1b1b;
-    border: 1px solid #2a2a2a;
-    color: #ccc;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     border-radius: 999px;
     padding: 6px 10px;
     font-size: 12px;
@@ -267,27 +267,27 @@
 }
 
 .zoneTabActive {
-    background: #2a1515;
-    border-color: #8c1919;
-    color: #fff;
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--text);
 }
 
 .zoneTabCount {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--border-soft);
     border-radius: 999px;
     padding: 1px 6px;
     font-size: 10.5px;
-    color: #999;
+    color: var(--text-secondary);
 }
 
 .zoneTabActive .zoneTabCount {
-    color: #f0b0b0;
+    color: var(--accent-soft-text);
 }
 
 .zoneTabAdd {
     background: transparent;
-    border: 1px dashed #3a3a3a;
-    color: #999;
+    border: 1px dashed var(--border-strong);
+    color: var(--text-secondary);
     border-radius: 999px;
     padding: 6px 10px;
     font-size: 12px;
@@ -303,8 +303,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 999px;
     padding: 4px 8px;
 }
@@ -322,10 +322,10 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    background-color: #151515;
+    background-color: var(--card);
     padding: 10px 12px;
     border-radius: 10px;
-    border: 1px solid #222;
+    border: 1px solid var(--border-soft);
 }
 
 .legend {
@@ -338,7 +338,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #a0a0a0;
+    color: var(--text-secondary);
     font-size: 11.5px;
     font-weight: 500;
     white-space: nowrap;
@@ -351,7 +351,7 @@
 }
 
 .availableDot {
-    background-color: #3f3f46;
+    background-color: var(--muted);
 }
 
 .pendingDot {
@@ -375,9 +375,9 @@
     display: flex;
     justify-content: center;
     overflow: auto;
-    background-color: #101010;
+    background-color: var(--card);
     border-radius: 14px;
-    border: 1px solid #222;
+    border: 1px solid var(--border-soft);
     padding: 10px;
 }
 
@@ -391,16 +391,16 @@
     min-height: 420px;
     display: grid;
     place-items: center;
-    color: #888;
-    border: 1px dashed #333;
+    color: var(--muted);
+    border: 1px dashed var(--border-strong);
     border-radius: 14px;
-    background: #141414;
+    background: var(--card-alt);
 }
 
 .errorBanner {
-    color: #ff6b6b;
-    background: #2b1a1a;
-    border: 1px solid #5a2a2a;
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
     border-radius: 8px;
     padding: 8px 10px;
     margin-bottom: 8px;
@@ -408,9 +408,9 @@
 }
 
 .successBanner {
-    color: #7dcea0;
-    background: #14201a;
-    border: 1px solid #2f5a40;
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
     border-radius: 8px;
     padding: 8px 10px;
     margin-bottom: 8px;
@@ -418,7 +418,7 @@
 }
 
 .muted {
-    color: #777;
+    color: var(--muted);
     font-size: 12.5px;
 }
 
@@ -427,8 +427,8 @@
     align-items: center;
     padding: 5px 9px;
     border-radius: 999px;
-    background: #3a2a10;
-    color: #f5a623;
+    background: var(--warning-bg);
+    color: var(--warning-text);
     font-size: 11px;
     font-weight: 600;
 }
@@ -437,7 +437,7 @@
 .modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -445,24 +445,24 @@
 }
 
 .modalCard {
-    background: #181818;
-    border: 1px solid #2a2a2a;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
     width: min(360px, 92vw);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
 .modalTitle {
     margin: 0 0 8px;
     font-size: 15px;
-    color: #fff;
+    color: var(--text);
 }
 
 .modalMessage {
     margin: 0 0 12px;
     font-size: 13px;
-    color: #aaa;
+    color: var(--text-secondary);
 }
 
 .modalActions {
@@ -471,6 +471,8 @@
     gap: 8px;
     margin-top: 4px;
 }
+
+/* ── Responsive ───────────────────────────────────────────────── */
 
 @media (max-width: 1200px) {
     .workspace {
@@ -483,75 +485,21 @@
     }
 }
 
-/* responsive-i18n */
-
-@media (max-width: 1100px) {
-    .statsGrid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    .mainContentGrid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .workspace {
-        grid-template-columns: 1fr !important;
-    }
-}
-
 @media (max-width: 900px) {
-
-    .dashboardContainer,
-    .bookingsContainer,
-    .layoutContainer,
-    .liveLayoutContainer,
-    .tablesContainer,
-    .branchContainer,
-    .brandPickerContainer,
-    .manualContainer,
-    .container {
-        margin-left: 0 !important;
-        padding: var(--page-pad) !important;
+    .layoutContainer {
+        margin-left: 0;
     }
 }
 
 @media (max-width: 640px) {
-    .statsGrid {
-        grid-template-columns: 1fr !important;
-    }
-
     .header {
         flex-direction: column;
-        align-items: stretch !important;
+        align-items: stretch;
         gap: 10px;
     }
 
-    .headerActions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .tableWrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .modalContent,
-    .modalContentWide {
-        max-width: calc(100vw - 24px) !important;
-        margin: 12px;
-    }
-
-    .formRow {
-        grid-template-columns: 1fr !important;
-    }
-
-    .hoursRow {
-        grid-template-columns: 1fr 1fr !important;
-    }
-
-    .hoursDay {
-        grid-column: 1 / -1;
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

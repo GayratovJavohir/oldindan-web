@@ -1,6 +1,6 @@
 .profileContainer {
-    background-color: #0e0e0e;
-    color: #ffffff;
+    background-color: var(--bg);
+    color: var(--text);
     padding: 24px 28px 40px;
     min-height: calc(100vh - 52px);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -11,8 +11,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #1a1a1a;
-    border-bottom: 1px solid #2a2a2a;
+    background-color: var(--card-alt);
+    border-bottom: 1px solid var(--border);
     height: 52px;
     padding: 0 28px;
     margin-left: var(--sidebar-width);
@@ -27,7 +27,7 @@
 
 .bellIcon {
     font-size: 20px;
-    color: #888;
+    color: var(--muted);
     cursor: pointer;
 }
 
@@ -39,7 +39,7 @@
 
 .loadingState,
 .analyticsLoading {
-    color: #888;
+    color: var(--muted);
     padding: 24px 0;
 }
 
@@ -66,8 +66,8 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    background: linear-gradient(135deg, #1a1a1a 0%, #141820 100%);
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
 }
@@ -83,6 +83,7 @@
     font-size: 24px;
     font-weight: 700;
     flex-shrink: 0;
+    color: #fff;
 }
 
 .heroInfo {
@@ -136,7 +137,7 @@
 .editToggleBtn {
     background: transparent;
     border: 1px solid #3a3a3a;
-    color: #fff;
+    color: var(--text);
     padding: 10px 16px;
     border-radius: 8px;
     font-weight: 600;
@@ -145,12 +146,12 @@
 }
 
 .editToggleBtn:hover {
-    background: #222;
+    background: var(--border-soft);
 }
 
 .profileCard {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px 24px;
 }
@@ -182,7 +183,7 @@
 
 .infoValue {
     font-size: 15px;
-    color: #fff;
+    color: var(--text);
 }
 
 .profileForm {
@@ -209,9 +210,9 @@
 }
 
 .formGroup input {
-    background: #121212;
-    border: 1px solid #2a2a2a;
-    color: #fff;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 10px 12px;
     border-radius: 8px;
 }
@@ -269,8 +270,8 @@
 }
 
 .miniStatsCard {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px;
 }
@@ -284,13 +285,13 @@
     display: flex;
     justify-content: space-between;
     padding: 10px 0;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
     color: #9aa3b2;
     font-size: 14px;
 }
 
 .miniStatRow strong {
-    color: #fff;
+    color: var(--text);
 }
 
 .orgKpiRow {
@@ -300,8 +301,8 @@
 }
 
 .orgKpi {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 16px;
     display: flex;
@@ -320,8 +321,8 @@
 }
 
 .brandAnalyticsCard {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
 }
@@ -331,7 +332,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 18px 20px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .brandAnalyticsHeader h3 {
@@ -369,14 +370,14 @@
     color: #7f8898;
     letter-spacing: 0.4px;
     padding: 12px 20px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .branchStatsTable td {
     padding: 14px 20px;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid var(--border-soft);
     font-size: 14px;
-    color: #e0e0e0;
+    color: var(--text-secondary);
 }
 
 .branchStatsTable tbody tr:last-child td {
@@ -404,13 +405,13 @@
 }
 
 .brandPickerCard {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px;
     text-align: left;
     cursor: pointer;
-    color: #fff;
+    color: var(--text);
     transition: border-color 0.15s, background 0.15s;
 }
 
@@ -446,8 +447,8 @@
 .brandPickerMeta {
     font-size: 12px;
     color: #9aa3b2;
-    background: #121212;
-    border: 1px solid #2a2a2a;
+    background: var(--bg);
+    border: 1px solid var(--border);
     padding: 4px 10px;
     border-radius: 20px;
 }
@@ -455,7 +456,7 @@
 .backBtn {
     background: transparent;
     border: 1px solid #3a3a3a;
-    color: #fff;
+    color: var(--text);
     padding: 8px 14px;
     border-radius: 8px;
     font-size: 13px;
@@ -464,10 +465,11 @@
 }
 
 .backBtn:hover {
-    background: #222;
+    background: var(--border-soft);
 }
 
 @media (max-width: 1100px) {
+
     .statsGrid,
     .orgKpiRow {
         grid-template-columns: repeat(2, 1fr);
@@ -483,6 +485,7 @@
 }
 
 @media (max-width: 768px) {
+
     .profileContainer,
     .profileHeader {
         margin-left: 0;

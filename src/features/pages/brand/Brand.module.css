@@ -1,6 +1,6 @@
 .brandContainer {
-    background-color: #121212;
-    color: #ffffff;
+    background-color: var(--bg);
+    color: var(--text);
     padding: 24px 28px;
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -11,8 +11,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #1a1a1a;
-    border-bottom: 1px solid #2a2a2a;
+    background-color: var(--card-alt);
+    border-bottom: 1px solid var(--border);
     height: 52px;
     padding: 0 28px;
     margin-left: var(--sidebar-width);
@@ -26,8 +26,8 @@
 
 
 .cardBrand {
-    background-color: #161616;
-    border: 1px solid #2a2a2a;
+    background-color: var(--card);
+    border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
 }
@@ -37,13 +37,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .headerTitle {
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text);
     margin: 0;
 }
 
@@ -75,19 +75,19 @@
 }
 
 .brandTable th {
-    color: #888888;
+    color: var(--muted);
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.5px;
     padding: 16px 24px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .brandTable td {
-    color: #e0e0e0;
+    color: var(--text-secondary);
     font-size: 14px;
     padding: 16px 24px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
     vertical-align: middle;
 }
 
@@ -97,7 +97,7 @@
 
 .brandName {
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text);
 }
 
 .slug {
@@ -107,8 +107,8 @@
 
 .editBtn {
     background-color: transparent;
-    color: #ffffff;
-    border: 1px solid #333333;
+    color: var(--text);
+    border: 1px solid var(--border-strong);
     padding: 6px 16px;
     border-radius: 6px;
     font-size: 13px;
@@ -118,7 +118,7 @@
 }
 
 .editBtn:hover {
-    background-color: #2a2a2a;
+    background-color: var(--border);
     border-color: #444444;
 }
 
@@ -130,13 +130,13 @@
 
 .errorBanner {
     padding: 12px 24px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -146,8 +146,8 @@
 .modalContent {
     width: 100%;
     max-width: 520px;
-    background: #151515;
-    border: 1px solid #2a2a2a;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
 }
 
@@ -156,19 +156,19 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
 }
 
 .modalTitle {
     margin: 0;
     font-size: 16px;
-    color: #fff;
+    color: var(--text);
 }
 
 .closeBtn {
     background: none;
-    border: 1px solid #333;
-    color: #aaa;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
     width: 32px;
     height: 32px;
     border-radius: 6px;
@@ -190,15 +190,15 @@
 
 .formGroup label {
     font-size: 13px;
-    color: #aaa;
+    color: var(--text-secondary);
 }
 
 .formGroup input,
 .formGroup select,
 .formGroup textarea {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #fff;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
     padding: 10px 12px;
     border-radius: 6px;
 }
@@ -207,7 +207,7 @@
     display: flex;
     gap: 10px;
     padding: 16px 20px;
-    border-top: 1px solid #2a2a2a;
+    border-top: 1px solid var(--border);
 }
 
 .cancelBtn,
@@ -220,9 +220,9 @@
 }
 
 .cancelBtn {
-    background: #222;
-    color: #fff;
-    border: 1px solid #333;
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
 }
 
 .submitBtn {

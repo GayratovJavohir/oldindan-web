@@ -3,6 +3,7 @@ import AuthService from '../services/auth.services';
 import { getStoredUser, mapProfile, setStoredUser, getAccountType } from '../utils/authUser';
 import { NotificationProvider } from '../context/NotificationContext';
 import { LayoutProvider } from '../context/LayoutContext';
+import { ThemeProvider } from '../context/ThemeContext';
 
 function AuthBootstrap({ children }) {
     useEffect(() => {
@@ -11,7 +12,7 @@ function AuthBootstrap({ children }) {
 
         AuthService.getProfile()
             .then((profile) => setStoredUser(mapProfile(profile, getAccountType())))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     return children;
@@ -19,12 +20,14 @@ function AuthBootstrap({ children }) {
 
 export const AppProviders = ({ children }) => {
     return (
-        <AuthBootstrap>
-            <LayoutProvider>
-                <NotificationProvider>
-                    {children}
-                </NotificationProvider>
-            </LayoutProvider>
-        </AuthBootstrap>
+        <ThemeProvider>
+            <AuthBootstrap>
+                <LayoutProvider>
+                    <NotificationProvider>
+                        {children}
+                    </NotificationProvider>
+                </LayoutProvider>
+            </AuthBootstrap>
+        </ThemeProvider>
     );
 };

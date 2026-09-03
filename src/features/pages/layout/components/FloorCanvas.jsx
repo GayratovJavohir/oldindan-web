@@ -11,12 +11,25 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
  *                        (calls onItemChange(item, {x, y}) on release, same
  *                        contract the old Konva editor used).
  *
- * Props: width, height, scale, items, selectedId, editable,
+ * Props: width, height, scale, items, selectedId, editable, theme,
  *        statusByLayoutItemId, zoneColorById, onSelect, onHover,
  *        onBackgroundClick, onItemChange
  *
+ * `theme` ('dark' | 'light') only affects the void background behind the
+ * room + its fog — everything else (floor tile, walls, tables) is
+ * intentionally unchanged, since this is meant to look like a physical room
+ * regardless of the app's UI theme. Pass it down from useTheme():
+ *   const { theme } = useTheme();
+ *   <FloorCanvas ... theme={theme} />
+ *
  * Requires: `npm install three`
  */
+
+// scene void + fog per app theme — keep in sync with --bg in styles.css
+const SCENE_BG = {
+    dark: 0x101010,
+    light: 0xf4f3f1,
+};
 
 // ---- palette (kept in sync with LiveLayout.module.css legend colors) ----
 const STATUS_COLOR = {
@@ -54,7 +67,6 @@ function itemKey(item) {
     return String(item?.id ?? item?.tempId ?? '');
 }
 
-// draws text onto a canvas and returns a THREE.Sprite
 function makeLabelSprite(text, { fontSize = 34, color = '#ffffff', bg = 'rgba(15,15,15,0.72)', scale = 1 } = {}) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -97,7 +109,6 @@ function makeLabelSprite(text, { fontSize = 34, color = '#ffffff', bg = 'rgba(15
     return sprite;
 }
 
-// bakes a subtle tile pattern into a texture sized exactly to the floor plane
 function makeFloorTexture(width, height, tile = 42) {
     const canvas = document.createElement('canvas');
     const scale = 2;
@@ -260,6 +271,7 @@ export default function FloorCanvas({
     items = [],
     selectedId = null,
     editable = false,
+    theme = 'dark',
     statusByLayoutItemId = {},
     zoneColorById = {},
     onSelect,
@@ -271,7 +283,6 @@ export default function FloorCanvas({
     const sceneRef = useRef(null);
     const [ready, setReady] = useState(false);
 
-    // refs so the render-loop / event closures never see stale props
     const cbRef = useRef({ onSelect, onHover, onBackgroundClick, onItemChange });
     cbRef.current = { onSelect, onHover, onBackgroundClick, onItemChange };
     const editableRef = useRef(editable);
@@ -287,9 +298,11 @@ export default function FloorCanvas({
         const mount = mountRef.current;
         if (!mount) return undefined;
 
+        const initialBg = SCENE_BG[theme] ?? SCENE_BG.dark;
+
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x101010);
-        scene.fog = new THREE.Fog(0x101010, 900, 2200);
+        scene.background = new THREE.Color(initialBg);
+        scene.fog = new THREE.Fog(initialBg, 900, 2200);
 
         const aspect = width / height;
         const viewSize = Math.max(width, height) * 0.72;
@@ -300,9 +313,6 @@ export default function FloorCanvas({
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        // `scale` changes the OUTPUT resolution only — the orthographic frustum
-        // above is computed from the unscaled width/height, so the same world
-        // stays in view, just rendered bigger/smaller to match the container.
         renderer.setSize(width * scale, height * scale);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.shadowMap.enabled = true;
@@ -371,7 +381,6 @@ export default function FloorCanvas({
             return hit ? out : null;
         };
 
-        // ---------------- drag-to-move (editable mode only) ----------------
         const drag = {
             active: false,
             moved: false,
@@ -389,7 +398,7 @@ export default function FloorCanvas({
 
         const onPointerDown = (e) => {
             const found = pickItem(e.clientX, e.clientY);
-            if (!found) return; // background — handled on click
+            if (!found) return;
             controls.enabled = false;
             cbRef.current.onSelect?.(found);
 
@@ -449,14 +458,12 @@ export default function FloorCanvas({
                 drag.active = false;
                 drag.item = null;
                 drag.mesh = null;
-                // NOTE: drag.moved stays as-is until the following click event
-                // reads it (see onClick) — reset there.
             }
         };
 
         const onClick = (e) => {
             if (drag.moved) {
-                drag.moved = false; // consume the flag so background-click logic isn't tricked next time
+                drag.moved = false;
                 return;
             }
             const found = pickItem(e.clientX, e.clientY);
@@ -516,8 +523,21 @@ export default function FloorCanvas({
             if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
             sceneRef.current = null;
         };
+        // NOTE: `theme` is intentionally NOT a dependency here — the whole
+        // scene/renderer must not be torn down and rebuilt just because the
+        // theme flipped. See the small effect right below instead, which
+        // only repaints the background + fog color live.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [width, height, scale]);
+
+    // ---- live theme switch: only repaints the void background + fog ----
+    useEffect(() => {
+        if (!ready || !sceneRef.current) return;
+        const { scene } = sceneRef.current;
+        const bg = SCENE_BG[theme] ?? SCENE_BG.dark;
+        scene.background = new THREE.Color(bg);
+        if (scene.fog) scene.fog.color.set(bg);
+    }, [ready, theme]);
 
     // ---- rebuild the item meshes whenever data changes ----
     useEffect(() => {

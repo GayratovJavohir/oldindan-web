@@ -12,8 +12,8 @@
 }
 
 .modalContent {
-    background: #1a1a1a;
-    border: 1px solid #333;
+    background: var(--card-alt);
+    border: 1px solid var(--border-strong);
     border-radius: 12px;
     width: 100%;
     max-width: 600px;
@@ -22,7 +22,7 @@
     flex-direction: column;
     gap: 24px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #fff;
+    color: var(--text);
 }
 
 .header {
@@ -61,8 +61,8 @@
 
 .closeBtn {
     background: transparent;
-    border: 1px solid #333;
-    color: #888;
+    border: 1px solid var(--border-strong);
+    color: var(--muted);
     width: 32px;
     height: 32px;
     border-radius: 8px;
@@ -72,22 +72,22 @@
 }
 
 .closeBtn:hover {
-    background: #2a2a2a;
-    color: #fff;
+    background: var(--border);
+    color: var(--text);
 }
 
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-strong);
     padding-bottom: 24px;
 }
 
 .gridItem label,
 .section label {
     display: block;
-    color: #888;
+    color: var(--muted);
     font-size: 12px;
     margin-bottom: 8px;
     text-transform: uppercase;
@@ -101,12 +101,12 @@
 
 .valueSub {
     font-size: 14px;
-    color: #aaa;
+    color: var(--text-secondary);
     margin-top: 4px;
 }
 
 .section {
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-strong);
     padding-bottom: 16px;
 }
 
@@ -122,20 +122,20 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #2a2a2a;
+    background: var(--border);
     padding: 6px 12px;
     border-radius: 8px;
     font-size: 13px;
-    border: 1px solid #333;
+    border: 1px solid var(--border-strong);
 }
 
 .noteInput {
     width: 100%;
     background: #111;
-    border: 1px solid #333;
+    border: 1px solid var(--border-strong);
     border-radius: 8px;
     padding: 12px;
-    color: #fff;
+    color: var(--text);
     font-size: 14px;
 }
 
@@ -162,7 +162,7 @@
 
 .btnSecondary {
     flex: 1;
-    background: #2a2a2a;
+    background: var(--border);
     color: white;
     border-color: #444 !important;
 }
