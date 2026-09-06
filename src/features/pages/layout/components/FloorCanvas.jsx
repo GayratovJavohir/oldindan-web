@@ -46,13 +46,22 @@ const STATUS_COLOR = {
 };
 
 const FACILITY_STYLE = {
-    entrance: { color: 0x4ade80, label: 'IN' },
-    exit: { color: 0xe85d5d, label: 'OUT' },
-    wc: { color: 0x60a5fa, label: 'WC' },
-    cashier: { color: 0xf5a623, label: 'CASHIER' },
-    kids_area: { color: 0xf472b6, label: 'KIDS' },
-    decor: { color: 0x2dd4bf, label: '' },
+    entrance: { color: 0x4ade80, label: 'IN', icon: '⬇️' },
+    exit: { color: 0xe85d5d, label: 'OUT', icon: '⬆️' },
+    wc: { color: 0x60a5fa, label: 'WC', icon: '🚻' },
+    cashier: { color: 0xf5a623, label: 'CASHIER', icon: '💰' },
+    kids_area: { color: 0xf472b6, label: 'KIDS', icon: '🧸' },
+    decor: { color: 0x2dd4bf, label: '', icon: '🌿' },
 };
+
+// Deterministic pseudo-random in [0,1), seeded by an integer — used so
+// decorative details (ball-pit balls, foliage clusters, etc.) get a
+// natural scattered look but don't jitter/reshuffle every time the scene
+// rebuilds (which a real Math.random() call would cause).
+function seededRandom(seed) {
+    const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+    return x - Math.floor(x);
+}
 
 const WALL_HEIGHT = 130;
 const DIVIDER_HEIGHT = 70;
@@ -107,6 +116,66 @@ function makeLabelSprite(text, { fontSize = 34, color = '#ffffff', bg = 'rgba(15
     sprite.scale.set((w / h) * 30 * worldScale, 30 * worldScale, 1);
     sprite.renderOrder = 999;
     return sprite;
+}
+
+// Renders a large emoji/pictogram onto a soft circular badge — much more
+// legible at a glance than plain text, and gives each facility type (WC,
+// cashier, kids area, entrance/exit...) an instantly recognizable look
+// without needing custom 3D models for every icon.
+function makeIconSprite(emoji, { size = 120, bg = 'rgba(15,15,15,0.55)', ring = null } = {}) {
+    const canvas = document.createElement('canvas');
+    const scale = 3;
+    canvas.width = size * scale;
+    canvas.height = size * scale;
+    const ctx = canvas.getContext('2d');
+    const r = (size * scale) / 2;
+
+    ctx.beginPath();
+    ctx.arc(r, r, r - 4 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = bg;
+    ctx.fill();
+    if (ring) {
+        ctx.lineWidth = 5 * scale;
+        ctx.strokeStyle = ring;
+        ctx.stroke();
+    }
+
+    ctx.font = `${Math.round(size * scale * 0.56)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, r, r + size * scale * 0.03);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    const material = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+    const sprite = new THREE.Sprite(material);
+    sprite.renderOrder = 998;
+    return sprite;
+}
+
+// Flat arrow (used for entrance/exit floor markers) built from a 2D shape
+// and extruded a couple of units so it reads as a painted floor decal
+// rather than a plain box.
+function makeArrowMesh(width, height, color, pointsIn = true) {
+    const w = Math.min(width, height) * 0.42;
+    const shape = new THREE.Shape();
+    const dir = pointsIn ? 1 : -1;
+    shape.moveTo(-w * 0.35, -w * dir);
+    shape.lineTo(w * 0.35, -w * dir);
+    shape.lineTo(w * 0.35, w * 0.15 * dir);
+    shape.lineTo(w * 0.7, w * 0.15 * dir);
+    shape.lineTo(0, w * dir);
+    shape.lineTo(-w * 0.7, w * 0.15 * dir);
+    shape.lineTo(-w * 0.35, w * 0.15 * dir);
+    shape.closePath();
+
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: 3, bevelEnabled: false });
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.05 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 2;
+    mesh.receiveShadow = true;
+    return mesh;
 }
 
 function makeFloorTexture(width, height, tile = 42) {
@@ -239,8 +308,195 @@ function buildWall(item, kind, opacity = 1, selected = false) {
     return mesh;
 }
 
+// A thin, axis-aligned floor pad every facility sits on — gives a
+// consistent "footprint" so different facility types read as belonging to
+// the same visual language instead of each being an unrelated box.
+function buildFacilityPad(width, height, color, opacity = 0.85) {
+    const geo = new THREE.BoxGeometry(width, 6, height);
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, transparent: true, opacity });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 3;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+}
+
+function buildKidsArea(item, style, selected) {
+    const group = new THREE.Group();
+    const w = item.width * 0.92;
+    const h = item.height * 0.92;
+    const color = selected ? 0xffffff : style.color;
+
+    group.add(buildFacilityPad(w, h, 0xfff1f6, 0.95));
+
+    // Low candy-striped pit wall around the edge.
+    const wallH = 22;
+    const wallMat1 = new THREE.MeshStandardMaterial({ color, roughness: 0.5 });
+    const wallMat2 = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+    const perim = [
+        { x: 0, z: -h / 2 + 3, bw: w, bh: 6 },
+        { x: 0, z: h / 2 - 3, bw: w, bh: 6 },
+        { x: -w / 2 + 3, z: 0, bw: 6, bh: h },
+        { x: w / 2 - 3, z: 0, bw: 6, bh: h },
+    ];
+    perim.forEach((p, i) => {
+        const geo = new THREE.BoxGeometry(p.bw, wallH, p.bh);
+        const mesh = new THREE.Mesh(geo, i % 2 === 0 ? wallMat1 : wallMat2);
+        mesh.position.set(p.x, wallH / 2, p.z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+    });
+
+    // A little pile of colorful ball-pit balls, scattered but stable.
+    const ballColors = [0xff6b6b, 0xffd166, 0x4dd4ac, 0x5b9bff, 0xff8fd6];
+    const seedBase = (item.id ?? item.tempId ?? 1);
+    const ballCount = Math.max(6, Math.min(16, Math.round((w * h) / 900)));
+    for (let i = 0; i < ballCount; i += 1) {
+        const rx = (seededRandom(seedBase * 7 + i * 3.1) - 0.5) * (w - 26);
+        const rz = (seededRandom(seedBase * 11 + i * 5.7) - 0.5) * (h - 26);
+        const radius = 9 + seededRandom(seedBase * 13 + i) * 4;
+        const ball = new THREE.Mesh(
+            new THREE.SphereGeometry(radius, 14, 14),
+            new THREE.MeshStandardMaterial({
+                color: ballColors[i % ballColors.length],
+                roughness: 0.35,
+                metalness: 0.05,
+            })
+        );
+        ball.position.set(rx, radius * 0.7 + 6, rz);
+        ball.castShadow = true;
+        group.add(ball);
+    }
+
+    const icon = makeIconSprite(style.icon, { bg: 'rgba(244,114,182,0.35)', ring: '#ffffff' });
+    icon.position.y = wallH + 44;
+    icon.scale.multiplyScalar(0.85);
+    group.add(icon);
+
+    const label = makeLabelSprite(item.name || 'Kids Area', { fontSize: 24, bg: 'rgba(20,20,20,0.7)' });
+    label.position.y = wallH + 12;
+    group.add(label);
+    return group;
+}
+
+function buildWc(item, style, selected) {
+    const group = new THREE.Group();
+    const w = item.width * 0.9;
+    const h = item.height * 0.9;
+    const color = selected ? 0xffffff : style.color;
+    group.add(buildFacilityPad(w, h, 0xdbeafe, 0.95));
+
+    const wallMat = new THREE.MeshStandardMaterial({ color, roughness: 0.55 });
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(w * 0.95, 34, h * 0.95), wallMat);
+    wall.position.y = 17;
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    group.add(wall);
+
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+    const door = new THREE.Mesh(new THREE.BoxGeometry(w * 0.28, 30, 4), doorMat);
+    door.position.set(0, 15, h * 0.475 + 2);
+    group.add(door);
+
+    const icon = makeIconSprite(style.icon, { bg: 'rgba(96,165,250,0.4)', ring: '#ffffff' });
+    icon.position.y = 74;
+    group.add(icon);
+    return group;
+}
+
+function buildCashier(item, style, selected) {
+    const group = new THREE.Group();
+    const w = item.width * 0.9;
+    const h = item.height * 0.9;
+    const color = selected ? 0xffffff : style.color;
+    group.add(buildFacilityPad(w, h, 0xfff4e0, 0.95));
+
+    const counterMat = new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.5 });
+    const counter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.92, 30, h * 0.6), counterMat);
+    counter.position.set(0, 15, -h * 0.15);
+    counter.castShadow = true;
+    counter.receiveShadow = true;
+    group.add(counter);
+
+    const topMat = new THREE.MeshStandardMaterial({ color, roughness: 0.4 });
+    const top = new THREE.Mesh(new THREE.BoxGeometry(w * 0.96, 6, h * 0.68), topMat);
+    top.position.set(0, 33, -h * 0.15);
+    top.castShadow = true;
+    group.add(top);
+
+    const screenMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.4 });
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(w * 0.22, 20, 3), screenMat);
+    screen.position.set(w * 0.2, 46, -h * 0.15);
+    screen.rotation.x = -0.25;
+    group.add(screen);
+
+    const icon = makeIconSprite(style.icon, { bg: 'rgba(245,166,35,0.4)', ring: '#ffffff' });
+    icon.position.y = 76;
+    group.add(icon);
+    return group;
+}
+
+function buildEntranceExit(item, style, selected, isEntrance) {
+    const group = new THREE.Group();
+    const w = item.width * 0.95;
+    const h = item.height * 0.95;
+    const color = selected ? 0xffffff : style.color;
+    group.add(buildFacilityPad(w, h, isEntrance ? 0xdcfce7 : 0xfee2e2, 0.9));
+    group.add(makeArrowMesh(w, h, color, isEntrance));
+
+    const icon = makeIconSprite(style.icon, {
+        bg: isEntrance ? 'rgba(74,222,128,0.4)' : 'rgba(232,93,93,0.4)',
+        ring: '#ffffff',
+        size: 90,
+    });
+    icon.position.y = 46;
+    icon.scale.multiplyScalar(0.7);
+    group.add(icon);
+    return group;
+}
+
+function buildDecor(item, style, selected) {
+    const group = new THREE.Group();
+    const radius = Math.min(item.width, item.height) * 0.32;
+    const potMat = new THREE.MeshStandardMaterial({ color: selected ? 0xffffff : 0x8a5a3a, roughness: 0.7 });
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.7, radius * 0.55, radius * 0.9, 16), potMat);
+    pot.position.y = radius * 0.45;
+    pot.castShadow = true;
+    pot.receiveShadow = true;
+    group.add(pot);
+
+    const leafColors = [0x2f7d4f, 0x3f9d63, 0x2a6a43];
+    const seedBase = (item.id ?? item.tempId ?? 3);
+    for (let i = 0; i < 5; i += 1) {
+        const s = radius * (0.55 + seededRandom(seedBase + i) * 0.35);
+        const leaf = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(s, 0),
+            new THREE.MeshStandardMaterial({ color: leafColors[i % leafColors.length], roughness: 0.8, flatShading: true })
+        );
+        const ang = (i / 5) * Math.PI * 2;
+        leaf.position.set(Math.cos(ang) * radius * 0.25, radius * 1.1 + s * 0.4, Math.sin(ang) * radius * 0.25);
+        leaf.castShadow = true;
+        group.add(leaf);
+    }
+    return group;
+}
+
 function buildFacility(item, t, selected) {
-    const style = FACILITY_STYLE[item.type] || { color: 0x555555, label: item.type?.slice(0, 3).toUpperCase() || '' };
+    const style = FACILITY_STYLE[item.type] || {
+        color: 0x555555,
+        label: item.type?.slice(0, 3).toUpperCase() || '',
+        icon: '📍',
+    };
+
+    if (item.type === 'kids_area') return buildKidsArea(item, style, selected);
+    if (item.type === 'wc') return buildWc(item, style, selected);
+    if (item.type === 'cashier') return buildCashier(item, style, selected);
+    if (item.type === 'entrance') return buildEntranceExit(item, style, selected, true);
+    if (item.type === 'exit') return buildEntranceExit(item, style, selected, false);
+    if (item.type === 'decor') return buildDecor(item, style, selected);
+
+    // Fallback for any future/unknown facility type.
     const group = new THREE.Group();
     const geo = new THREE.BoxGeometry(item.width * 0.9, 26, item.height * 0.9);
     const mat = new THREE.MeshStandardMaterial({
@@ -309,7 +565,13 @@ export default function FloorCanvas({
         const camera = new THREE.OrthographicCamera(
             (-viewSize * aspect) / 2, (viewSize * aspect) / 2, viewSize / 2, -viewSize / 2, -2000, 4000
         );
-        camera.position.set(302, 809, 254);
+        // Previous default (302, 809, 254) sat almost directly overhead
+        // (~26° off vertical) — right at the top of the allowed rotation
+        // range, which is why the room read as a flat 2D map instead of a
+        // real 3D scene. This angle (~48° off vertical) gives a proper
+        // isometric "diorama" look by default, so table height, chairs and
+        // walls are actually visible without the user needing to rotate.
+        camera.position.set(560, 640, 480);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -324,8 +586,11 @@ export default function FloorCanvas({
         controls.enableRotate = true;
         controls.minZoom = 0.6;
         controls.maxZoom = 2.4;
-        controls.minPolarAngle = Math.PI / 7;
-        controls.maxPolarAngle = Math.PI / 2.7;
+        // Widened so the user can tilt from a near-map top-down view all the
+        // way to a low, dramatic angle — the default position above sits
+        // roughly in the middle of this range.
+        controls.minPolarAngle = Math.PI / 8;   // ~22.5° — near top-down
+        controls.maxPolarAngle = Math.PI / 2.3; // ~78°   — low, dramatic angle
         controls.target.set(0, 0, 0);
         controls.update();
 

@@ -123,7 +123,7 @@ export default function BookingsTable() {
             <tbody>
               {loading ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('common.loading')}</td></tr>
-              ) : bookings.length === 0 ? (
+              ) : filteredBookings.length === 0 ? (
                 <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('bookings.noBookings')}</td></tr>
               ) : (
                 filteredBookings.map((booking) => (

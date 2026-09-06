@@ -68,6 +68,13 @@ export default function Sidebar() {
     return formatBadge(counts[badgeKey]);
   };
 
+  const initials = (user?.name || 'P')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'P';
+
   return (
     <>
       {isMobile && sidebarOpen && (
@@ -129,16 +136,13 @@ export default function Sidebar() {
 
         <div className={styles.userFooter}>
           <div className={styles.userAvatar}>
-            {(user?.name || 'P').slice(0, 2).toUpperCase()}
+            {initials}
           </div>
           <div className={styles.userInfo}>
             <span className={styles.userName}>{user?.name || 'Partner'}</span>
             <span className={styles.userRole}>{t(`roles.${role}`, { defaultValue: role })}</span>
           </div>
         </div>
-        <button type="button" className={styles.signOut} onClick={handleSignOut}>
-          {t('nav.signOut')}
-        </button>
       </aside>
     </>
   );

@@ -15,7 +15,7 @@ function normalizeBookingStatus(status) {
         checkedin: 'Checked In',
         completed: 'Completed',
         canceled: 'Canceled',
-        canceled: 'Canceled',
+        cancelled: 'Canceled',
         no_show: 'No Show',
         noshow: 'No Show',
     };
@@ -109,11 +109,6 @@ export const getPartnerBooking = async (id) => {
 };
 
 export const updateBookingStatus = async (id, status, note = '') => {
-    console.log({
-        url: `/bookings/partner/${id}/status/`,
-        body: { status, note },
-    });
-
     const response = await $api.post(`/bookings/partner/${id}/status/`, { status, note });
     return response.data;
 };
@@ -138,19 +133,17 @@ export const checkInByNumber = async ({ booking_number, branch_id }) => {
 export const createManualBooking = async (payload) => {
     const branchId = payload.branch_id ?? payload.branch;
     const floorId = payload.floor_id ?? payload.floor;
-    const tableId = payload.table_id ?? payload.table;
+    // The backend booking-create endpoint expects a `layout_item` id (a
+    // table IS a LayoutItem, see tables.services.js). ManualBookingForm
+    // sends `layout_item` directly; older callers may still pass
+    // `table` / `table_id`, so all three are accepted here.
+    const layoutItemId = payload.layout_item ?? payload.layout_item_id ?? payload.table_id ?? payload.table;
     const zoneId = payload.zone_id ?? payload.zone;
 
     const body = {
         branch: branchId,
-        branch_id: branchId,
         floor: floorId,
-        floor_id: floorId,
-        table: tableId,
-        table_id: tableId,
-        first_name: payload.first_name?.trim(),
-        last_name: payload.last_name?.trim(),
-        phone: payload.phone?.trim(),
+        layout_item: layoutItemId,
         guest_count: payload.guest_count,
         children_count: payload.children_count ?? 0,
         booking_start: payload.booking_start,
@@ -158,10 +151,15 @@ export const createManualBooking = async (payload) => {
         special_request: payload.special_request || '',
     };
 
-    if (zoneId) {
-        body.zone = zoneId;
-        body.zone_id = zoneId;
-    }
+    // Backend has no dedicated guest name/phone fields on manual bookings
+    // (see ManualBookingForm.jsx) — they travel inside `special_request`.
+    // Still forward them as top-level fields too, in case a future backend
+    // revision adds real columns for them, without breaking anything if it
+    // doesn't (unknown fields are ignored server-side).
+    if (payload.first_name) body.first_name = String(payload.first_name).trim();
+    if (payload.last_name) body.last_name = String(payload.last_name).trim();
+    if (payload.phone) body.phone = String(payload.phone).trim();
+    if (zoneId) body.zone = zoneId;
 
     const response = await $api.post('/bookings/partner/manual-create/', body);
     return response.data;
