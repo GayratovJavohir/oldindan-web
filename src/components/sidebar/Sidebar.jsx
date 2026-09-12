@@ -5,6 +5,7 @@ import styles from './Sidebar.module.css';
 import AuthService from '../../services/auth.services';
 import { getStoredUser } from '../../utils/authUser';
 import { useNotifications } from '../../context/NotificationContext';
+import { useChatUnread } from '../../context/ChatContext';
 import { useLayout } from '../../context/LayoutContext';
 import {
   IoGridOutline,
@@ -17,6 +18,7 @@ import {
   IoDiamondOutline,
   IoPeopleOutline,
   IoNotificationsOutline,
+  IoChatbubblesOutline,
   IoPersonCircleOutline,
   IoLogOutOutline,
 } from "react-icons/io5";
@@ -29,6 +31,7 @@ const navItems = {
     { labelKey: 'nav.allBookings', icon: <IoListOutline />, badgeKey: 'booking', path: '/bookings', roles: ['owner', 'manager', 'receptionist'] },
     { labelKey: 'nav.liveView', icon: <IoPulseOutline />, path: '/live-view', roles: ['owner', 'manager', 'receptionist'] },
     { labelKey: 'nav.manualBooking', icon: <IoAddCircleOutline />, path: '/manual-bookings', roles: ['receptionist'] },
+    { labelKey: 'nav.chat', icon: <IoChatbubblesOutline />, badgeKey: 'chat', path: '/chat', roles: ['receptionist'] },
   ],
   venue: [
     { labelKey: 'nav.floorLayout', icon: <IoMapOutline />, path: '/floor-layout', roles: ['owner', 'manager'] },
@@ -56,6 +59,7 @@ export default function Sidebar() {
   const user = getStoredUser();
   const role = user?.role || 'manager';
   const { counts } = useNotifications();
+  const { unreadCount: chatUnread } = useChatUnread();
   const { sidebarOpen, closeSidebar, isMobile } = useLayout();
 
   const handleSignOut = () => {
@@ -65,6 +69,7 @@ export default function Sidebar() {
 
   const getBadgeCount = (badgeKey) => {
     if (!badgeKey) return null;
+    if (badgeKey === 'chat') return formatBadge(chatUnread);
     return formatBadge(counts[badgeKey]);
   };
 

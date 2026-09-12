@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import AuthService from '../services/auth.services';
 import { getStoredUser, mapProfile, setStoredUser, getAccountType } from '../utils/authUser';
 import { NotificationProvider } from '../context/NotificationContext';
+import { ChatProvider } from '../context/ChatContext';
 import { LayoutProvider } from '../context/LayoutContext';
 import { ThemeProvider } from '../context/ThemeContext';
 
@@ -24,7 +25,9 @@ export const AppProviders = ({ children }) => {
             <AuthBootstrap>
                 <LayoutProvider>
                     <NotificationProvider>
-                        {children}
+                        <ChatProvider>
+                            {children}
+                        </ChatProvider>
                     </NotificationProvider>
                 </LayoutProvider>
             </AuthBootstrap>

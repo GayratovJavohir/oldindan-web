@@ -11,7 +11,7 @@ export const LAYOUT_ITEM_TYPES = [
     { value: 'wall', label: 'Wall', defaultShape: 'rect', defaultWidth: 200, defaultHeight: 20 },
     { value: 'divider', label: 'Divider', defaultShape: 'rect', defaultWidth: 160, defaultHeight: 8 },
     { value: 'decor', label: 'Decor', defaultShape: 'icon', defaultWidth: 60, defaultHeight: 60 },
-    { value: 'stairs', label: 'Stairs', defaultShape: 'icon', defaultWidth: 100, defaultHeight: 70 },
+    { value: 'staircase', label: 'Staircase', defaultShape: 'icon', defaultWidth: 100, defaultHeight: 70 },
 ];
 
 export const ZONE_COLORS = [

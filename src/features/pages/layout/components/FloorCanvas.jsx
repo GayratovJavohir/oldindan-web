@@ -50,7 +50,7 @@ const FACILITY_META = {
     cashier: { color: '#f5a623', pad: '#3a2a10', icon: '💰', labelKey: 'cashier' },
     kids_area: { color: '#f472b6', pad: '#3a1c2c', icon: '🧸', labelKey: 'kids_area' },
     decor: { color: '#2dd4bf', pad: '#123430', icon: '🌿', labelKey: 'decor' },
-    stairs: { color: '#c9ccd1', pad: '#2a2c30', icon: '', labelKey: 'stairs' },
+    staircase: { color: '#c9ccd1', pad: '#2a2c30', icon: '', labelKey: 'stairs' },
 };
 
 const THEME_BG = {
@@ -383,10 +383,10 @@ function ItemNode({
             {item.type === 'exit' && (
                 <EntranceExitNode w={w} h={h} selected={selected} hovered={hovered} meta={meta} isEntrance={false} title={title} />
             )}
-            {item.type === 'stairs' && (
+            {item.type === 'staircase' && (
                 <StairsNode w={w} h={h} selected={selected} hovered={hovered} meta={meta} title={title} />
             )}
-            {meta && !['entrance', 'exit', 'stairs'].includes(item.type) && (
+            {meta && !['entrance', 'exit', 'staircase'].includes(item.type) && (
                 <FacilityIconNode w={w} h={h} selected={selected} hovered={hovered} meta={meta} title={title} />
             )}
         </Group>

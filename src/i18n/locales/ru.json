@@ -9,6 +9,7 @@
     "allBookings": "Все брони",
     "liveView": "Онлайн-зал",
     "manualBooking": "Ручная бронь",
+    "chat": "Чат",
     "floorLayout": "План зала",
     "tables": "Столы",
     "branches": "Филиалы",
@@ -108,7 +109,8 @@
     "brands": "Бренды",
     "staff": "Сотрудники",
     "notifications": "Уведомления",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "chat": "Чат"
   },
   "dashboard": {
     "todaysBookings": "БРОНИ СЕГОДНЯ",
@@ -275,7 +277,7 @@
       "wall": "Стена",
       "divider": "Разделитель",
       "decor": "Декор",
-      "stairs": "Лестница"
+      "staircase": "Лестница"
     }
   },
   "branches": {
@@ -425,5 +427,18 @@
   },
   "errors": {
     "notFound": "404 НЕ НАЙДЕНО"
+  },
+  "chat": {
+    "search": "Имя или телефон...",
+    "all": "Все",
+    "unread": "Непрочитанные",
+    "emptyList": "Диалогов нет",
+    "emptyThread": "Выберите диалог с гостем",
+    "placeholder": "Напишите сообщение...",
+    "send": "Отправить",
+    "today": "Сегодня",
+    "booking": "{{table}} · {{date}} {{time}} · {{count}} гостей",
+    "noMessages": "Сообщений пока нет",
+    "back": "Назад"
   }
 }

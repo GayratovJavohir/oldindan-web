@@ -9,6 +9,7 @@
     "allBookings": "All bookings",
     "liveView": "Live view",
     "manualBooking": "Manual booking",
+    "chat": "Chat",
     "floorLayout": "Floor layout",
     "tables": "Tables",
     "branches": "Branches",
@@ -108,7 +109,8 @@
     "brands": "Brands",
     "staff": "Staff",
     "notifications": "Notifications",
-    "profile": "Profile"
+    "profile": "Profile",
+    "chat": "Chat"
   },
   "dashboard": {
     "todaysBookings": "TODAY'S BOOKINGS",
@@ -254,7 +256,7 @@
       "wall": "Wall",
       "divider": "Divider",
       "decor": "Decor",
-      "stairs": "Stairs"
+      "staircase": "Stairs"
     },
     "liveFloorView": "Live floor view"
   },
@@ -405,5 +407,18 @@
   },
   "errors": {
     "notFound": "404 NOT FOUND"
+  },
+  "chat": {
+    "search": "Name or phone...",
+    "all": "All",
+    "unread": "Unread",
+    "emptyList": "No conversations",
+    "emptyThread": "Select a guest conversation",
+    "placeholder": "Write a message...",
+    "send": "Send",
+    "today": "Today",
+    "booking": "{{table}} · {{date}} {{time}} · {{count}} guests",
+    "noMessages": "No messages yet",
+    "back": "Back"
   }
 }

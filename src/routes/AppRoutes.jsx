@@ -16,6 +16,7 @@ import LiveLayoutPage from '../pages/LiveLayoutPage';
 import ProtectedLayout from '../components/ProtectedLayout';
 import { getDefaultRouteForRole, getStoredUser } from '../utils/authUser';
 import SettingsPage from '../pages/SettingsPage';
+import ChatPage from '../pages/ChatPage';
 
 const PageLoader = () => <div className="loader">Loading...</div>;
 
@@ -35,6 +36,7 @@ export default function AppRoutes() {
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="bookings" element={<BookingsPage />} />
                     <Route path="manual-bookings" element={<ManualBookingsPage />} />
+                    <Route path="chat" element={<ChatPage />} />
                     <Route path="floor-layout" element={<LayoutPage />} />
                     <Route path="live-view" element={<LiveLayoutPage />} />
                     <Route path="brands" element={<BrandPage />} />

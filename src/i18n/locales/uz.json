@@ -9,6 +9,7 @@
     "allBookings": "Barcha bronlar",
     "liveView": "Jonli ko‘rinish",
     "manualBooking": "Qo‘lda bron",
+    "chat": "Chat",
     "floorLayout": "Zal layout",
     "tables": "Stollar",
     "branches": "Filiallar",
@@ -108,7 +109,8 @@
     "brands": "Brendlar",
     "staff": "Xodimlar",
     "notifications": "Bildirishnomalar",
-    "profile": "Profil"
+    "profile": "Profil",
+    "chat": "Chat"
   },
   "dashboard": {
     "todaysBookings": "BUGUNGI BRONLAR",
@@ -275,7 +277,7 @@
       "wall": "Devor",
       "divider": "Ajratgich",
       "decor": "Dekor",
-      "stairs": "Zina"
+      "staircase": "Zina"
     }
   },
   "branches": {
@@ -425,5 +427,18 @@
   },
   "errors": {
     "notFound": "404 TOPILMADI"
+  },
+  "chat": {
+    "search": "Ism yoki telefon...",
+    "all": "Hammasi",
+    "unread": "O‘qilmagan",
+    "emptyList": "Suhbatlar yo‘q",
+    "emptyThread": "Mehmon suhbatini tanlang",
+    "placeholder": "Xabar yozing...",
+    "send": "Yuborish",
+    "today": "Bugun",
+    "booking": "{{table}} · {{date}} {{time}} · {{count}} mehmon",
+    "noMessages": "Hali xabar yo‘q",
+    "back": "Orqaga"
   }
 }
