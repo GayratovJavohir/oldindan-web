@@ -189,12 +189,6 @@ export default function LayoutFloor() {
         };
     }), [items]);
 
-    const visibleItems = useMemo(() => {
-        if (zoneFilter === ALL_ZONES) return enrichedItems;
-        if (zoneFilter === NO_ZONE) return enrichedItems.filter((i) => !i.zoneId);
-        return enrichedItems.filter((i) => String(i.zoneId) === String(zoneFilter));
-    }, [enrichedItems, zoneFilter]);
-
     // How many tables sit in each zone - shown as a small counter on the zone chip.
     const tableCountByZone = useMemo(() => {
         const map = {};
@@ -814,6 +808,7 @@ export default function LayoutFloor() {
                                     items={enrichedItems}
                                     selectedId={selectedId}
                                     editable
+                                    theme={theme}
                                     zoneColorById={zoneColorById}
                                     focusZoneId={zoneFilter}
                                     onSelect={(item) => setSelectedId(item.id || item.tempId)}

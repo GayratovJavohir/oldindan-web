@@ -581,6 +581,7 @@ export default function LiveFloor() {
                                                 : null
                                         }
                                         editable={false}
+                                        theme={theme}
                                         statusByLayoutItemId={statusByLayoutItemId}
                                         zoneColorById={zoneColorById}
                                         onSelect={handleSelectItem}
