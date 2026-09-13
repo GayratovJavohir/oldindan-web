@@ -22,7 +22,7 @@ export default function BookingsTable() {
   const [showQuickCheckIn, setShowQuickCheckIn] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
-  
+
 
   const user = getStoredUser();
   const isReceptionist = user?.role === 'receptionist';
@@ -110,7 +110,6 @@ export default function BookingsTable() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>{t('bookings.code')}</th>
                 <th>{t('bookings.guest')}</th>
                 <th>{t('bookings.branchTable')}</th>
                 <th>{t('bookings.dateTime')}</th>
@@ -122,9 +121,9 @@ export default function BookingsTable() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('common.loading')}</td></tr>
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>{t('common.loading')}</td></tr>
               ) : filteredBookings.length === 0 ? (
-                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>{t('bookings.noBookings')}</td></tr>
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>{t('bookings.noBookings')}</td></tr>
               ) : (
                 filteredBookings.map((booking) => (
                   <BookingRow

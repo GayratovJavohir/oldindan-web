@@ -28,10 +28,6 @@ export default function BookingRow({ booking, onStatusChange, isReceptionist, on
 
     return (
         <tr>
-            <td className={styles.idCol}>
-                <div className={styles.guestName}>#{booking.bookingNumber || booking.id}</div>
-                {!booking.bookingNumber && <div className={styles.guestPhone}>id {booking.id}</div>}
-            </td>
             <td>
                 <div className={styles.guestName}>{guestName}</div>
                 <div className={styles.guestPhone}>{booking.phone}</div>

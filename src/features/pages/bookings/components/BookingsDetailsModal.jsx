@@ -1,8 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import styles from '../Bookings.module.css';
 import { useTranslation } from 'react-i18next';
+import { getStoredUser } from '../../../../utils/authUser';
 
 export default function BookingDetailsModal({ booking, onClose }) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+    const isReceptionist = getStoredUser()?.role === 'receptionist';
     if (!booking) return null;
 
     return (
@@ -110,6 +114,21 @@ export default function BookingDetailsModal({ booking, onClose }) {
                             className={styles.viewModalNoteInput}
                         />
                     </div>
+
+                    {isReceptionist && (
+                        <div className={styles.viewModalFooter} style={{ gridTemplateColumns: '1fr' }}>
+                            <button
+                                type="button"
+                                className={styles.viewModalBtnPrimary}
+                                onClick={() => {
+                                    onClose();
+                                    navigate(`/chat?booking=${booking.id}`);
+                                }}
+                            >
+                                {t('chat.openChat')}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

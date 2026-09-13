@@ -439,6 +439,9 @@
     "today": "Сегодня",
     "booking": "{{table}} · {{date}} {{time}} · {{count}} гостей",
     "noMessages": "Сообщений пока нет",
-    "back": "Назад"
+    "back": "Назад",
+    "loadFailed": "Не удалось загрузить чат",
+    "sendFailed": "Сообщение не отправлено",
+    "openChat": "Чат"
   }
 }

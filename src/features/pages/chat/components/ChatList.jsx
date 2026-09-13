@@ -76,7 +76,7 @@ export default function ChatList({
                             <button
                                 key={item.id}
                                 type="button"
-                                className={`${styles.conversation} ${selectedId === item.id ? styles.conversationActive : ''} ${unread ? styles.conversationUnread : ''}`}
+                                className={`${styles.conversation} ${String(selectedId) === String(item.id) ? styles.conversationActive : ''} ${unread ? styles.conversationUnread : ''}`}
                                 onClick={() => onSelect(item.id)}
                             >
                                 <span className={styles.avatar}>{initials(item.guest?.name)}</span>

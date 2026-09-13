@@ -28,13 +28,22 @@ export function ChatProvider({ children }) {
             setUnreadCount(0);
             return 0;
         }
-        const count = await getUnreadChatCount();
-        setUnreadCount(count);
-        return count;
+        try {
+            const count = await getUnreadChatCount();
+            setUnreadCount(count);
+            return count;
+        } catch {
+            setUnreadCount(0);
+            return 0;
+        }
     }, []);
 
     useEffect(() => {
-        refreshUnread();
+        refreshUnread().catch(() => setUnreadCount(0));
+        const interval = setInterval(() => {
+            refreshUnread().catch(() => { });
+        }, 30000);
+        return () => clearInterval(interval);
     }, [refreshUnread]);
 
     const value = useMemo(() => ({

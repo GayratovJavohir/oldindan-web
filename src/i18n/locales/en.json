@@ -419,6 +419,9 @@
     "today": "Today",
     "booking": "{{table}} · {{date}} {{time}} · {{count}} guests",
     "noMessages": "No messages yet",
-    "back": "Back"
+    "back": "Back",
+    "loadFailed": "Failed to load chat",
+    "sendFailed": "Message was not sent",
+    "openChat": "Chat"
   }
 }

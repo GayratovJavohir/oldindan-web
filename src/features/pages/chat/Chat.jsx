@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '../../../components/header/PageHeader';
 import { useLayout } from '../../../context/LayoutContext';
@@ -6,9 +7,11 @@ import { useChatUnread } from '../../../context/ChatContext';
 import {
     getConversations,
     getMessages,
+    getOrCreateBookingRoom,
     markConversationRead,
     sendMessage,
 } from '../../../services/chat.services';
+import { getApiError } from '../../../utils/apiHelpers';
 import ChatList from './components/ChatList';
 import ChatThread from './components/ChatThread';
 import styles from './Chat.module.css';
@@ -17,6 +20,7 @@ export default function Chat() {
     const { t } = useTranslation();
     const { isMobile } = useLayout();
     const { refreshUnread } = useChatUnread();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [conversations, setConversations] = useState([]);
     const [selectedId, setSelectedId] = useState(null);
@@ -27,6 +31,10 @@ export default function Chat() {
     const [loadingList, setLoadingList] = useState(true);
     const [loadingThread, setLoadingThread] = useState(false);
     const [sending, setSending] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const selectedIdRef = useRef(null);
+
+    selectedIdRef.current = selectedId;
 
     const loadConversations = useCallback(async () => {
         const list = await getConversations();
@@ -38,17 +46,33 @@ export default function Chat() {
     useEffect(() => {
         let cancelled = false;
         setLoadingList(true);
+        setErrorMessage('');
         loadConversations()
+            .catch((err) => {
+                if (!cancelled) setErrorMessage(getApiError(err) || t('chat.loadFailed'));
+            })
             .finally(() => {
                 if (!cancelled) setLoadingList(false);
             });
         return () => {
             cancelled = true;
         };
+    }, [loadConversations, t]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            loadConversations().catch(() => { });
+            const openId = selectedIdRef.current;
+            if (!openId) return;
+            getMessages(openId)
+                .then(setMessages)
+                .catch(() => { });
+        }, 15000);
+        return () => clearInterval(timer);
     }, [loadConversations]);
 
     const selected = useMemo(
-        () => conversations.find((item) => item.id === selectedId) || null,
+        () => conversations.find((item) => String(item.id) === String(selectedId)) || null,
         [conversations, selectedId],
     );
 
@@ -66,34 +90,71 @@ export default function Chat() {
         setSelectedId(id);
         setDraft('');
         setLoadingThread(true);
+        setErrorMessage('');
         try {
             const [list] = await Promise.all([
                 getMessages(id),
-                markConversationRead(id),
+                markConversationRead(id).catch(() => null),
             ]);
             setMessages(list);
             setConversations((prev) =>
-                prev.map((item) => (item.id === id ? { ...item, unreadCount: 0 } : item)),
+                prev.map((item) => (String(item.id) === String(id) ? { ...item, unreadCount: 0 } : item)),
             );
             await refreshUnread();
+        } catch (err) {
+            setErrorMessage(getApiError(err) || t('chat.loadFailed'));
         } finally {
             setLoadingThread(false);
         }
-    }, [refreshUnread]);
+    }, [refreshUnread, t]);
+
+    useEffect(() => {
+        const bookingId = searchParams.get('booking');
+        if (!bookingId) return undefined;
+        let cancelled = false;
+
+        (async () => {
+            try {
+                setErrorMessage('');
+                const room = await getOrCreateBookingRoom(bookingId);
+                if (cancelled || !room?.id) return;
+                await loadConversations();
+                await openConversation(room.id);
+            } catch (err) {
+                if (!cancelled) setErrorMessage(getApiError(err) || t('chat.loadFailed'));
+            } finally {
+                if (!cancelled) {
+                    const next = new URLSearchParams(searchParams);
+                    next.delete('booking');
+                    setSearchParams(next, { replace: true });
+                }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [searchParams, setSearchParams, loadConversations, openConversation, t]);
 
     const handleSend = useCallback(async () => {
         const text = draft.trim();
         if (!text || !selectedId || sending) return;
         setSending(true);
+        setErrorMessage('');
         try {
             const message = await sendMessage(selectedId, text);
-            setMessages((prev) => [...prev, message]);
+            setMessages((prev) => {
+                if (prev.some((item) => String(item.id) === String(message.id))) return prev;
+                return [...prev, message];
+            });
             setDraft('');
             await loadConversations();
+        } catch (err) {
+            setErrorMessage(getApiError(err) || t('chat.sendFailed'));
         } finally {
             setSending(false);
         }
-    }, [draft, selectedId, sending, loadConversations]);
+    }, [draft, selectedId, sending, loadConversations, t]);
 
     const handleBack = () => {
         setSelectedId(null);
@@ -105,6 +166,7 @@ export default function Chat() {
         <>
             <PageHeader title={t('pages.chat')} />
             <div className={styles.chatContainer}>
+                {errorMessage && <div className={styles.errorBanner}>{errorMessage}</div>}
                 <div className={`${styles.shell} ${isMobile && selectedId ? styles.threadOpen : ''}`}>
                     {(!isMobile || !selectedId) && (
                         <ChatList

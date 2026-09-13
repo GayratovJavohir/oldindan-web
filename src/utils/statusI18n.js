@@ -9,7 +9,7 @@ export function statusI18nKey(status) {
         checkedin: 'checkedIn',
         completed: 'completed',
         canceled: 'canceled',
-        canceled: 'canceled',
+        canceled: 'cancelled',
         no_show: 'noShow',
         noshow: 'noShow',
         occupied: 'occupied',

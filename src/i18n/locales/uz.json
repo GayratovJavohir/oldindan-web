@@ -439,6 +439,9 @@
     "today": "Bugun",
     "booking": "{{table}} · {{date}} {{time}} · {{count}} mehmon",
     "noMessages": "Hali xabar yo‘q",
-    "back": "Orqaga"
+    "back": "Orqaga",
+    "loadFailed": "Chat yuklanmadi",
+    "sendFailed": "Xabar yuborilmadi",
+    "openChat": "Chat"
   }
 }

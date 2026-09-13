@@ -1,8 +1,7 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './Sidebar.module.css';
-import AuthService from '../../services/auth.services';
 import { getStoredUser } from '../../utils/authUser';
 import { useNotifications } from '../../context/NotificationContext';
 import { useChatUnread } from '../../context/ChatContext';
@@ -13,14 +12,12 @@ import {
   IoPulseOutline,
   IoAddCircleOutline,
   IoMapOutline,
-  IoRestaurantOutline,
   IoBusinessOutline,
   IoDiamondOutline,
   IoPeopleOutline,
   IoNotificationsOutline,
   IoChatbubblesOutline,
   IoPersonCircleOutline,
-  IoLogOutOutline,
 } from "react-icons/io5";
 
 const navItems = {
@@ -55,17 +52,11 @@ function formatBadge(count) {
 
 export default function Sidebar() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const user = getStoredUser();
   const role = user?.role || 'manager';
   const { counts } = useNotifications();
   const { unreadCount: chatUnread } = useChatUnread();
   const { sidebarOpen, closeSidebar, isMobile } = useLayout();
-
-  const handleSignOut = () => {
-    AuthService.logout();
-    navigate('/login');
-  };
 
   const getBadgeCount = (badgeKey) => {
     if (!badgeKey) return null;

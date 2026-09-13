@@ -10,6 +10,12 @@ const LANGUAGES = [
 ];
 
 import { useTheme } from '../../../context/ThemeContext';
+import {
+    DEPOSIT_TYPES,
+    PAYMENT_PROVIDERS,
+    getDefaultPaymentSettings,
+    updateDefaultPaymentSettings,
+} from '../../../services/paymentSettings.services';
 
 function initials(name) {
     if (!name) return '?';
@@ -360,31 +366,177 @@ function getErrorMessage(err, t) {
 
 function OwnerSettings({ t }) {
     return (
+        <>
+            <SectionCard
+                title={t('settings.ownerTitle', 'Biznes boshqaruvi')}
+                description={t('settings.ownerDesc', 'Brend, filiallar va xodimlarni boshqaring.')}
+            >
+                <div className={styles.linkGrid}>
+                    <a className={styles.linkCard} href="/floor-layout">
+                        <span className={styles.linkCardTitle}>{t('settings.ownerBranches', 'Filiallar va layout')}</span>
+                        <span className={styles.linkCardHint}>{t('settings.ownerBranchesHint', 'Filial qo\u2018shish, joy tartibini tahrirlash')}</span>
+                    </a>
+                    <a className={styles.linkCard} href="/staff">
+                        <span className={styles.linkCardTitle}>{t('settings.ownerStaff', 'Xodimlar')}</span>
+                        <span className={styles.linkCardHint}>{t('settings.ownerStaffHint', 'Menejer va qabulxona xodimlarini boshqarish')}</span>
+                    </a>
+                    <a className={styles.linkCard} href="/profile">
+                        <span className={styles.linkCardTitle}>{t('settings.ownerBilling', 'Hisob-kitob')}</span>
+                        <span className={styles.linkCardHint}>{t('settings.ownerBillingHint', 'Tarif va to\u2018lovlar')}</span>
+                    </a>
+                    <a className={styles.linkCard} href="/brands">
+                        <span className={styles.linkCardTitle}>{t('settings.ownerBrand', 'Brend sozlamalari')}</span>
+                        <span className={styles.linkCardHint}>{t('settings.ownerBrandHint', 'Nomi, logotipi, umumiy sozlamalar')}</span>
+                    </a>
+                </div>
+                <p className={styles.note}>
+                    {t('settings.ownerNote', "Havolalar sizning marshrutlaringizga (routes) mos ravishda sozlanishi kerak.")}
+                </p>
+            </SectionCard>
+
+            <DepositPaymentSettingsCard t={t} />
+        </>
+    );
+}
+
+/**
+ * Global default deposit / online-payment (Payme, Click) settings.
+ * Individual branches can override these on the Branch page.
+ */
+function DepositPaymentSettingsCard({ t }) {
+    const [form, setForm] = useState({
+        enabled: false,
+        depositType: 'fixed',
+        depositValue: 0,
+        provider: 'payme',
+        merchantId: '',
+    });
+    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState({ saving: false, error: '', success: '' });
+
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            try {
+                const data = await getDefaultPaymentSettings();
+                if (active) setForm((prev) => ({ ...prev, ...data }));
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, []);
+
+    const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setStatus({ saving: true, error: '', success: '' });
+        try {
+            await updateDefaultPaymentSettings(form);
+            setStatus({
+                saving: false,
+                error: '',
+                success: t(
+                    'settings.depositSavedPlaceholder',
+                    "Saqlandi (hozircha shu qurilmada — backend endpoint tayyor bo'lgach serverga ulanadi).",
+                ),
+            });
+        } catch (err) {
+            setStatus({ saving: false, error: err?.message || t('settings.pwGenericError', 'Xatolik yuz berdi.'), success: '' });
+        }
+    };
+
+    return (
         <SectionCard
-            title={t('settings.ownerTitle', 'Biznes boshqaruvi')}
-            description={t('settings.ownerDesc', 'Brend, filiallar va xodimlarni boshqaring.')}
+            title={t('settings.depositTitle', "Depozit va onlayn to'lov")}
+            description={t('settings.depositDesc', "Bronlar uchun standart depozit va to'lov provayderi (Payme / Click). Har bir filial buni o'zicha almashtirishi mumkin.")}
+            badge={t('settings.comingSoonBadge', 'Tez orada')}
         >
-            <div className={styles.linkGrid}>
-                <a className={styles.linkCard} href="/floor-layout">
-                    <span className={styles.linkCardTitle}>{t('settings.ownerBranches', 'Filiallar va layout')}</span>
-                    <span className={styles.linkCardHint}>{t('settings.ownerBranchesHint', 'Filial qo\u2018shish, joy tartibini tahrirlash')}</span>
-                </a>
-                <a className={styles.linkCard} href="/staff">
-                    <span className={styles.linkCardTitle}>{t('settings.ownerStaff', 'Xodimlar')}</span>
-                    <span className={styles.linkCardHint}>{t('settings.ownerStaffHint', 'Menejer va qabulxona xodimlarini boshqarish')}</span>
-                </a>
-                <a className={styles.linkCard} href="/profile">
-                    <span className={styles.linkCardTitle}>{t('settings.ownerBilling', 'Hisob-kitob')}</span>
-                    <span className={styles.linkCardHint}>{t('settings.ownerBillingHint', 'Tarif va to\u2018lovlar')}</span>
-                </a>
-                <a className={styles.linkCard} href="/brands">
-                    <span className={styles.linkCardTitle}>{t('settings.ownerBrand', 'Brend sozlamalari')}</span>
-                    <span className={styles.linkCardHint}>{t('settings.ownerBrandHint', 'Nomi, logotipi, umumiy sozlamalar')}</span>
-                </a>
-            </div>
-            <p className={styles.note}>
-                {t('settings.ownerNote', "Havolalar sizning marshrutlaringizga (routes) mos ravishda sozlanishi kerak.")}
-            </p>
+            {loading ? (
+                <p className={styles.note}>{t('common.loading', 'Yuklanmoqda...')}</p>
+            ) : (
+                <form className={styles.formStack} onSubmit={handleSave}>
+                    <Row
+                        label={t('settings.depositEnabled', 'Depozit talab qilinsin')}
+                        hint={t('settings.depositEnabledHint', "Yoqilsa, bron vaqtida mehmondan oldindan to'lov so'raladi.")}
+                        control={<Toggle checked={form.enabled} onChange={(v) => update({ enabled: v })} />}
+                    />
+
+                    <Row
+                        label={t('settings.depositType', 'Depozit turi')}
+                        control={(
+                            <select
+                                className={styles.select}
+                                value={form.depositType}
+                                disabled={!form.enabled}
+                                onChange={(e) => update({ depositType: e.target.value })}
+                            >
+                                {DEPOSIT_TYPES.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        )}
+                    />
+
+                    <Row
+                        label={form.depositType === 'percent'
+                            ? t('settings.depositValuePercent', 'Depozit miqdori (%)')
+                            : t('settings.depositValueFixed', 'Depozit miqdori (so\u2018m)')}
+                        control={(
+                            <input
+                                type="number"
+                                min="0"
+                                max={form.depositType === 'percent' ? 100 : undefined}
+                                className={styles.inputSmall}
+                                disabled={!form.enabled}
+                                value={form.depositValue}
+                                onChange={(e) => update({ depositValue: Number(e.target.value) || 0 })}
+                            />
+                        )}
+                    />
+
+                    <div className={styles.divider} />
+
+                    <Row
+                        label={t('settings.paymentProvider', "To'lov provayderi")}
+                        control={(
+                            <select
+                                className={styles.select}
+                                value={form.provider}
+                                disabled={!form.enabled}
+                                onChange={(e) => update({ provider: e.target.value })}
+                            >
+                                {PAYMENT_PROVIDERS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        )}
+                    />
+
+                    <Row
+                        label={t('settings.paymentMerchantId', 'Merchant / Kassa ID')}
+                        hint={t('settings.paymentMerchantIdHint', "Faqat ochiq (public) ID. Maxfiy kalitlar bu yerga kiritilmaydi — ular faqat serverda saqlanadi.")}
+                        control={(
+                            <input
+                                type="text"
+                                className={styles.input}
+                                disabled={!form.enabled}
+                                placeholder={form.provider === 'click' ? 'service_id / merchant_id' : 'merchant_id'}
+                                value={form.merchantId}
+                                onChange={(e) => update({ merchantId: e.target.value })}
+                            />
+                        )}
+                    />
+
+                    {status.error && <div className={styles.errorBanner}>{status.error}</div>}
+                    {status.success && <div className={styles.successBanner}>{status.success}</div>}
+
+                    <button type="submit" className={styles.primaryBtn} disabled={status.saving}>
+                        {status.saving ? t('common.saving', 'Saqlanmoqda...') : t('common.save', 'Saqlash')}
+                    </button>
+                </form>
+            )}
         </SectionCard>
     );
 }

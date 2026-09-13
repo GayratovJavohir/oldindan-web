@@ -18,6 +18,13 @@ import {
 } from '../../../services/restaurants.services';
 import { getApiError } from '../../../utils/apiHelpers';
 import { isOwner } from '../../../utils/authUser';
+import {
+    DEPOSIT_TYPES,
+    PAYMENT_PROVIDERS,
+    getBranchPaymentSettings,
+    getDefaultPaymentSettings,
+    updateBranchPaymentSettings,
+} from '../../../services/paymentSettings.services';
 
 function HoursEditor({ title, hint, schedule, onChange }) {
     const updateDay = (day, patch) => {
@@ -82,6 +89,157 @@ function HoursEditor({ title, hint, schedule, onChange }) {
                     );
                 })}
             </div>
+        </div>
+    );
+}
+
+/**
+ * Per-branch override for deposit / online-payment (Payme, Click) settings.
+ * Only shown once a branch exists (id known) — saved independently from the
+ * main branch form via the payment-settings placeholder service.
+ */
+function BranchPaymentOverride({ branchId }) {
+    const [defaults, setDefaults] = useState(null);
+    const [form, setForm] = useState({
+        override: false,
+        enabled: false,
+        depositType: 'fixed',
+        depositValue: 0,
+        provider: 'payme',
+        merchantId: '',
+    });
+    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState({ saving: false, error: '', success: '' });
+
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            setLoading(true);
+            try {
+                const [branchSettings, defaultSettings] = await Promise.all([
+                    getBranchPaymentSettings(branchId),
+                    getDefaultPaymentSettings(),
+                ]);
+                if (!active) return;
+                setForm((prev) => ({ ...prev, ...branchSettings }));
+                setDefaults(defaultSettings);
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, [branchId]);
+
+    const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
+    const handleSave = async () => {
+        setStatus({ saving: true, error: '', success: '' });
+        try {
+            await updateBranchPaymentSettings(branchId, form);
+            setStatus({ saving: false, error: '', success: "Saqlandi (hozircha shu qurilmada — backend tayyor bo'lgach serverga ulanadi)." });
+        } catch (err) {
+            setStatus({ saving: false, error: err?.message || 'Xatolik yuz berdi.', success: '' });
+        }
+    };
+
+    if (loading) {
+        return <p className={styles.hoursHint}>Depozit/to‘lov sozlamalari yuklanmoqda...</p>;
+    }
+
+    return (
+        <div className={styles.hoursBlock}>
+            <div className={styles.hoursHeader}>
+                <div>
+                    <h4 className={styles.hoursTitle}>Depozit va onlayn to‘lov (Payme / Click)</h4>
+                    <p className={styles.hoursHint}>
+                        Standart holatda bu filial umumiy sozlamalarni ({defaults?.enabled ? "depozit yoqilgan" : "depozit o'chirilgan"}) meros qiladi. Boshqacha qilish uchun quyidagini yoqing.
+                    </p>
+                </div>
+            </div>
+
+            <div className={styles.formGroup}>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={form.override}
+                        onChange={(e) => update({ override: e.target.checked })}
+                    />
+                    {' '}Ushbu filial uchun alohida sozlash
+                </label>
+            </div>
+
+            {form.override && (
+                <>
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={form.enabled}
+                                    onChange={(e) => update({ enabled: e.target.checked })}
+                                />
+                                {' '}Depozit talab qilinsin
+                            </label>
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label>Depozit turi</label>
+                            <select
+                                value={form.depositType}
+                                disabled={!form.enabled}
+                                onChange={(e) => update({ depositType: e.target.value })}
+                            >
+                                {DEPOSIT_TYPES.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                            <label>{form.depositType === 'percent' ? 'Depozit miqdori (%)' : 'Depozit miqdori (so‘m)'}</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max={form.depositType === 'percent' ? 100 : undefined}
+                                disabled={!form.enabled}
+                                value={form.depositValue}
+                                onChange={(e) => update({ depositValue: Number(e.target.value) || 0 })}
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label>To‘lov provayderi</label>
+                            <select
+                                value={form.provider}
+                                disabled={!form.enabled}
+                                onChange={(e) => update({ provider: e.target.value })}
+                            >
+                                {PAYMENT_PROVIDERS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label>Merchant / Kassa ID (faqat ochiq ID, maxfiy kalit emas)</label>
+                        <input
+                            type="text"
+                            disabled={!form.enabled}
+                            placeholder={form.provider === 'click' ? 'service_id / merchant_id' : 'merchant_id'}
+                            value={form.merchantId}
+                            onChange={(e) => update({ merchantId: e.target.value })}
+                        />
+                    </div>
+                </>
+            )}
+
+            {status.error && <div className={styles.errorText}>{status.error}</div>}
+            {status.success && <div className={styles.errorText} style={{ color: '#4ade80' }}>{status.success}</div>}
+
+            <button type="button" className={styles.hoursMiniBtn} onClick={handleSave} disabled={status.saving}>
+                {status.saving ? 'Saqlanmoqda...' : 'Depozit sozlamalarini saqlash'}
+            </button>
         </div>
     );
 }
@@ -254,6 +412,8 @@ function BranchModal({ branch, brands, defaultBrandId, onClose, onSave }) {
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
+
+                        {branch?.id && <BranchPaymentOverride branchId={branch.id} />}
 
                         <HoursEditor
                             title="Working hours"

@@ -1,6 +1,6 @@
 .loginWrapper {
     min-height: 100vh;
-    background: #0f1117;
+    background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -38,7 +38,8 @@
 .loginCard {
     width: 100%;
     max-width: 430px;
-    background: #171a21;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
     border-radius: 24px;
     padding: 32px;
     box-shadow:
@@ -48,20 +49,42 @@
     z-index: 10;
 }
 
-.langTop {
+.topBar {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
+    gap: 8px;
     margin-bottom: 8px;
 }
 
 .langTop select {
-    background: #1f2430;
-    border: 1px solid #2c3344;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
     color: var(--text);
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 12px;
     font-weight: 700;
+}
+
+.themeToggleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    transition: border-color 0.2s ease;
+}
+
+.themeToggleBtn:hover {
+    border-color: var(--accent);
 }
 
 .logoSection {
@@ -85,27 +108,27 @@
 }
 
 .logoText {
-    color: white;
+    color: var(--text);
     font-size: 28px;
     font-weight: 800;
     margin: 0;
 }
 
 .logoSubtext {
-    color: #9aa4b2;
+    color: var(--muted);
     font-size: 14px;
     margin-top: 8px;
 }
 
 .loginTitle {
-    color: white;
+    color: var(--text);
     font-size: 20px;
     font-weight: 700;
     margin-bottom: 6px;
 }
 
 .loginSubtitle {
-    color: #8b96a7;
+    color: var(--text-secondary);
     font-size: 14px;
     margin-bottom: 24px;
 }
@@ -122,21 +145,22 @@
 }
 
 .inputGroup label {
-    color: #dce1e8;
+    color: var(--text-secondary);
     font-size: 14px;
     margin-bottom: 8px;
     font-weight: 500;
 }
 
 .inputGroup input {
-    background: #10141d;
-    border: 1px solid #2a3040;
-    color: white;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
     border-radius: 12px;
     padding: 14px 16px;
     font-size: 14px;
     outline: none;
     transition: all 0.25s ease;
+    width: 100%;
 }
 
 .inputGroup input:focus {
@@ -145,7 +169,38 @@
 }
 
 .inputGroup input::placeholder {
-    color: #687386;
+    color: var(--muted);
+}
+
+.passwordField {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.passwordField input {
+    padding-right: 44px;
+}
+
+.passwordToggleBtn {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.passwordToggleBtn:hover {
+    color: var(--text);
 }
 
 .inputError {
@@ -183,13 +238,13 @@
 
 .divider {
     height: 1px;
-    background: #262b36;
+    background: var(--border);
     margin: 24px 0;
 }
 
 .footerText {
     text-align: center;
-    color: #7f8898;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -201,9 +256,9 @@
 }
 
 .accountTab {
-    background: #1a1f2b;
-    border: 1px solid #2a3140;
-    color: #9aa3b2;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     border-radius: 10px;
     padding: 10px 8px;
     font-size: 12px;
