@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+
+# FIX: the original file ignored `.env.example` (the safe template that SHOULD
+# be committed) while leaving the real `.env` tracked — exactly backwards, so
+# local API URLs and any future secret would have been pushed to the repo.
+.env
+.env.*
+!.env.example
+
+.vscode/
+.idea/
+.DS_Store
+npm-debug.log*
+yarn-error.log*

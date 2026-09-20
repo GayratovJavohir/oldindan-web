@@ -1,0 +1,199 @@
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from '../Profile.module.css';
+import AuthService from '../../../../services/auth.services';
+import { getApiError } from '../../../../utils/apiHelpers';
+import { getStoredUser } from '../../../../utils/authUser';
+import ProfileAnalytics from './ProfileAnalytics';
+
+// FIX: every user-facing string on this page was hard-coded English even
+// though the `profile.*` translations already existed in uz/en/ru.
+function roleLabel(role, t) {
+    if (role === 'owner') return t('profile.roleOwner');
+    if (role === 'manager') return t('profile.roleManager');
+    if (role === 'receptionist') return t('profile.roleReceptionist');
+    return t('profile.rolePartner');
+}
+
+function roleBadgeClass(role) {
+    if (role === 'owner') return styles.roleOwner;
+    if (role === 'manager') return styles.roleManager;
+    return styles.roleReceptionist;
+}
+
+export default function ProfileCard() {
+    const { t } = useTranslation();
+    const [user, setUser] = useState(getStoredUser());
+    const [editing, setEditing] = useState(false);
+    const [form, setForm] = useState({
+        first_name: '',
+        last_name: '',
+        phone: '',
+    });
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+
+    const syncForm = (profile) => {
+        setForm({
+            first_name: profile?.first_name || '',
+            last_name: profile?.last_name || '',
+            phone: profile?.phone || '',
+        });
+    };
+
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            setLoading(true);
+            try {
+                const profile = await AuthService.getProfile();
+                if (!active) return;
+                const mapped = getStoredUser();
+                setUser(mapped);
+                syncForm(mapped || profile);
+            } catch (err) {
+                if (active) setError(getApiError(err));
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, []);
+
+    const initials = (user?.name || 'P')
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join('') || 'P';
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setError('');
+        setSuccess('');
+        try {
+            await AuthService.updateProfile({
+                first_name: form.first_name.trim(),
+                last_name: form.last_name.trim(),
+                phone: form.phone.trim(),
+            });
+            const updated = getStoredUser();
+            setUser(updated);
+            syncForm(updated);
+            setEditing(false);
+            setSuccess(t('profile.updated'));
+        } catch (err) {
+            setError(err.message || getApiError(err));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading && !user) {
+        return <div className={styles.loadingState}>{t('profile.loading')}</div>;
+    }
+
+    return (
+        <div className={styles.profileLayout}>
+            <section className={styles.profileHero}>
+                <div className={styles.avatarLarge}>{initials}</div>
+                <div className={styles.heroInfo}>
+                    <h2 className={styles.heroName}>{user?.name || 'Partner'}</h2>
+                    <p className={styles.heroEmail}>{user?.email || '—'}</p>
+                    <span className={`${styles.roleBadge} ${roleBadgeClass(user?.role)}`}>
+                        {roleLabel(user?.role, t)}
+                    </span>
+                    {user?.branchId && (
+                        <p className={styles.branchNote}>{t('profile.assignedBranch', { id: user.branchId })}</p>
+                    )}
+                </div>
+                <button
+                    type="button"
+                    className={styles.editToggleBtn}
+                    onClick={() => { setEditing((v) => !v); setSuccess(''); setError(''); }}
+                >
+                    {editing ? t('common.cancel') : t('profile.editProfile')}
+                </button>
+            </section>
+
+            {error && <div className={styles.errorBanner}>{error}</div>}
+            {success && <div className={styles.successBanner}>{success}</div>}
+
+            <section className={styles.profileCard}>
+                <h3 className={styles.cardTitle}>{t('profile.accountDetails')}</h3>
+
+                {editing ? (
+                    <form className={styles.profileForm} onSubmit={handleSave}>
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>{t('profile.firstName')}</label>
+                                <input
+                                    value={form.first_name}
+                                    onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>{t('profile.lastName')}</label>
+                                <input
+                                    value={form.last_name}
+                                    onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div className={styles.formRow}>
+                            <div className={styles.formGroup}>
+                                <label>{t('profile.email')}</label>
+                                <input value={user?.email || ''} disabled />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>{t('profile.phone')}</label>
+                                <input
+                                    value={form.phone}
+                                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                                    placeholder={t('profile.phonePlaceholder')}
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" className={styles.saveBtn} disabled={saving}>
+                            {saving ? t('common.saving') : t('common.saveChanges')}
+                        </button>
+                    </form>
+                ) : (
+                    <div className={styles.infoGrid}>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>{t('profile.firstName')}</span>
+                            <span className={styles.infoValue}>{user?.first_name || '—'}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>{t('profile.lastName')}</span>
+                            <span className={styles.infoValue}>{user?.last_name || '—'}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>{t('profile.email')}</span>
+                            <span className={styles.infoValue}>{user?.email || '—'}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>{t('profile.phone')}</span>
+                            <span className={styles.infoValue}>{user?.phone || '—'}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>{t('profile.accountType')}</span>
+                            <span className={styles.infoValue}>{user?.accountType || '—'}</span>
+                        </div>
+                        <div className={styles.infoItem}>
+                            <span className={styles.infoLabel}>{t('profile.role')}</span>
+                            <span className={styles.infoValue}>{roleLabel(user?.role, t)}</span>
+                        </div>
+                    </div>
+                )}
+            </section>
+
+            <ProfileAnalytics />
+        </div>
+    );
+}

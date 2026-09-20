@@ -1,0 +1,208 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from '../Bookings.module.css';
+import ManualBookingModal from './ManualBookingModal';
+import CheckInModal from '../../../../components/CheckInModal';
+import BookingFilters from '../components/BookingsFilter';
+import BookingRow from '../components/BookingsRow';
+import { getPartnerBookings, noShowBooking, updateBookingStatus } from '../../../../services/bookings.services';
+import { canCreateManualBooking, getStoredUser, canCheckInBooking, } from '../../../../utils/authUser';
+import { getApiError } from '../../../../utils/apiHelpers';
+import BookingDetailsModal from './BookingsDetailsModal';
+
+export default function BookingsTable() {
+  const { t } = useTranslation();
+  const canManualBooking = canCreateManualBooking();
+  const canCheckIn = canCheckInBooking();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [checkInTarget, setCheckInTarget] = useState(null);
+  const [showQuickCheckIn, setShowQuickCheckIn] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+
+  const user = getStoredUser();
+  const isReceptionist = user?.role === 'receptionist';
+
+  // FIX: `hasNext` comes from the DRF paginator so the "next" button can be
+  // disabled on the last page — previously it was always enabled and paging
+  // past the end simply showed an empty table.
+  const [pagination, setPagination] = useState({ page: 1, totalCount: 0, hasNext: false });
+  const [activeFilters, setActiveFilters] = useState({});
+
+  const fetchBookings = async (page = 1, filters = {}) => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      const params = { page, ...filters };
+      const data = await getPartnerBookings(params);
+      const list = data.results || [];
+      setBookings(list);
+      setPagination({
+        page,
+        totalCount: data.count ?? list.length,
+        hasNext: Boolean(data.next),
+      });
+    } catch (error) {
+      console.error('Bookings fetch error:', error);
+      setErrorMessage(getApiError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings(pagination.page, activeFilters);
+  }, [pagination.page, activeFilters]);
+
+  const handleApplyFilters = (newFilters) => {
+    setActiveFilters(newFilters);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleStatusChange = async (booking, action) => {
+    try {
+      setErrorMessage('');
+      if (action === 'checkin') {
+        setCheckInTarget(booking);
+        return;
+      }
+      if (action === 'no_show') {
+        await noShowBooking(booking.id);
+      } else {
+        const statusMap = {
+          confirm: 'confirmed',
+          cancel: 'canceled',
+          complete: 'completed',
+        };
+        await updateBookingStatus(booking.id, statusMap[action] || action);
+      }
+      await fetchBookings(pagination.page, activeFilters);
+    } catch (error) {
+      console.error('Status update error:', error);
+      setErrorMessage(getApiError(error));
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.mainCard}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>{t('bookings.allBookings')}</h2>
+          <div className={styles.headerActions}>
+            {canCheckIn && (
+              <button type="button" className={styles.manualBtn} onClick={() => setShowQuickCheckIn(true)}>
+                {t('bookings.checkInByCode')}
+              </button>
+            )}
+            {canManualBooking && (
+              <button type="button" className={styles.manualBtn} onClick={() => setIsModalOpen(true)}>
+                {t('bookings.manualBooking')}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <BookingFilters onApplyFilters={handleApplyFilters} />
+        {errorMessage && (
+          <div style={{ color: '#cf222e', marginBottom: 16, fontSize: 14 }}>{errorMessage}</div>
+        )}
+
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>{t('bookings.guest')}</th>
+                <th>{t('bookings.branchTable')}</th>
+                <th>{t('bookings.dateTime')}</th>
+                <th>{t('common.guests')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('common.source')}</th>
+                <th>{t('common.actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>{t('common.loading')}</td></tr>
+              ) : bookings.length === 0 ? (
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>{t('bookings.noBookings')}</td></tr>
+              ) : (
+                bookings.map((booking) => (
+                  <BookingRow
+                    key={booking.id}
+                    booking={booking}
+                    onStatusChange={handleStatusChange}
+                    isReceptionist={isReceptionist}
+                    onView={setSelectedBooking}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className={styles.pagination}>
+          <span className={styles.resultsCount}>
+            {t('bookings.totalResults')}: {pagination.totalCount} ({t('bookings.page')}: {pagination.page})
+          </span>
+          <div className={styles.paginationBtns}>
+            <button
+              type="button"
+              className={styles.pageBtn}
+              onClick={() => pagination.page > 1 && setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+              disabled={pagination.page === 1}
+            >
+              &larr; {t('bookings.prev')}
+            </button>
+            <button
+              type="button"
+              className={styles.pageBtn}
+              onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+              disabled={!pagination.hasNext}
+            >
+              {t('bookings.next')} &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {canManualBooking && isModalOpen && (
+        <ManualBookingModal
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            setIsModalOpen(false);
+            fetchBookings(1, activeFilters);
+          }}
+        />
+      )}
+
+      {selectedBooking && (
+        <BookingDetailsModal
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+        />
+      )}
+
+      {(checkInTarget || showQuickCheckIn) && (
+        <CheckInModal
+          bookingNumber={checkInTarget?.bookingNumber || ''}
+          branchId={checkInTarget?.branchId || null}
+          guestHint={checkInTarget?.guestName || ''}
+          onClose={() => {
+            setCheckInTarget(null);
+            setShowQuickCheckIn(false);
+          }}
+          onSuccess={() => {
+            setTimeout(() => {
+              setCheckInTarget(null);
+              setShowQuickCheckIn(false);
+              fetchBookings(pagination.page, activeFilters);
+            }, 800);
+          }}
+        />
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,150 @@
+import $api from '../config/api.config';
+import { unwrapList, toLocalDateString } from '../utils/apiHelpers';
+import i18n from '../i18n';
+import {
+    IoCalendarOutline,
+    IoCloseCircleOutline,
+    IoCheckmarkCircleOutline,
+    IoCheckmarkDoneCircleOutline,
+    IoLogInOutline,
+    IoPersonOutline,
+    IoSettingsOutline,
+    IoAddCircleOutline,
+    IoNotificationsOutline,
+} from "react-icons/io5";
+
+const BOOKING_KEYWORDS = [
+    'booking',
+    'reservation',
+    'no_show',
+    'no-show',
+    'check_in',
+    'check-in',
+    'manual_booking',
+];
+
+/**
+ * FIX: this returned hard-coded English ("just now", "5m ago") even when the
+ * UI was in Uzbek or Russian, and fell back to `toISOString()` which shifts
+ * the date by the UTC offset. Both are handled now.
+ */
+export function formatTimeAgo(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const diffMs = Date.now() - date.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return i18n.t('time.justNow');
+    if (mins < 60) return i18n.t('time.minutesAgo', { count: mins });
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return i18n.t('time.hoursAgo', { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 7) return i18n.t('time.daysAgo', { count: days });
+    return toLocalDateString(date);
+}
+
+export function classifyNotificationCategory(type, title = '', message = '', bookingId = null) {
+    if (bookingId) return 'booking';
+    const combined = `${type} ${title} ${message}`.toLowerCase();
+    if (BOOKING_KEYWORDS.some((keyword) => combined.includes(keyword))) return 'booking';
+    return 'other';
+}
+
+export function pickNotificationIcon(type = '', title = '') {
+    const text = `${type} ${title}`.toLowerCase();
+
+    if (text.includes('new') || text.includes('created'))
+        return IoAddCircleOutline;
+
+    if (text.includes('cancel'))
+        return IoCloseCircleOutline;
+
+    if (text.includes('confirm'))
+        return IoCheckmarkCircleOutline;
+
+    if (text.includes('complete'))
+        return IoCheckmarkDoneCircleOutline;
+
+    if (text.includes('check'))
+        return IoLogInOutline;
+
+    if (text.includes('layout') || text.includes('table') || text.includes('floor'))
+        return IoSettingsOutline;
+
+    if (text.includes('staff') || text.includes('user'))
+        return IoPersonOutline;
+
+    if (text.includes('booking') || text.includes('reservation'))
+        return IoCalendarOutline;
+
+    return IoNotificationsOutline;
+}
+
+export function mapNotificationFromApi(item) {
+    const type = item.notification_type || item.type || item.category || '';
+    const title = (item.title || item.subject || 'Notification')
+        .replace(/[^\p{L}\p{N}\s]/gu, '')
+        .trim();
+    const description = item.message || item.body || item.description || item.content || '';
+    const bookingId = item.booking_id ?? item.booking?.id ?? item.related_booking_id ?? null;
+    const createdAt = item.created_at || item.created || item.timestamp || null;
+    const category = classifyNotificationCategory(type, title, description, bookingId);
+
+    return {
+        id: item.id,
+        title,
+        description,
+        type,
+        category,
+        // FIX: this field used to be called `icon` and held a *component
+        // reference*. Consumers rendered it directly as `{item.icon}`, which
+        // React refuses to render ("Functions are not valid as a React
+        // child") — the notification drawer and the dashboard list showed no
+        // icons at all. It is now a capitalised component so call sites can
+        // render `<Icon />`.
+        Icon: pickNotificationIcon(type, title),
+        isRead: Boolean(item.is_read ?? item.read ?? item.isRead ?? false),
+        bookingId,
+        createdAt,
+        timeAgo: formatTimeAgo(createdAt),
+        raw: item,
+    };
+}
+
+function parseUnreadCount(data) {
+    if (typeof data === 'number') return data;
+    if (typeof data?.count === 'number') return data.count;
+    if (typeof data?.unread_count === 'number') return data.unread_count;
+    if (typeof data?.unread === 'number') return data.unread;
+    if (typeof data?.total === 'number') return data.total;
+    return 0;
+}
+
+export async function getNotifications(params = {}) {
+    const response = await $api.get('/notifications/notifications/', { params });
+    return unwrapList(response.data).map(mapNotificationFromApi);
+}
+
+export async function getUnreadCount() {
+    const response = await $api.get('/notifications/notifications/unread-count/');
+    return parseUnreadCount(response.data);
+}
+
+export async function markNotificationRead(id) {
+    const response = await $api.patch(`/notifications/notifications/${id}/mark-read/`, {});
+    return mapNotificationFromApi(response.data);
+}
+
+export async function markAllNotificationsRead() {
+    const response = await $api.post('/notifications/notifications/mark-all-read/', {});
+    return response.data;
+}
+
+export function countUnreadByCategory(notifications) {
+    const unread = notifications.filter((item) => !item.isRead);
+    return {
+        total: unread.length,
+        booking: unread.filter((item) => item.category === 'booking').length,
+        other: unread.filter((item) => item.category !== 'booking').length,
+    };
+}

@@ -1,0 +1,47 @@
+{
+  "name": "oldindan-partner-web-clean",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "framer-motion": "^12.42.2",
+    "i18next": "^26.0.10",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "immer": "^11.1.4",
+    "jsqr": "^1.4.0",
+    "konva": "^10.3.0",
+    "leaflet": "^1.9.4",
+    "lodash": "^4.18.1",
+    "lucide-react": "^0.468.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-datepicker": "^9.1.0",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.77.0",
+    "react-i18next": "^17.0.7",
+    "react-icons": "^5.7.0",
+    "react-konva": "^18.2.16",
+    "react-redux": "^9.3.0",
+    "react-router-dom": "^6.28.1",
+    "recharts": "^2.15.4",
+    "use-image": "^1.1.4",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
+    "vite": "^6.0.5"
+  }
+}

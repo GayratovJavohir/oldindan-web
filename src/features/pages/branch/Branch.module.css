@@ -1,0 +1,580 @@
+.branchContainer {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: 24px 28px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: var(--sidebar-width);
+}
+
+/* --- Mavjud Header Styles --- */
+.branchHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--card-alt);
+    border-bottom: 1px solid var(--border);
+    height: 52px;
+    padding: 0 28px;
+    margin-left: var(--sidebar-width);
+}
+
+.branchTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+/* Header ichidagi "+ Add Branch" tugmasi */
+.addBranchBtn {
+    background-color: #8b1515;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.addBranchBtn:hover {
+    background-color: #a31c1c;
+}
+
+/* --- Sahifaning asosiy Cardlar konteyneri --- */
+.branchContainer {
+    margin-left: var(--sidebar-width);
+    padding: 28px;
+    background-color: var(--bg);
+    min-height: calc(100vh - 52px);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.cardTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.active {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+}
+
+.inactive {
+    background-color: rgba(142, 142, 147, 0.15);
+    color: #8e8e93;
+}
+
+.statusDot {
+    font-size: 8px;
+}
+
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.infoRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.infoIcon {
+    font-size: 14px;
+}
+
+.infoText {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.badgeContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.miniBadge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.miniIcon {
+    font-size: 12px;
+}
+
+.depositBadge {
+    background-color: rgba(212, 163, 89, 0.1);
+    border: 1px solid rgba(212, 163, 89, 0.25);
+    color: #d4a359;
+}
+
+.cardActions {
+    display: flex;
+    gap: 10px;
+}
+
+.actionBtn {
+    background-color: transparent;
+    border: 1px solid #2c2c2e;
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actionBtn:hover {
+    background-color: var(--hover-bg);
+    border-color: #444446;
+}
+
+.errorBanner,
+.errorText {
+    color: #ff4d4f;
+    font-size: 14px;
+}
+
+.errorBanner {
+    margin: 0 28px 16px;
+}
+
+.emptyState {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    padding: 24px;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.backBtn {
+    background: transparent;
+    border: 1px solid #3a3a3a;
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.backBtn:hover {
+    background: var(--border-soft);
+}
+
+.brandPickerContainer {
+    margin-left: var(--sidebar-width);
+    padding: 28px;
+    background-color: var(--bg);
+    min-height: calc(100vh - 52px);
+}
+
+.pickerHint {
+    color: #7f8898;
+    font-size: 14px;
+    margin: 0 0 20px;
+}
+
+.brandPickerGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.brandPickerCard {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 22px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.brandPickerCard:hover {
+    border-color: #8b1515;
+    background: var(--hover-bg);
+}
+
+.brandPickerIcon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(139, 21, 21, 0.2);
+    color: #ff6b7a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.brandPickerCard h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+}
+
+.brandPickerCard p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.brandPickerMeta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.addBranchBtnInline {
+    display: block;
+    margin-top: 12px;
+    background: #8b1515;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    width: 100%;
+    max-width: 560px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.modalContentWide {
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.modalTitle {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.modalBody {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modalBodyScroll {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.formGroup input,
+.formGroup select {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.hoursBlock {
+    background: #111;
+    border: 1px solid #262626;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hoursHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.hoursTitle {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.hoursHint {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.hoursActions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.hoursMiniBtn {
+    background: #1f1f1f;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.hoursTable {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hoursRow {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.hoursRowOff {
+    opacity: 0.45;
+}
+
+.hoursDay {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.hoursRow input[type="time"] {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.hoursSep {
+    color: #666;
+    text-align: center;
+}
+
+.modalFooter {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.cancelBtn,
+.submitBtn {
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancelBtn {
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+}
+
+.submitBtn {
+    flex: 1;
+    background: #8b1515;
+    color: #fff;
+}
+
+/* responsive-i18n */
+
+@media (max-width: 1100px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .mainContentGrid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .workspace {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .dashboardContainer,
+    .bookingsContainer,
+    .layoutContainer,
+    .liveLayoutContainer,
+    .tablesContainer,
+    .branchContainer,
+    .brandPickerContainer,
+    .manualContainer,
+    .container {
+        margin-left: 0 !important;
+        padding: var(--page-pad) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .statsGrid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+
+    .headerActions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tableWrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .modalContent,
+    .modalContentWide {
+        max-width: calc(100vw - 24px) !important;
+        margin: 12px;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hoursRow {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .hoursDay {
+        grid-column: 1 / -1;
+    }
+}

@@ -1,0 +1,413 @@
+.container {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 18px 20px 60px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: var(--sidebar-width);
+    box-sizing: border-box;
+}
+
+.container * {
+    box-sizing: border-box;
+}
+
+.header {
+    margin-bottom: 18px;
+}
+
+.title {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+/* ---- left nav ---- */
+.nav {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: sticky;
+    top: 18px;
+}
+
+.navItem {
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.navItem:hover {
+    background: var(--hover-bg);
+    color: var(--text-secondary);
+}
+
+.navItemActive {
+    background: var(--accent-soft);
+    color: var(--text);
+    box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* ---- content / cards ---- */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.cardTitle {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.cardDescription {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12.5px;
+}
+
+.badge {
+    flex-shrink: 0;
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.divider {
+    border-top: 1px solid var(--border-soft);
+    margin: 12px 0;
+}
+
+/* ---- rows (label + control) ---- */
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.rowText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.rowLabel {
+    font-size: 13.5px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.rowHint {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.rowControl {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.staticValue {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.mutedLabel {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.note {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.5;
+}
+
+/* ---- profile ---- */
+.profileTop {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #c45c26);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.profileName {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.profileRole {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--accent-soft-text);
+    background: var(--accent-soft);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+/* ---- inputs / selects / buttons ---- */
+.select,
+.input,
+.inputSmall {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.select {
+    min-width: 160px;
+}
+
+.inputSmall {
+    width: 90px;
+    text-align: center;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.formStack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 360px;
+}
+
+.primaryBtn,
+.dangerBtn,
+.secondaryBtn {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.primaryBtn {
+    background: #8c1919;
+    color: #fff;
+}
+
+.primaryBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.dangerBtn {
+    background: rgba(255, 59, 48, 0.1);
+    color: #ff453a;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+.secondaryBtn {
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+}
+
+.errorBanner {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+}
+
+.successBanner {
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+}
+
+/* ---- toggle switch ---- */
+.toggle {
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--border);
+    border: 1px solid var(--border-strong);
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s ease;
+}
+
+.toggleOn {
+    background: #8c1919;
+    border-color: var(--accent);
+}
+
+.toggleDisabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.toggleKnob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text);
+    transition: transform 0.15s ease;
+}
+
+.toggleOn .toggleKnob {
+    transform: translateX(18px);
+}
+
+.themeSwitchRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ---- role-specific link cards ---- */
+.linkGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.linkCard {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.linkCard:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.linkCardTitle {
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.linkCardHint {
+    color: var(--muted);
+    font-size: 11.5px;
+}
+
+@media (max-width: 900px) {
+    .container {
+        margin-left: 0 !important;
+        padding: var(--page-pad, 14px);
+    }
+}
+
+@media (max-width: 760px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .nav {
+        position: static;
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .navItemActive {
+        box-shadow: inset 0 -2px 0 var(--accent);
+    }
+
+    .linkGrid {
+        grid-template-columns: 1fr;
+    }
+}

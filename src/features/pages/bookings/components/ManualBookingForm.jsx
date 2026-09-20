@@ -1,0 +1,426 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from '../Bookings.module.css';
+import $api from '../../../../config/api.config';
+import { createManualBooking, getOccupiedTables } from '../../../../services/bookings.services';
+import { loadTablesForBranch } from '../../../../services/tables.services';
+import { getApiError, unwrapList } from '../../../../utils/apiHelpers';
+import { canCreateManualBooking, getStoredUser } from '../../../../utils/authUser';
+
+function toLocalInputValue(date) {
+    const pad = (value) => String(value).padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+    return `${y}-${m}-${d}T${hh}:${mm}`;
+}
+
+function toApiDateTime(value) {
+    if (!value) return '';
+    return new Date(value).toISOString();
+}
+
+function plusHours(value, hours) {
+    if (!value) return '';
+    const date = new Date(value);
+    date.setHours(date.getHours() + hours);
+    return toLocalInputValue(date);
+}
+
+export default function ManualBookingForm({ onClose, onSuccess, submitLabel, initialValues = null }) {
+    const { t } = useTranslation();
+    const resolvedSubmitLabel = submitLabel || t('bookings.createBooking');
+    const initialStart = toLocalInputValue(new Date());
+    const [form, setForm] = useState({
+        first_name: '',
+        last_name: '',
+        phone: '',
+        branch: '',
+        floor: initialValues?.floor || '',
+        zone: initialValues?.zone || '',
+        table: initialValues?.table || '',
+        guest_count: 2,
+        children_count: 0,
+        booking_start: initialStart,
+        booking_end: plusHours(initialStart, 2),
+        special_request: '',
+    });
+    const [branchName, setBranchName] = useState('');
+    const [floors, setFloors] = useState([]);
+    const [tables, setTables] = useState([]);
+    const [occupiedIds, setOccupiedIds] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [loadingTables, setLoadingTables] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const user = getStoredUser();
+    const allowed = canCreateManualBooking();
+
+    useEffect(() => {
+        if (!allowed) return undefined;
+
+        let active = true;
+        const assignedBranchId = user?.branchId;
+
+        (async () => {
+            setLoading(true);
+            setErrorMessage('');
+            try {
+                if (!assignedBranchId) {
+                    throw new Error(t('common.noBranchAssigned'));
+                }
+
+                const branchRes = await $api.get(`/restaurants/partner/branches/${assignedBranchId}/`).catch(() =>
+                    $api.get(`/restaurants/branches/${assignedBranchId}/`)
+                );
+                if (!active) return;
+
+                setBranchName(branchRes.data?.name || `${t('common.branch')} #${assignedBranchId}`);
+                setForm((prev) => ({ ...prev, branch: String(assignedBranchId) }));
+            } catch (err) {
+                console.error('Manual booking bootstrap error:', err);
+                if (active) setErrorMessage(getApiError(err));
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+
+        return () => { active = false; };
+    }, [allowed, user?.branchId, t]);
+
+    useEffect(() => {
+        if (!allowed || !form.branch) {
+            setFloors([]);
+            return undefined;
+        }
+
+        let active = true;
+        (async () => {
+            try {
+                const response = await $api.get(`/layouts/branches/${form.branch}/floors/`);
+                if (!active) return;
+                const floorList = unwrapList(response.data);
+                setFloors(floorList);
+                setForm((prev) => {
+                    const preferredFloor = initialValues?.floor || prev.floor;
+                    const nextFloor = floorList.some((f) => String(f.id) === String(preferredFloor))
+                        ? preferredFloor
+                        : (floorList[0]?.id || '');
+                    const keepPrefill = String(nextFloor) === String(initialValues?.floor);
+                    return {
+                        ...prev,
+                        floor: nextFloor || '',
+                        zone: keepPrefill ? (initialValues?.zone || prev.zone || '') : '',
+                        table: keepPrefill ? (initialValues?.table || prev.table || '') : '',
+                    };
+                });
+            } catch (err) {
+                if (active) setErrorMessage(getApiError(err));
+            }
+        })();
+
+        return () => { active = false; };
+        // `initialValues` is a prefill read once per branch change; adding it
+        // to the deps would reset the user's picks on every parent re-render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allowed, form.branch]);
+
+    useEffect(() => {
+        if (!allowed || !form.branch || !form.floor) {
+            setTables([]);
+            return undefined;
+        }
+
+        let active = true;
+        (async () => {
+            setLoadingTables(true);
+            try {
+                const list = await loadTablesForBranch(form.branch, form.floor);
+                if (!active) return;
+                setTables(list);
+                setForm((prev) => {
+                    const preferred = initialValues?.table || prev.table;
+                    return {
+                        ...prev,
+                        table: list.some((t) => String(t.id) === String(preferred))
+                            ? preferred
+                            : (list[0]?.id || ''),
+                    };
+                });
+            } catch (err) {
+                if (active) {
+                    setTables([]);
+                    setErrorMessage(getApiError(err));
+                }
+            } finally {
+                if (active) setLoadingTables(false);
+            }
+        })();
+
+        return () => { active = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allowed, form.branch, form.floor]);
+
+    const zones = useMemo(() => {
+        const map = new Map();
+        tables.forEach((table) => {
+            if (!table.zoneId) return;
+            map.set(String(table.zoneId), {
+                id: table.zoneId,
+                name: table.zoneName || `${t('common.zone')} #${table.zoneId}`,
+            });
+        });
+        return Array.from(map.values());
+    }, [tables, t]);
+
+    useEffect(() => {
+        if (!allowed || !form.branch || !form.floor || !form.booking_start || !form.booking_end) {
+            setOccupiedIds([]);
+            return undefined;
+        }
+
+        let active = true;
+        (async () => {
+            try {
+                const data = await getOccupiedTables({
+                    branch_id: form.branch,
+                    floor_id: form.floor,
+                    booking_start: toApiDateTime(form.booking_start),
+                    booking_end: toApiDateTime(form.booking_end),
+                });
+                if (!active) return;
+                const occupied = unwrapList(data)
+                    .map((item) => item.table_id ?? item.table?.id ?? item.table)
+                    .filter(Boolean)
+                    .map(String);
+                setOccupiedIds(occupied);
+            } catch {
+                if (active) setOccupiedIds([]);
+            }
+        })();
+
+        return () => { active = false; };
+    }, [allowed, form.branch, form.floor, form.booking_start, form.booking_end]);
+
+    const selectableTables = useMemo(() => tables.filter((table) => {
+        // FIX: `&&` let a table through when only one of the two "inactive"
+        // markers was set; either one should hide it.
+        if (table.is_active === false || table.status === 'inactive') return false;
+        if (form.zone && String(table.zoneId) !== String(form.zone)) return false;
+        return true;
+    }), [tables, form.zone]);
+
+    const updateField = (event) => {
+        const { name, value } = event.target;
+        setForm((prev) => {
+            const next = { ...prev, [name]: value };
+            if (name === 'floor') {
+                next.zone = '';
+                next.table = '';
+            }
+            if (name === 'zone') {
+                next.table = '';
+            }
+            return next;
+        });
+    };
+
+    const handleSubmit = async () => {
+        if (!form.first_name.trim() || !form.last_name.trim() || !form.phone.trim()) {
+            setErrorMessage(t('bookings.needNamePhone'));
+            return;
+        }
+        if (!form.branch || !form.floor || !form.table) {
+            setErrorMessage(t('bookings.needFloorTable'));
+            return;
+        }
+        // FIX: nothing stopped a receptionist from submitting a booking whose
+        // end time was before its start time, or one on a table the
+        // occupied-tables endpoint had already reported as taken. The backend
+        // rejects both with an opaque 400; catch them here instead.
+        if (new Date(form.booking_end) <= new Date(form.booking_start)) {
+            setErrorMessage(t('bookings.endBeforeStart'));
+            return;
+        }
+        if (occupiedIds.includes(String(form.table))) {
+            setErrorMessage(t('bookings.tableOccupied'));
+            return;
+        }
+
+        setSaving(true);
+        setErrorMessage('');
+        try {
+            const guestLabel = `${form.first_name.trim()} ${form.last_name.trim()}`.trim();
+            // Backendda mehmon ismi/telefoni uchun alohida maydon yo'q (Booking.user
+            // doim ro'yxatdan o'tgan foydalanuvchiga bog'lanadi) — vaqtincha special_request
+            // ichiga yozib qo'yamiz, shunda xodim ko'ra oladi. To'g'ri yechim uchun
+            // backendga Booking.guest_name / guest_phone maydonlarini qo'shish kerak.
+            const guestNote = `Guest: ${guestLabel} (${form.phone.trim()})`;
+            const combinedRequest = form.special_request
+                ? `${guestNote}\n${form.special_request}`
+                : guestNote;
+
+            const payload = {
+                branch: Number(form.branch),
+                floor: Number(form.floor),
+                layout_item: Number(form.table), // backend "table" emas, "layout_item" kutadi
+                guest_count: Number(form.guest_count),
+                children_count: Number(form.children_count || 0),
+                booking_start: toApiDateTime(form.booking_start),
+                booking_end: toApiDateTime(form.booking_end),
+                special_request: combinedRequest,
+            };
+            if (form.zone) {
+                payload.zone = Number(form.zone);
+            }
+
+            await createManualBooking(payload);
+            if (onSuccess) onSuccess();
+        } catch (err) {
+            console.error('Manual booking create error:', err);
+            setErrorMessage(getApiError(err));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (!allowed) {
+        return (
+            <div className={styles.modalBody}>
+                <div style={{ color: '#cf222e', fontSize: 14 }}>
+                    {t('bookings.onlyReceptionist')}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div className={styles.modalBody}>
+                {loading && <div style={{ color: '#aaaaaa' }}>{t('bookings.loadingForm')}</div>}
+                {errorMessage && <div style={{ color: '#cf222e', fontSize: 14 }}>{errorMessage}</div>}
+
+                <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.firstName')} *</label>
+                        <input name="first_name" value={form.first_name} onChange={updateField} required />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.lastName')} *</label>
+                        <input name="last_name" value={form.last_name} onChange={updateField} required />
+                    </div>
+                </div>
+
+                <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                        <label>{t('common.phone')} *</label>
+                        <input name="phone" value={form.phone} onChange={updateField} placeholder="+998 90 123 45 67" required />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>{t('common.branch')}</label>
+                        <input type="text" value={branchName || (form.branch ? `${t('common.branch')} #${form.branch}` : '')} readOnly />
+                    </div>
+                </div>
+
+                <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                        <label>{t('common.floor')} *</label>
+                        <select name="floor" value={form.floor} onChange={updateField} disabled={!form.branch}>
+                            <option value="">{t('common.selectFloor')}</option>
+                            {floors.map((floor) => (
+                                <option key={floor.id} value={floor.id}>{floor.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>{t('common.zone')}</label>
+                        <select name="zone" value={form.zone} onChange={updateField} disabled={!zones.length}>
+                            <option value="">{t('bookings.anyZone')}</option>
+                            {zones.map((zone) => (
+                                <option key={zone.id} value={zone.id}>{zone.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                        <label>{t('common.table')} *</label>
+                        <select
+                            name="table"
+                            value={form.table}
+                            onChange={updateField}
+                            disabled={loadingTables || !selectableTables.length}
+                        >
+                            <option value="">
+                                {loadingTables
+                                    ? t('bookings.loadingTables')
+                                    : (selectableTables.length ? t('common.selectTable') : t('bookings.noTablesOnFloor'))}
+                            </option>
+                            {selectableTables.map((table) => {
+                                const occupied = occupiedIds.includes(String(table.id));
+                                return (
+                                    <option key={table.id} value={table.id} disabled={occupied}>
+                                        {table.name} · {t('bookings.seatsCount', { count: table.seats })}
+                                        {occupied ? ` ${t('bookings.occupiedSuffix')}` : ''}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.guestCount')} *</label>
+                        <input name="guest_count" type="number" min="1" value={form.guest_count} onChange={updateField} />
+                    </div>
+                </div>
+
+                <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.childrenCount')}</label>
+                        <input name="children_count" type="number" min="0" value={form.children_count} onChange={updateField} />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.bookingStart')} *</label>
+                        <input name="booking_start" type="datetime-local" value={form.booking_start} onChange={updateField} />
+                    </div>
+                </div>
+
+                <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.bookingEnd')} *</label>
+                        <input name="booking_end" type="datetime-local" value={form.booking_end} onChange={updateField} />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>{t('bookings.occupiedInRange')}</label>
+                        <input type="text" value={t('bookings.tablesOccupied', { count: occupiedIds.length })} readOnly />
+                    </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label>{t('bookings.specialRequest')}</label>
+                    <textarea
+                        name="special_request"
+                        placeholder={t('bookings.specialPlaceholder')}
+                        rows="4"
+                        value={form.special_request}
+                        onChange={updateField}
+                    />
+                </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+                {onClose && (
+                    <button type="button" className={styles.modalCancelBtn} onClick={onClose}>
+                        {t('common.cancel')}
+                    </button>
+                )}
+                <button type="button" className={styles.modalSubmitBtn} onClick={handleSubmit} disabled={saving || loading || loadingTables}>
+                    {saving ? t('common.saving') : resolvedSubmitLabel}
+                </button>
+            </div>
+        </>
+    );
+}

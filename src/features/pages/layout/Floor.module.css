@@ -1,0 +1,505 @@
+.layoutContainer {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: 18px 20px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: var(--sidebar-width);
+}
+
+.floorContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.floorContainer,
+.floorContainer * {
+    box-sizing: border-box;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.toolbarGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+}
+
+.workspace {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) 230px;
+    gap: 12px;
+    align-items: start;
+}
+
+.sidebarPanel,
+.inspector {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 560px;
+}
+
+.sidebarPanel h3,
+.inspector h3 {
+    margin: 4px 0 0;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.paletteGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    min-width: 0;
+}
+
+.paletteBtn {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 7px;
+    padding: 7px 5px;
+    font-size: 11.5px;
+    cursor: pointer;
+}
+
+.paletteBtnActive {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
+    min-width: 0;
+}
+
+.row>* {
+    min-width: 0;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    min-width: 0;
+}
+
+.input,
+.field select,
+.field input,
+.toolbar select,
+.toolbar input {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: 12.5px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.dangerBtn {
+    border: none;
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.primaryBtn {
+    background: var(--accent);
+    color: #fff;
+}
+
+.secondaryBtn {
+    background: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+}
+
+.dangerBtn {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled,
+.dangerBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* small icon-only buttons used in the toolbar (rename / delete floor) */
+.iconBtn,
+.iconBtnDanger {
+    border: 1px solid var(--border-strong);
+    background: var(--border-soft);
+    color: var(--text-secondary);
+    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconBtnDanger {
+    color: var(--danger-text);
+    border-color: var(--danger-border);
+    background: var(--danger-bg);
+}
+
+.iconBtn:disabled,
+.iconBtnDanger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.colorRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.colorSwatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.colorSwatchActive {
+    border-color: var(--text);
+}
+
+.zoneDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.activeZoneHint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 8px;
+}
+
+.actionsSticky {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.canvasWrap {
+    min-width: 0;
+}
+
+/* --- zone tabs: the main way to browse/organize tables per zone --- */
+.zoneTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+}
+
+.zoneTab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.zoneTabActive {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--text);
+}
+
+.zoneTabCount {
+    background: var(--border-soft);
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 10.5px;
+    color: var(--text-secondary);
+}
+
+.zoneTabActive .zoneTabCount {
+    color: var(--accent-soft-text);
+}
+
+.zoneTabAdd {
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.zoneTabAdd:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.zoneInlineForm {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
+.zoneInlineForm .input {
+    padding: 5px 8px;
+    font-size: 12px;
+    width: 130px;
+}
+
+.header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    background-color: var(--card);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.availableDot {
+    background-color: var(--muted);
+}
+
+.pendingDot {
+    background-color: #f5a623;
+    box-shadow: 0 0 8px rgba(245, 166, 35, 0.5);
+}
+
+.confirmedDot {
+    background-color: #4c8bf5;
+    box-shadow: 0 0 8px rgba(76, 139, 245, 0.5);
+}
+
+.checkedInDot {
+    background-color: #a463f2;
+    box-shadow: 0 0 8px rgba(164, 99, 242, 0.5);
+}
+
+.canvas {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+    background-color: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+    padding: 10px;
+}
+
+.canvasScaler {
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.emptyState {
+    min-height: 420px;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    border: 1px dashed var(--border-strong);
+    border-radius: 14px;
+    background: var(--card-alt);
+}
+
+.errorBanner {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+}
+
+.successBanner {
+    color: var(--success-text);
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 12.5px;
+}
+
+.dirtyBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* --- modal (replaces window.prompt / window.confirm) --- */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalCard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    width: min(360px, 92vw);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.modalTitle {
+    margin: 0 0 8px;
+    font-size: 15px;
+    color: var(--text);
+}
+
+.modalMessage {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebarPanel,
+    .inspector {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    .layoutContainer {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

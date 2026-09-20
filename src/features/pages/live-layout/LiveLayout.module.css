@@ -1,0 +1,305 @@
+.liveLayoutContainer {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: 18px 20px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: var(--sidebar-width);
+}
+
+.floorContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.floorContainer,
+.floorContainer * {
+    box-sizing: border-box;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────── */
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.toolbarTitle {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.toolbarGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+}
+
+.input,
+.toolbar select {
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 7px 9px;
+    font-size: 12.5px;
+    min-width: 0;
+}
+
+.timePicker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    padding: 5px 10px;
+}
+
+.timeInput {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+}
+
+.timeIcon {
+    color: var(--muted);
+}
+
+.secondaryBtn {
+    background: var(--border);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.secondaryBtn:hover {
+    background: var(--hover-bg);
+}
+
+/* ── Workspace / canvas ───────────────────────────────────────── */
+
+.workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 12px;
+    align-items: start;
+}
+
+.canvasWrap {
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    background-color: var(--card-alt);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.availableDot {
+    background-color: var(--muted);
+}
+
+.pendingDot {
+    background-color: #f5a623;
+    box-shadow: 0 0 8px rgba(245, 166, 35, 0.5);
+}
+
+.confirmedDot {
+    background-color: #4c8bf5;
+    box-shadow: 0 0 8px rgba(76, 139, 245, 0.5);
+}
+
+.checkedInDot {
+    background-color: #a463f2;
+    box-shadow: 0 0 8px rgba(164, 99, 242, 0.5);
+}
+
+/* canvas: fit-to-width so the board never overflows the container, and the
+   hovered-item tooltip is positioned relative to it */
+.canvas {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+    background-color: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 10px;
+}
+
+.canvasScaler {
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.emptyState {
+    min-height: 420px;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    border: 1px dashed var(--border-strong);
+    border-radius: 14px;
+    background: var(--card-alt);
+}
+
+.errorBanner {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .liveLayoutContainer {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ==================== HOVER TOOLTIP ==================== */
+
+.tooltipBox {
+    position: absolute;
+    background-color: var(--card);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 180px;
+    z-index: 50;
+    pointer-events: none;
+    /* Tooltip sichqoncha clicklarini to'sib qolmasligi uchun */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+}
+
+.tooltipHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-strong);
+}
+
+.tooltipTitle {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.tooltipBadgeBusy {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+}
+
+.tooltipBadgeFree {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+
+.tooltipBody {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tooltipBookingInfo {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tooltipRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text);
+}

@@ -1,0 +1,718 @@
+.dashboardContainer {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: var(--page-pad);
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: var(--sidebar-width);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--card-alt);
+    border-bottom: 1px solid var(--border);
+    height: 52px;
+    padding: 0 28px;
+    margin-left: var(--sidebar-width);
+}
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.bellIcon {
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s;
+}
+
+.bellIcon:hover {
+    color: var(--text);
+}
+
+
+.header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.bellIcon {
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s;
+}
+
+.bellIcon:hover {
+    color: var(--text);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.statCard {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.statCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.statTitle {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.statIcon {
+    font-size: 22px;
+    color: var(--text);
+    opacity: 0.25;
+}
+
+.statValue {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 10px 0 6px;
+    color: var(--text);
+}
+
+.statSubtext {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.positive {
+    color: var(--success-text);
+}
+
+.negative {
+    color: var(--danger-text);
+}
+
+.pendingText {
+    color: var(--warning-text);
+}
+
+.mainContentGrid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.bookingBlock,
+.statusBlock,
+.notificationsBlock {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.bookingBlockHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.blockHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.blockTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.viewAllBtn {
+    background: none;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.viewAllBtn:hover {
+    border-color: var(--muted);
+    color: var(--text);
+}
+
+.bookingList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bookingRow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background-color: #212121;
+    border: 1px solid var(--border);
+}
+
+.bookingTime {
+    display: flex;
+    flex-direction: column;
+    min-width: 48px;
+}
+
+.timeStart {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.timeEnd {
+    font-size: 12px;
+    color: #666;
+}
+
+.bookingInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.guestName {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.guestMeta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.tableInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 60px;
+}
+
+.tableId {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.floorId {
+    font-size: 11px;
+    color: #666;
+}
+
+.statusBadge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    min-width: 90px;
+    justify-content: center;
+}
+
+.statusDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.statusConfirmed {
+    background-color: rgba(0, 122, 255, 0.15);
+    color: #4da6ff;
+    border: 1px solid rgba(0, 122, 255, 0.25);
+}
+
+.statusConfirmed .statusDot {
+    background-color: #4da6ff;
+}
+
+.statusPending {
+    background-color: rgba(255, 184, 0, 0.12);
+    color: #ffb800;
+    border: 1px solid rgba(255, 184, 0, 0.25);
+}
+
+.statusPending .statusDot {
+    background-color: #ffb800;
+}
+
+.statusList {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.statusRow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.statusLabelRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.statusDotSmall {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.statusLabel {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.statusCount {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.barTrack {
+    height: 4px;
+    background-color: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 100%;
+    border-radius: 4px;
+    background-color: #e74c3c;
+    transition: width 0.3s ease;
+}
+
+
+.notificationsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filterGroup {
+    display: flex;
+    gap: 6px;
+}
+
+.filterBtn {
+    background: none;
+    border: 1px solid var(--border-strong);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.filterBtn:hover {
+    border-color: #555;
+    color: var(--text-secondary);
+}
+
+.filterBtnActive {
+    background-color: var(--border);
+    border-color: #444;
+    color: var(--text);
+}
+
+.notificationList {
+    display: flex;
+    flex-direction: column;
+}
+
+.notificationRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.notificationRow:last-child {
+    border-bottom: none;
+}
+
+.notifEmoji {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.notifContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.notifTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.notifDesc {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.notifTime {
+    font-size: 12px;
+    color: #555;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.notificationRowUnread {
+    background: rgba(231, 76, 60, 0.04);
+    margin: 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 8px;
+}
+
+.notifEmpty {
+    color: var(--muted);
+    font-size: 14px;
+    padding: 12px 0;
+}
+
+.viewAllLink {
+    font-size: 12px;
+    color: #6ba3ff;
+    text-decoration: none;
+    margin-left: 8px;
+    align-self: center;
+}
+
+.viewAllLink:hover {
+    text-decoration: underline;
+}
+
+
+.bookingList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bookingItem {
+    display: grid;
+    grid-template-columns: 64px 1fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+}
+
+.bookingTime {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bookingTime strong {
+    font-size: 15px;
+    color: var(--text);
+}
+
+.bookingTime span {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.bookingDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bookingDetails strong {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.bookingDetails span {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.bookingTableInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bookingTableInfo strong {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.bookingTableInfo span {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.emptyText {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 8px 0 0;
+}
+
+.statusBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: var(--border-soft);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.statusPending {
+    color: var(--warning-text);
+    background-color: var(--warning-bg);
+}
+
+.statusConfirmed {
+    color: #4c8bf5;
+    background-color: rgba(76, 139, 245, 0.15);
+}
+
+.statusCheckedIn {
+    color: #a463f2;
+    background-color: rgba(164, 99, 242, 0.15);
+}
+
+.statusDefault {
+    color: var(--text-secondary);
+    background-color: var(--border-soft);
+}
+
+/* ── Status breakdown ────────────────────────────────────────── */
+
+.statusList {
+    display: flex;
+    flex-direction: column;
+}
+
+.statusRow {
+    margin-bottom: 18px;
+}
+
+.statusRow:last-child {
+    margin-bottom: 0;
+}
+
+.statusLabelInfo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.viewAllBtn {
+    background: none;
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.viewAllBtn:hover {
+    border-color: #555;
+    color: var(--text);
+}
+
+.loadingText {
+    margin-left: var(--sidebar-width);
+    padding: 24px 28px;
+    color: var(--muted);
+}
+
+@media (max-width: 900px) {
+    .bookingItem {
+        grid-template-columns: 56px 1fr;
+    }
+
+    .bookingTableInfo,
+    .statusBadge {
+        grid-column: 2;
+    }
+}
+
+
+
+.statusRow {
+    margin-bottom: 20px;
+}
+
+
+.statusIndicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.statusName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+}
+
+.statusCount {
+    margin-left: auto;
+    font-weight: 700;
+    color: var(--text);
+}
+
+
+.progressBarBg {
+    width: 100%;
+    height: 6px;
+    background-color: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease-in-out;
+}
+
+/* responsive-i18n */
+
+@media (max-width: 1100px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .mainContentGrid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .workspace {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .dashboardContainer,
+    .bookingsContainer,
+    .layoutContainer,
+    .liveLayoutContainer,
+    .tablesContainer,
+    .branchContainer,
+    .brandPickerContainer,
+    .manualContainer,
+    .container {
+        margin-left: 0 !important;
+        padding: var(--page-pad) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .statsGrid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+
+    .headerActions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tableWrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .modalContent,
+    .modalContentWide {
+        max-width: calc(100vw - 24px) !important;
+        margin: 12px;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hoursRow {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .hoursDay {
+        grid-column: 1 / -1;
+    }
+}

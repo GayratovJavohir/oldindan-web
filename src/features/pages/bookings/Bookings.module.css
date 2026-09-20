@@ -1,0 +1,734 @@
+.bookingsContainer {
+    background-color: var(--bg);
+    color: var(--text);
+    padding: var(--page-pad);
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-left: var(--sidebar-width);
+}
+
+.container {
+    background-color: var(--bg);
+    color: var(--text-secondary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.manualBtn {
+    background-color: var(--accent-strong);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.manualBtn:hover {
+    filter: brightness(0.88);
+}
+
+.mainCard {
+    background-color: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+/* ── Filters ──────────────────────────────────────────────────── */
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.searchInput {
+    flex: 1;
+    min-width: 160px;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.selectInput,
+.dateInput {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+.applyBtn {
+    background-color: var(--border);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.applyBtn:hover {
+    background-color: var(--border-strong);
+}
+
+/* ── Table ────────────────────────────────────────────────────── */
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.table th {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 16px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 16px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+}
+
+.idCol {
+    color: var(--muted);
+}
+
+.guestName,
+.branchName,
+.dateText {
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.guestPhone,
+.tableName,
+.timeText {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.guestsCount {
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* ── Status / source badges (table row) ──────────────────────── */
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.statusBadge::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.statusConfirmed {
+    background-color: rgba(76, 139, 245, 0.16);
+    color: #3f7de0;
+}
+
+.statusConfirmed::before {
+    background-color: #3f7de0;
+}
+
+.statusPending {
+    background-color: rgba(245, 166, 35, 0.16);
+    color: #c47f0e;
+}
+
+.statusPending::before {
+    background-color: #c47f0e;
+}
+
+.statusCheckedIn {
+    background-color: rgba(164, 99, 242, 0.16);
+    color: #8a3fe0;
+}
+
+.statusCheckedIn::before {
+    background-color: #8a3fe0;
+}
+
+.statusCompleted {
+    background-color: rgba(45, 164, 78, 0.16);
+    color: #1f8a3d;
+}
+
+.statusCompleted::before {
+    background-color: #1f8a3d;
+}
+
+.statusCanceled {
+    background-color: rgba(207, 34, 46, 0.16);
+    color: #b3202f;
+}
+
+.statusCanceled::before {
+    background-color: #b3202f;
+}
+
+.statusNoShow {
+    background-color: var(--border-soft);
+    color: var(--muted);
+}
+
+.statusNoShow::before {
+    background-color: var(--muted);
+}
+
+.sourceBadge {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* ── Row actions ──────────────────────────────────────────────── */
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.viewBtn,
+.confirmBtn,
+.cancelBtn {
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.viewBtn:hover,
+.confirmBtn:hover,
+.cancelBtn:hover {
+    opacity: 0.9;
+}
+
+.viewBtn {
+    background-color: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+}
+
+.confirmBtn {
+    background-color: var(--accent-strong);
+    color: #ffffff;
+}
+
+.cancelBtn {
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+}
+
+/* ── Pagination ───────────────────────────────────────────────── */
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.resultsCount {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.paginationBtns {
+    display: flex;
+    gap: 8px;
+}
+
+.pageBtn {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.pageBtn:hover {
+    background-color: var(--hover-bg);
+}
+
+.pageBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Manual-booking modal ────────────────────────────────────── */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--overlay);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modalTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.closeBtn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.closeBtn:hover {
+    color: var(--text);
+    background-color: var(--border-soft);
+}
+
+.modalBody {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+    border-color: var(--border-strong);
+}
+
+.formGroup textarea {
+    resize: vertical;
+}
+
+.modalFooter {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+}
+
+.modalCancelBtn {
+    background-color: var(--border-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.modalCancelBtn:hover {
+    background-color: var(--border);
+}
+
+.modalSubmitBtn {
+    flex: 1;
+    background-color: var(--accent-strong);
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.modalSubmitBtn:hover {
+    filter: brightness(0.88);
+}
+
+/* ==================== VIEW DETAILS MODAL ==================== */
+
+.viewModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.viewModalBox {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 620px;
+    padding: 24px;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35);
+}
+
+.viewModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.viewModalTitleGroup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.viewModalTitleGroup h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.viewModalStatusBadge {
+    background-color: var(--border-soft);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.viewModalCloseBtn {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.viewModalCloseBtn:hover {
+    background-color: var(--border);
+    color: var(--text);
+}
+
+.viewModalBody {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.viewModalGridRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.viewModalInfoGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.viewModalLabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.viewModalPrimaryText {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.viewModalSecondaryText {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.viewModalRequestText {
+    font-size: 14px;
+    color: var(--text);
+    margin-top: 2px;
+}
+
+.viewModalDivider {
+    border: 0;
+    border-top: 1px solid var(--border-soft);
+    margin: 4px 0;
+}
+
+.viewModalSourceBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-top: 4px;
+}
+
+.viewModalNoteInput {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    margin-top: 4px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.viewModalNoteInput::placeholder {
+    color: var(--muted);
+}
+
+.viewModalNoteInput:focus {
+    border-color: var(--border-strong);
+}
+
+.viewModalFooter {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 28px;
+}
+
+.viewModalFooter button {
+    padding: 10px 4px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: none;
+}
+
+.viewModalBtnCancel {
+    background-color: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
+}
+
+.viewModalBtnCancel:hover {
+    filter: brightness(0.92);
+}
+
+.viewModalBtnSecondary {
+    background-color: var(--card-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.viewModalBtnSecondary:hover {
+    background-color: var(--hover-bg);
+}
+
+.viewModalBtnPrimary {
+    background-color: var(--accent-strong);
+    border: 1px solid var(--accent-strong);
+    color: #ffffff;
+}
+
+.viewModalBtnPrimary:hover {
+    filter: brightness(0.88);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .bookingsContainer {
+        margin-left: 0;
+        padding: var(--page-pad);
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .headerActions {
+        flex-wrap: wrap;
+    }
+
+    .modalContent,
+    .viewModalBox {
+        max-width: calc(100vw - 24px);
+        margin: 12px;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+
+    .viewModalGridRow {
+        grid-template-columns: 1fr;
+    }
+
+    .viewModalFooter {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
