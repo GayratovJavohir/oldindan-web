@@ -100,59 +100,58 @@ export function mapRoomFromApi(room) {
 }
 
 function currentUserId() {
-    return getStoredUser()?.id ?? null;
+    const user = getStoredUser();
+
+    return (
+        user?.id
+        ?? user?.user_id
+        ?? user?.pk
+        ?? null
+    );
 }
 
 function mapSender(item) {
-    const role = String(
-        item.sender_role
-        || item.sender_type
-        || item.role
-        || item.user_type
-        || item.author_type
-        || item.sender?.role
-        || item.sender?.user_type
-        || '',
-    ).toLowerCase();
-
-    if (
-        role.includes('reception')
-        || role.includes('staff')
-        || role.includes('partner')
-        || role.includes('manager')
-        || role.includes('owner')
-        || role.includes('admin')
-    ) {
-        return 'receptionist';
-    }
-    if (role.includes('consumer') || role.includes('guest') || role.includes('customer')) {
-        return 'guest';
-    }
-    if (item.is_staff || item.is_partner || item.is_receptionist || item.sent_by_staff || item.is_mine || item.mine) {
-        return 'receptionist';
-    }
-    if (item.is_consumer || item.is_guest) return 'guest';
-
-    const senderId = item.sender_id
-        ?? item.sender?.id
+    const senderId =
+        item.sender_id
+        ?? (typeof item.sender === 'object' ? item.sender?.id : item.sender)
         ?? item.user?.id
         ?? item.author?.id
         ?? item.created_by
-        ?? item.created_by_id;
+        ?? item.created_by_id
+        ?? null;
+
     const me = currentUserId();
-    if (me != null && senderId != null && String(senderId) === String(me)) {
+
+    if (
+        me != null &&
+        senderId != null &&
+        String(senderId) === String(me)
+    ) {
         return 'receptionist';
     }
+
     return 'guest';
 }
 
 export function mapMessageFromApi(item, roomId) {
+    if (!item) return null;
+
     return {
         id: item.id,
         conversationId: item.room_id ?? item.room ?? roomId,
         sender: mapSender(item),
-        text: item.text || item.message || item.content || item.body || '',
-        createdAt: item.created_at || item.created || item.timestamp || item.sent_at || null,
+        text:
+            item.content
+            || item.text
+            || item.message
+            || item.body
+            || '',
+        createdAt:
+            item.created_at
+            || item.created
+            || item.timestamp
+            || item.sent_at
+            || null,
         raw: item,
     };
 }
@@ -255,36 +254,17 @@ export async function getMessages(roomId) {
 
 export async function sendMessage(roomId, text) {
     const trimmed = String(text || '').trim();
-    if (!trimmed) throw new Error('Empty message');
 
-    const payloads = [
-        { text: trimmed },
-        { message: trimmed },
-        { content: trimmed },
-        { body: trimmed },
-    ];
-
-    let lastError = null;
-    for (const payload of payloads) {
-        try {
-            const response = await $api.post(`/chat/rooms/${roomId}/messages/send/`, payload);
-            const data = unwrapRoom(response.data) || response.data;
-            const messagePayload = data?.message && typeof data.message === 'object' && !data.text
-                ? data.message
-                : data;
-            return mapMessageFromApi({
-                ...messagePayload,
-                text: messagePayload.text || messagePayload.message || messagePayload.content || trimmed,
-                sender_role: messagePayload.sender_role || 'receptionist',
-                is_mine: true,
-            }, roomId);
-        } catch (err) {
-            lastError = err;
-            if (err?.response?.status !== 400) throw err;
-        }
+    if (!trimmed) {
+        throw new Error('Empty message');
     }
 
-    throw lastError || new Error('Send failed');
+    const response = await $api.post(
+        `/chat/rooms/${roomId}/messages/send/`,
+        { text: trimmed },
+    );
+
+    return mapMessageFromApi(response.data, roomId);
 }
 
 export async function markConversationRead(roomId) {

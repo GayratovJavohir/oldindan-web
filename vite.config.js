@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '')
-    const proxyTarget = env.VITE_PROXY_TARGET || 'https://work-husband-must-instead.trycloudflare.com/'
+    const proxyTarget = env.VITE_PROXY_TARGET || 'https://fuzzy-weekend-sized-begin.trycloudflare.com/'
 
     const proxy = ['/api', '/media', '/static'].reduce((acc, path) => {
         acc[path] = { target: proxyTarget, changeOrigin: true }
